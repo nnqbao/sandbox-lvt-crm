@@ -56,6 +56,7 @@ import type * as lib from "../lib.js";
 import type * as locations from "../locations.js";
 import type * as loginSecurity from "../loginSecurity.js";
 import type * as mail from "../mail.js";
+import type * as mailTransport from "../mailTransport.js";
 import type * as menuAccess from "../menuAccess.js";
 import type * as notificationSettings from "../notificationSettings.js";
 import type * as notifications from "../notifications.js";
@@ -148,6 +149,7 @@ declare const fullApi: ApiFromModules<{
   locations: typeof locations;
   loginSecurity: typeof loginSecurity;
   mail: typeof mail;
+  mailTransport: typeof mailTransport;
   menuAccess: typeof menuAccess;
   notificationSettings: typeof notificationSettings;
   notifications: typeof notifications;
