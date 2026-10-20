@@ -2,64 +2,27 @@
 
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
+import {
+  agentMailFailureCode,
+  buildAgentMailSendRequest,
+  readAgentMailConfig,
+} from "./mailTransport";
 
-type GmailConfig = {
-  clientId: string;
-  clientSecret: string;
-  refreshToken: string;
-  from: string;
-};
-
-function requireGmailConfig(): GmailConfig {
-  const clientId = process.env.GMAIL_CLIENT_ID?.trim() ?? "";
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET?.trim() ?? "";
-  const refreshToken = process.env.GMAIL_REFRESH_TOKEN?.trim() ?? "";
-  const from = process.env.GMAIL_FROM?.trim() || "thcslevantambinhthanh@gmail.com";
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("MAIL_NOT_CONFIGURED");
+async function sendViaAgentMail(
+  message: { to: string; subject: string; text: string },
+  failureCode: string,
+): Promise<void> {
+  const config = readAgentMailConfig(process.env);
+  const { url, init } = buildAgentMailSendRequest(config, message);
+  let response: Response;
+  try {
+    response = await fetch(url, init);
+  } catch {
+    throw new Error(failureCode);
   }
-  return { clientId, clientSecret, refreshToken, from };
-}
-
-async function gmailAccessToken(config: GmailConfig): Promise<string> {
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: config.clientId,
-      client_secret: config.clientSecret,
-      refresh_token: config.refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-  const json = (await response.json()) as { access_token?: string; error?: string };
-  if (!response.ok || !json.access_token) {
-    throw new Error("MAIL_AUTH_FAILED");
+  if (!response.ok) {
+    throw new Error(agentMailFailureCode(response.status, failureCode));
   }
-  return json.access_token;
-}
-
-function encodeSubject(subject: string): string {
-  return `=?UTF-8?B?${Buffer.from(subject, "utf8").toString("base64")}?=`;
-}
-
-function buildRawMessage(args: {
-  from: string;
-  to: string;
-  subject: string;
-  text: string;
-}): string {
-  const lines = [
-    `From: ${args.from}`,
-    `To: ${args.to}`,
-    `Subject: ${encodeSubject(args.subject)}`,
-    "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
-    "",
-    Buffer.from(args.text, "utf8").toString("base64"),
-  ];
-  return Buffer.from(lines.join("\r\n"), "utf8").toString("base64url");
 }
 
 export const sendPasswordResetEmail = internalAction({
@@ -69,8 +32,6 @@ export const sendPasswordResetEmail = internalAction({
     recipientName: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const config = requireGmailConfig();
-    const accessToken = await gmailAccessToken(config);
     const greeting = args.recipientName?.trim()
       ? `Xin chào ${args.recipientName.trim()},`
       : "Xin chào,";
@@ -88,27 +49,10 @@ export const sendPasswordResetEmail = internalAction({
       "THCS Lê Văn Tám",
     ].join("\n");
 
-    const response = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          raw: buildRawMessage({
-            from: config.from,
-            to: args.to,
-            subject: "Mật khẩu tạm — Lê Văn Tám CRM",
-            text,
-          }),
-        }),
-      },
+    await sendViaAgentMail(
+      { to: args.to, subject: "Mật khẩu tạm — Lê Văn Tám CRM", text },
+      "PASSWORD_RESET_EMAIL_FAILED",
     );
-    if (!response.ok) {
-      throw new Error("PASSWORD_RESET_EMAIL_FAILED");
-    }
     return { ok: true as const };
   },
 });
@@ -119,8 +63,6 @@ export const sendAccountLockedEmail = internalAction({
     recipientName: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
-    const config = requireGmailConfig();
-    const accessToken = await gmailAccessToken(config);
     const greeting = args.recipientName?.trim()
       ? `Xin chào ${args.recipientName.trim()},`
       : "Xin chào,";
@@ -136,27 +78,10 @@ export const sendAccountLockedEmail = internalAction({
       "THCS Lê Văn Tám",
     ].join("\n");
 
-    const response = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          raw: buildRawMessage({
-            from: config.from,
-            to: args.to,
-            subject: "Tài khoản bị khóa — Lê Văn Tám CRM",
-            text,
-          }),
-        }),
-      },
+    await sendViaAgentMail(
+      { to: args.to, subject: "Tài khoản bị khóa — Lê Văn Tám CRM", text },
+      "ACCOUNT_LOCKED_EMAIL_FAILED",
     );
-    if (!response.ok) {
-      throw new Error("ACCOUNT_LOCKED_EMAIL_FAILED");
-    }
     return { ok: true as const };
   },
 });
