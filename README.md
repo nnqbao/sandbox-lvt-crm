@@ -18,7 +18,7 @@ Vận hành production:
 - Deploy key Convex Cloud chỉ đọc từ `~/projects/LVT-CRM/.convex-cloud-keys.csv` (untracked) qua `scripts/lvt-convex-cloud-env.sh`; không lưu trong source, bundle hay log.
 - File công văn (Drive mới **và** Convex Storage cũ) không bao giờ đưa link cho trình duyệt. Frontend gửi Convex Auth token đến `/api/files/:documentId`; server kiểm tra quyền, lấy từ **cache server 24 giờ** (hoặc tải Drive/storage một lần rồi cache), rồi mới stream. Upload Drive prewarm cache (best-effort).
 - Drive OAuth do `gog` quản lý ngoài repo. Folder ID được đọc từ macOS Keychain với service `lvt-crm-drive-folder-id`; không commit OAuth token/credential hoặc bật “Anyone with the link”.
-- Quên mật khẩu (web / Android / API iOS): `users.requestPasswordReset` gửi mật khẩu tạm qua Gmail API từ `thcslevantambinhthanh@gmail.com`. Cấu hình Convex env `GMAIL_*` (xem `.env.example`); lấy refresh token một lần bằng `node scripts/gmail-oauth-setup.mjs`. Không commit `client_secret*.json`.
+- Quên mật khẩu (web / Android / API iOS): `users.requestPasswordReset` gửi mật khẩu tạm qua AgentMail từ inbox `thcslevantambinhthanh@agentmail.to`. Cấu hình Convex env `AGENTMAIL_API_KEY`, `AGENTMAIL_INBOX_ID` (xem `.env.example`); thiếu cấu hình báo `MAIL_NOT_CONFIGURED`, key sai/thiếu quyền báo `MAIL_AUTH_FAILED`. Không commit API key.
 
 ## Phạm vi hiện tại
 
