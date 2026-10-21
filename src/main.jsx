@@ -1453,6 +1453,11 @@ function UserManagement() {
               </option>
             ))}
           </select>
+          {form.role === 'moderator' ? (
+            <small>
+              Moderator chỉ thao tác trong phòng ban này ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi. Để trống = toàn trường.
+            </small>
+          ) : null}
         </label>
         <label>
           Chức vụ

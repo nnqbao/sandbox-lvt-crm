@@ -23,7 +23,7 @@ Production: `https://lvt.vscgroup.io.vn`. Stack: React 19 + Vite (`src/`), Conve
 ## Roles
 
 - `admin` — Thiết lập tối cao + account lifecycle
-- `moderator` — operational manager; no supreme settings
+- `moderator` — operational manager; no supreme settings. With a `departmentId` it is scoped to that department in Công việc, Báo cáo, Đánh giá nhân sự, Ghi nhận lỗi (`convex/moderatorScope.ts`, error `MODERATOR_DEPARTMENT_SCOPE`); without one it stays school-wide
 - `user` — menus from `permissionGroups.menuAccess`
 - "Việc của tôi" (`personalTodos`) is owner-only and independent of `work` menu access/approval (see `CLAUDE.md`)
 - Server auth is source of truth; UI visibility is not enforcement
