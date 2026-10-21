@@ -1,5 +1,6 @@
 import {
-  isHomeroomSupervisorAccess,
+  effectiveMenuAccessLevel,
+  HOMEROOM_MENU_ID,
   isMenuVisible,
   isViewAllAccess,
   type MenuAccess,
@@ -42,16 +43,13 @@ export function isHomeroomOperationalManager(actor: HomeroomActor): boolean {
   return isOperationalManagerRole(actor.role);
 }
 
+/** Giám thị (`supervisor`) lives on the attendance menu; on homeroom it resolves to hidden. */
 export function homeroomMenuAccess(actor: HomeroomActor): MenuAccess {
-  return (actor.menuAccess?.homeroom || "hidden") as MenuAccess;
+  return effectiveMenuAccessLevel(HOMEROOM_MENU_ID, actor.menuAccess?.homeroom || "hidden");
 }
 
 export function hasHomeroomMenu(actor: HomeroomActor): boolean {
   return isHomeroomOperationalManager(actor) || isMenuVisible(homeroomMenuAccess(actor));
-}
-
-export function isHomeroomSupervisorUser(actor: HomeroomActor): boolean {
-  return !isHomeroomOperationalManager(actor) && isHomeroomSupervisorAccess(homeroomMenuAccess(actor));
 }
 
 export function isHomeroomViewAllUser(actor: HomeroomActor): boolean {
@@ -108,8 +106,12 @@ export function findEffectiveHomeroomTeacherAssignment(
   );
 }
 
+/**
+ * Legacy whole-school camera import (now retired): only admin/mod may still read its history.
+ * Giám thị marks attendance on the separate Điểm danh menu (convex/supervisorAttendance.ts).
+ */
 export function canImportAttendanceWithoutClassAssignment(actor: HomeroomActor): boolean {
-  return isHomeroomOperationalManager(actor) || isHomeroomSupervisorUser(actor);
+  return isHomeroomOperationalManager(actor);
 }
 
 export function canBulkImportRoster(actor: HomeroomActor): boolean {
@@ -169,7 +171,7 @@ export function resolveCatalogScope(actor: HomeroomActor): HomeroomClassScope {
   return canWriteHomeroomCatalog(actor) ? { kind: "all" } : { kind: "none" };
 }
 
-/** Supervisor menu or admin/mod may list active classes for attendance import. */
+/** Admin/mod may list active classes of the retired camera import. */
 export function resolveAttendanceImportClassScope(actor: HomeroomActor): HomeroomClassScope {
   return canImportAttendanceWithoutClassAssignment(actor) ? { kind: "all" } : { kind: "none" };
 }
@@ -238,12 +240,13 @@ export function actorAssignedToStudentClass(
   assignments: HomeroomAssignment[],
   enrollments: Array<{ classId: string; schoolYearId?: string; startDate: string; endDate?: string }>,
 ): boolean {
-  if (isHomeroomOperationalManager(actor) || isHomeroomViewAllUser(actor) || isHomeroomSupervisorUser(actor)) {
+  if (!hasHomeroomMenu(actor) || isHomeroomOperationalManager(actor) || isHomeroomViewAllUser(actor)) {
     return false;
   }
   return enrollments.some((enrollment) =>
     assignments.some((row) => {
       if (String(row.userId) !== String(actor.userId) || !row.active) return false;
+      if (!isHomeroomTeacherClassAssignment(row)) return false;
       if (enrollment.schoolYearId && row.schoolYearId !== enrollment.schoolYearId) return false;
       if (row.scopeKind !== "class" || row.classId !== enrollment.classId) return false;
       return rangesOverlap(row.effectiveFrom, row.effectiveTo, enrollment.startDate, enrollment.endDate);
@@ -342,8 +345,8 @@ export function canUploadCamera(
 
 /**
  * Absence classification (Có phép / Không phép): the GVCN effective on that
- * attendance date, or an operational manager. Giám thị only imports files and
- * view_all only reads.
+ * attendance date, or an operational manager. Giám thị (attendance menu) only marks
+ * present/absent and view_all only reads.
  */
 export function canCorrectDisposition(
   actor: HomeroomActor,
@@ -353,11 +356,11 @@ export function canCorrectDisposition(
 ): boolean {
   if (!hasHomeroomMenu(actor)) return false;
   if (isHomeroomOperationalManager(actor)) return true;
-  if (isHomeroomSupervisorUser(actor) || isHomeroomViewAllUser(actor)) return false;
+  if (isHomeroomViewAllUser(actor)) return false;
   return teacherClassAssignmentsOnDate(actor, assignments, { date, classId }).length > 0;
 }
 
-/** Only camera "Vắng" rows can be classified; Có mặt / Trễ stay as observed. */
+/** Only "Vắng" rows can be classified; Có mặt / Trễ stay as observed. */
 export const CORRECTABLE_RAW_OBSERVATION = "absent";
 export const DISPOSITION_NOT_ABSENT = "DISPOSITION_NOT_ABSENT";
 export const DISPOSITION_FORBIDDEN = "DISPOSITION_FORBIDDEN";
@@ -393,7 +396,7 @@ export function canEditStudentContacts(
 ): boolean {
   if (!hasHomeroomMenu(actor)) return false;
   if (isHomeroomOperationalManager(actor)) return true;
-  if (isHomeroomSupervisorUser(actor) || isHomeroomViewAllUser(actor)) return false;
+  if (isHomeroomViewAllUser(actor)) return false;
   return classIds.some((classId) => teacherClassAssignmentsOnDate(actor, assignments, { date, classId }).length > 0);
 }
 

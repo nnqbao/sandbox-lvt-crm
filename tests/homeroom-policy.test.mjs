@@ -88,6 +88,7 @@ const otherTeacher = {
   menuAccess: { homeroom: 'view' },
 };
 
+/** Legacy Giám thị: homeroom=supervisor now resolves to hidden (Giám thị moved to menu attendance). */
 const supervisor = {
   userId: 'sup-1',
   role: 'user',
@@ -157,30 +158,32 @@ test('managers, view_all, and supervisor assignments never populate teacher over
   assert.equal(canReadClass(viewAll, [], 'class-6a2', date), true);
   assert.deepEqual(resolveCatalogScope(admin), { kind: 'all' });
   assert.deepEqual(resolveCatalogScope(supervisor), { kind: 'none' });
-  assert.deepEqual(resolveAttendanceImportClassScope(supervisor), { kind: 'all' });
+  assert.deepEqual(resolveAttendanceImportClassScope(supervisor), { kind: 'none' });
   assert.deepEqual(resolveAttendanceImportClassScope(admin), { kind: 'all' });
   assert.deepEqual(resolveAttendanceImportClassScope(teacher), { kind: 'none' });
 });
 
-test('supervisor can import for any class without an assignment; teachers cannot', () => {
+test('legacy homeroom supervisor has no homeroom access; retired camera import is admin/mod only', () => {
   const date = '2026-09-01';
-  assert.equal(canUploadCamera(supervisor, [], 'class-6a2', date), true);
+  assert.equal(canUploadCamera(supervisor, [], 'class-6a2', date), false);
   assert.equal(canCorrectDisposition(supervisor, [], 'class-6a2', date), false);
-  assert.throws(
-    () => assertCanCorrectDisposition(supervisor, [], 'class-6a2', date),
-    /DISPOSITION_FORBIDDEN/,
-  );
-  assert.equal(canImportAttendanceWithoutClassAssignment(supervisor), true);
-  assert.doesNotThrow(() => assertCanSupervisorImport(supervisor, [], 'class-6a2', date));
-  assert.doesNotThrow(() => assertCanListAttendanceImportClasses(supervisor));
+  assert.throws(() => assertCanCorrectDisposition(supervisor, [], 'class-6a2', date), /HOMEROOM_MENU_HIDDEN/);
+  assert.equal(canImportAttendanceWithoutClassAssignment(supervisor), false);
+  assert.throws(() => assertCanSupervisorImport(supervisor, [], 'class-6a2', date), /HOMEROOM_MENU_HIDDEN/);
+  assert.throws(() => assertCanListAttendanceImportClasses(supervisor), /HOMEROOM_MENU_HIDDEN/);
+  assert.throws(() => assertCanReadClass(supervisor, [], 'class-6a2', date), /HOMEROOM_MENU_HIDDEN/);
+  assert.equal(canImportAttendanceWithoutClassAssignment(admin), true);
+  assert.doesNotThrow(() => assertCanListAttendanceImportClasses(admin));
   assert.equal(canUploadCamera(teacher, [teacherAssignment], 'class-6a1', date), false);
   assert.throws(
     () => assertCanSupervisorImport(teacher, [teacherAssignment], 'class-6a1', date),
     new RegExp(SUPERVISOR_REQUIRED),
   );
   assert.throws(() => assertCanListAttendanceImportClasses(teacher), new RegExp(SUPERVISOR_REQUIRED));
-  const ended = { ...supervisorAssignment, active: false, effectiveTo: '2026-08-31' };
-  assert.equal(canUploadCamera(supervisor, [ended], 'class-6a1', date), true);
+  // Attendance-menu Giám thị (menu attendance) still gets nothing in homeroom.
+  const attendanceSupervisor = { ...supervisor, menuAccess: { attendance: 'supervisor' } };
+  assert.equal(canReadClass(attendanceSupervisor, [], 'class-6a1', date), false);
+  assert.equal(canCorrectDisposition(attendanceSupervisor, [], 'class-6a1', date), false);
 });
 
 test('homeroom teacher classifies absences only for own class on that date; admin anywhere', () => {
@@ -477,7 +480,7 @@ test('invalid from>to range and cross-student guardian updates are rejected', ()
   assert.doesNotThrow(() => assertGuardianBelongsToStudent({ studentId: 'st-1' }, 'st-1'));
   assert.throws(
     () => assertCanMaintainAssignedRoster(supervisor, [supervisorAssignment], 'class-6a1', '2026-09-01'),
-    new RegExp(HOMEROOM_SCOPE_FORBIDDEN),
+    /HOMEROOM_MENU_HIDDEN/,
   );
 });
 

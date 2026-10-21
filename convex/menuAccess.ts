@@ -1,4 +1,8 @@
-/** Canonical menu-access helpers. Giám thị (`supervisor`) is homeroom-only. */
+/**
+ * Canonical menu-access helpers.
+ * Giám thị (`supervisor`) is valid only on the `attendance` menu (Điểm danh); that menu
+ * accepts only `hidden` or `supervisor` for ordinary users (admin/mod get full access by role).
+ */
 
 export const SYSTEM_MENU_DEFS = [
   { id: "reports", label: "Báo cáo" },
@@ -6,6 +10,7 @@ export const SYSTEM_MENU_DEFS = [
   { id: "duties", label: "Lịch công tác" },
   { id: "work", label: "Công việc" },
   { id: "homeroom", label: "Lớp chủ nhiệm" },
+  { id: "attendance", label: "Điểm danh" },
   { id: "people-review", label: "Đánh giá nhân sự" },
   { id: "staff-faults", label: "Ghi nhận lỗi" },
 ] as const;
@@ -17,7 +22,12 @@ export type LegacyMenuAccess = MenuAccess | "edit";
 export type CanonicalMenuAccess = "hidden" | "view" | "view_all" | "supervisor";
 
 export const HOMEROOM_MENU_ID: MenuId = "homeroom";
+export const ATTENDANCE_MENU_ID: MenuId = "attendance";
+/** The only menu where `supervisor` (Giám thị) is a valid level. */
+export const SUPERVISOR_MENU_ID: MenuId = ATTENDANCE_MENU_ID;
 export const INVALID_MENU_ACCESS = "INVALID_MENU_ACCESS";
+
+const ATTENDANCE_LEVELS: readonly string[] = ["hidden", "supervisor"];
 
 export function defaultAccessForMenu(menuId: string): MenuAccess {
   return menuId === "notifications" ? "view" : "hidden";
@@ -45,26 +55,29 @@ export function isViewAllAccess(access: MenuAccess | CanonicalMenuAccess | undef
   return access === "view_all";
 }
 
-export function isHomeroomSupervisorAccess(
-  access: MenuAccess | CanonicalMenuAccess | undefined,
-): boolean {
+export function isSupervisorAccess(access: MenuAccess | CanonicalMenuAccess | string | undefined): boolean {
   return access === "supervisor";
+}
+
+/** True when the level is allowed on that menu (ignores unknown levels, which resolve to hidden). */
+export function isLevelAllowedOnMenu(menu: string, access: string | undefined): boolean {
+  if (menu === ATTENDANCE_MENU_ID) return access == null || ATTENDANCE_LEVELS.includes(access);
+  return access !== "supervisor";
 }
 
 /**
  * Runtime resolution keeps legacy `edit` so canOperateMenu still matches stored rows.
- * `supervisor` never grants another menu and never satisfies view_all.
+ * `supervisor` exists only on `attendance`, never grants another menu and never satisfies view_all.
  */
 export function effectiveMenuAccessLevel(
   menu: string,
   raw: string | undefined,
 ): MenuAccess {
-  if (raw === "supervisor") {
-    return menu === HOMEROOM_MENU_ID ? "supervisor" : "hidden";
-  }
+  if (!raw) return defaultAccessForMenu(menu);
+  if (!isLevelAllowedOnMenu(menu, raw)) return "hidden";
+  if (raw === "supervisor") return "supervisor";
   if (raw === "edit") return "edit";
   if (raw === "view" || raw === "view_all" || raw === "hidden") return raw;
-  if (!raw) return defaultAccessForMenu(menu);
   return "hidden";
 }
 
@@ -77,7 +90,7 @@ export function assertValidMenuAccessEntries(
   entries: { menu: string; access: string }[] | undefined,
 ) {
   for (const entry of entries || []) {
-    if (entry.access === "supervisor" && entry.menu !== HOMEROOM_MENU_ID) {
+    if (!isLevelAllowedOnMenu(entry.menu, entry.access)) {
       throw new Error(INVALID_MENU_ACCESS);
     }
   }
@@ -92,7 +105,7 @@ export function normalizeMenuAccess(
     if (raw === undefined) {
       return { menu: item.id, access: defaultAccessForMenu(item.id) };
     }
-    if (raw === "supervisor" && item.id !== HOMEROOM_MENU_ID) {
+    if (!isLevelAllowedOnMenu(item.id, raw)) {
       return { menu: item.id, access: "hidden" as MenuAccess };
     }
     return {
@@ -102,7 +115,29 @@ export function normalizeMenuAccess(
   });
 }
 
-/** Shared create/update boundary: reject crafted non-homeroom supervisor payloads. */
+/**
+ * One-time move of Giám thị from the homeroom menu to the attendance menu:
+ * homeroom=supervisor → homeroom=hidden + attendance=supervisor. Groups without it get
+ * attendance=hidden. Idempotent: running it on migrated entries returns them unchanged.
+ */
+export function migrateSupervisorMenuAccess(
+  entries: { menu: string; access: MenuAccess | string }[] | undefined,
+): { menuAccess: { menu: string; access: MenuAccess }[]; movedSupervisor: boolean } {
+  const list = entries || [];
+  const movedSupervisor = list.some(
+    (entry) => entry.menu === HOMEROOM_MENU_ID && entry.access === "supervisor",
+  );
+  if (!movedSupervisor) return { menuAccess: normalizeMenuAccess(list), movedSupervisor };
+  const rewritten = list
+    .filter((entry) => entry.menu !== HOMEROOM_MENU_ID && entry.menu !== ATTENDANCE_MENU_ID)
+    .concat([
+      { menu: HOMEROOM_MENU_ID, access: "hidden" },
+      { menu: ATTENDANCE_MENU_ID, access: "supervisor" },
+    ]);
+  return { menuAccess: normalizeMenuAccess(rewritten), movedSupervisor };
+}
+
+/** Shared create/update boundary: reject supervisor outside `attendance` and view levels on it. */
 export function cleanPermissionGroupMenuAccess(
   entries: { menu: string; access: MenuAccess | string }[] | undefined,
 ): { menu: string; access: MenuAccess }[] {

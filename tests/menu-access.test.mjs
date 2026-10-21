@@ -8,10 +8,13 @@ import {
   canOperateMenu,
   cleanPermissionGroupMenuAccess,
   defaultMenuAccess,
-  isHomeroomSupervisorAccess,
+  effectiveMenuAccessLevel,
   isMenuVisible,
+  isSupervisorAccess,
   isViewAllAccess,
+  migrateSupervisorMenuAccess,
   normalizeMenuAccess,
+  SYSTEM_MENU_DEFS,
 } from '../convex/menuAccess.ts';
 
 test('normalizeMenuAccess map legacy edit thành view', () => {
@@ -35,6 +38,7 @@ test('normalizeMenuAccess điền menu thiếu: Thông báo view, còn lại hid
   assert.equal(normalized.notifications, 'view');
   assert.equal(normalized.work, 'hidden');
   assert.equal(normalized.homeroom, 'hidden');
+  assert.equal(normalized.attendance, 'hidden');
   assert.equal(normalized['staff-faults'], 'hidden');
 });
 
@@ -47,24 +51,21 @@ test('canOperateMenu true cho view, view_all và legacy edit; false cho hidden v
   assert.equal(canOperateMenu(undefined), false);
 });
 
-test('homeroom=supervisor is canonical and remains supervisor', () => {
-  const normalized = normalizeMenuAccess([{ menu: 'homeroom', access: 'supervisor' }]);
-  const homeroom = normalized.find((entry) => entry.menu === 'homeroom');
-  assert.equal(homeroom?.access, 'supervisor');
-  assert.equal(isHomeroomSupervisorAccess(homeroom?.access), true);
-  assert.equal(isMenuVisible(homeroom?.access), true);
-  assert.equal(isViewAllAccess(homeroom?.access), false);
+test('attendance=supervisor is canonical and remains supervisor', () => {
+  const normalized = normalizeMenuAccess([{ menu: 'attendance', access: 'supervisor' }]);
+  const attendance = normalized.find((entry) => entry.menu === 'attendance');
+  assert.equal(attendance?.access, 'supervisor');
+  assert.equal(isSupervisorAccess(attendance?.access), true);
+  assert.equal(isMenuVisible(attendance?.access), true);
+  assert.equal(isViewAllAccess(attendance?.access), false);
+  assert.equal(effectiveMenuAccessLevel('attendance', 'supervisor'), 'supervisor');
 });
 
-test('supervisor on any menu other than homeroom is rejected', () => {
-  assert.throws(
-    () => assertValidMenuAccessEntries([{ menu: 'duties', access: 'supervisor' }]),
-    /INVALID_MENU_ACCESS/,
-  );
-  assert.throws(
-    () => assertValidMenuAccessEntries([{ menu: 'work', access: 'supervisor' }]),
-    /INVALID_MENU_ACCESS/,
-  );
+test('supervisor on any menu other than attendance is rejected — including homeroom', () => {
+  for (const menu of ['homeroom', 'duties', 'work', 'reports']) {
+    assert.throws(() => assertValidMenuAccessEntries([{ menu, access: 'supervisor' }]), /INVALID_MENU_ACCESS/);
+    assert.equal(effectiveMenuAccessLevel(menu, 'supervisor'), 'hidden');
+  }
   assert.throws(
     () =>
       cleanPermissionGroupMenuAccess([
@@ -77,6 +78,46 @@ test('supervisor on any menu other than homeroom is rejected', () => {
       ]),
     /INVALID_MENU_ACCESS/,
   );
+  const normalized = normalizeMenuAccess([{ menu: 'homeroom', access: 'supervisor' }]);
+  assert.equal(normalized.find((entry) => entry.menu === 'homeroom')?.access, 'hidden');
+});
+
+test('attendance accepts only hidden or supervisor', () => {
+  for (const access of ['view', 'view_all', 'edit']) {
+    assert.throws(() => assertValidMenuAccessEntries([{ menu: 'attendance', access }]), /INVALID_MENU_ACCESS/);
+    assert.equal(effectiveMenuAccessLevel('attendance', access), 'hidden');
+    assert.equal(normalizeMenuAccess([{ menu: 'attendance', access }]).find((e) => e.menu === 'attendance')?.access, 'hidden');
+  }
+  assert.doesNotThrow(() => assertValidMenuAccessEntries([{ menu: 'attendance', access: 'hidden' }]));
+  assert.equal(effectiveMenuAccessLevel('attendance', undefined), 'hidden');
+});
+
+test('Điểm danh sits right after Lớp chủ nhiệm in the system menus', () => {
+  const ids = SYSTEM_MENU_DEFS.map((item) => item.id);
+  assert.equal(ids.indexOf('attendance'), ids.indexOf('homeroom') + 1);
+  assert.equal(SYSTEM_MENU_DEFS.find((item) => item.id === 'attendance')?.label, 'Điểm danh');
+});
+
+test('migration moves homeroom Giám thị to attendance and is idempotent', () => {
+  const legacy = [
+    { menu: 'homeroom', access: 'supervisor' },
+    { menu: 'duties', access: 'view' },
+  ];
+  const first = migrateSupervisorMenuAccess(legacy);
+  assert.equal(first.movedSupervisor, true);
+  const map = Object.fromEntries(first.menuAccess.map((e) => [e.menu, e.access]));
+  assert.equal(map.homeroom, 'hidden');
+  assert.equal(map.attendance, 'supervisor');
+  assert.equal(map.duties, 'view');
+  const second = migrateSupervisorMenuAccess(first.menuAccess);
+  assert.equal(second.movedSupervisor, false);
+  assert.deepEqual(second.menuAccess, first.menuAccess);
+
+  const other = migrateSupervisorMenuAccess([{ menu: 'homeroom', access: 'view' }]);
+  assert.equal(other.movedSupervisor, false);
+  const otherMap = Object.fromEntries(other.menuAccess.map((e) => [e.menu, e.access]));
+  assert.equal(otherMap.homeroom, 'view');
+  assert.equal(otherMap.attendance, 'hidden');
 });
 
 test('legacy edit normalizes to view and is never promoted to supervisor', () => {
@@ -100,28 +141,32 @@ test('unknown access never grants visibility or view_all', () => {
 
 test('supervisor is not view_all and does not broaden another menu', () => {
   const normalized = normalizeMenuAccess([
-    { menu: 'homeroom', access: 'supervisor' },
+    { menu: 'attendance', access: 'supervisor' },
     { menu: 'reports', access: 'hidden' },
   ]);
   const reports = normalized.find((entry) => entry.menu === 'reports');
+  const attendance = normalized.find((entry) => entry.menu === 'attendance');
   const homeroom = normalized.find((entry) => entry.menu === 'homeroom');
-  assert.equal(isViewAllAccess(homeroom?.access), false);
+  assert.equal(isViewAllAccess(attendance?.access), false);
+  assert.equal(canOperateMenu(attendance?.access), false);
   assert.equal(isMenuVisible(reports?.access), false);
-  assert.equal(isHomeroomSupervisorAccess(reports?.access), false);
+  assert.equal(isMenuVisible(homeroom?.access), false);
+  assert.equal(isSupervisorAccess(reports?.access), false);
 });
 
-test('create and update shared helper reject a crafted non-homeroom supervisor payload', () => {
+test('create and update shared helper reject a crafted non-attendance supervisor payload', () => {
   const crafted = [
     { menu: 'reports', access: 'supervisor' },
     { menu: 'homeroom', access: 'view' },
   ];
   assert.throws(() => cleanPermissionGroupMenuAccess(crafted), /INVALID_MENU_ACCESS/);
+  assert.throws(() => cleanPermissionGroupMenuAccess([{ menu: 'homeroom', access: 'supervisor' }]), /INVALID_MENU_ACCESS/);
   assert.doesNotThrow(() =>
-    cleanPermissionGroupMenuAccess([{ menu: 'homeroom', access: 'supervisor' }]),
+    cleanPermissionGroupMenuAccess([{ menu: 'attendance', access: 'supervisor' }]),
   );
 });
 
-test('permission matrix source shows Giám thị after Xem tối cao and only for homeroom', () => {
+test('permission matrix source shows Giám thị after Xem tối cao and only for attendance', () => {
   const source = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
   const headStart = source.indexOf('perm-matrix-head');
   assert.ok(headStart > 0);
@@ -134,7 +179,7 @@ test('permission matrix source shows Giám thị after Xem tối cao and only fo
   assert.ok(hiddenAt >= 0 && viewAt > hiddenAt && viewAllAt > viewAt && supervisorAt > viewAllAt);
   assert.equal(editAt, -1, 'Sửa must not remain a visible matrix column');
 
-  assert.match(source, /menu\.id !== ['"]homeroom['"]/);
+  assert.match(source, /isMatrixLevelAvailable/);
   assert.match(source, /radio-cell-unavailable|—/);
-  assert.match(source, /Giám thị chỉ dành cho menu Lớp chủ nhiệm/);
+  assert.match(source, /Giám thị chỉ dành cho menu Điểm danh/);
 });
