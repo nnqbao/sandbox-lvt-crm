@@ -11,6 +11,7 @@ import {
 } from "./lib";
 import {
   cleanPermissionGroupMenuAccess,
+  menuAccessEntriesEqual,
   migrateSupervisorMenuAccess,
 } from "./menuAccess";
 
@@ -82,7 +83,7 @@ export const ensureCodes = mutation({
     let patched = 0;
     for (const group of groups) {
       const { menuAccess } = migrateSupervisorMenuAccess(group.menuAccess);
-      const accessChanged = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
+      const accessChanged = !menuAccessEntriesEqual(menuAccess, group.menuAccess);
       const patch: { code?: string; menuAccess?: typeof menuAccess; updatedAt: number } = {
         updatedAt: now,
       };
@@ -113,7 +114,7 @@ export const remapLegacyEditAccess = internalMutation({
     for (const group of groups) {
       const { menuAccess } = migrateSupervisorMenuAccess(group.menuAccess);
       const hadEdit = (group.menuAccess || []).some((entry) => entry.access === "edit");
-      const patched = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
+      const patched = !menuAccessEntriesEqual(menuAccess, group.menuAccess);
       if (patched) {
         await ctx.db.patch(group._id, { menuAccess, updatedAt: now });
       }
@@ -144,7 +145,7 @@ export const migrateSupervisorToAttendance = internalMutation({
     const results = [];
     for (const group of groups) {
       const { menuAccess, movedSupervisor } = migrateSupervisorMenuAccess(group.menuAccess);
-      const patched = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
+      const patched = !menuAccessEntriesEqual(menuAccess, group.menuAccess);
       if (patched) {
         await ctx.db.patch(group._id, { menuAccess, updatedAt: now });
       }

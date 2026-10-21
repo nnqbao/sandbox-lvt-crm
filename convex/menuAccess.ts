@@ -137,6 +137,28 @@ export function migrateSupervisorMenuAccess(
   return { menuAccess: normalizeMenuAccess(rewritten), movedSupervisor };
 }
 
+/**
+ * Same menu → access mapping, ignoring entry order and object key order
+ * (Convex may return stored objects with keys in a different order, so a
+ * JSON.stringify comparison reports a change on every run).
+ */
+export function menuAccessEntriesEqual(
+  a: { menu: string; access: string }[] | undefined,
+  b: { menu: string; access: string }[] | undefined,
+): boolean {
+  const left = a || [];
+  const right = b || [];
+  if (left.length !== right.length) return false;
+  const leftMap = new Map(left.map((entry) => [String(entry.menu), String(entry.access)]));
+  if (leftMap.size !== left.length) return false;
+  const rightMap = new Map(right.map((entry) => [String(entry.menu), String(entry.access)]));
+  if (rightMap.size !== right.length) return false;
+  for (const [menu, access] of leftMap) {
+    if (rightMap.get(menu) !== access) return false;
+  }
+  return true;
+}
+
 /** Shared create/update boundary: reject supervisor outside `attendance` and view levels on it. */
 export function cleanPermissionGroupMenuAccess(
   entries: { menu: string; access: MenuAccess | string }[] | undefined,
