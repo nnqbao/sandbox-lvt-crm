@@ -1,9 +1,11 @@
-import { useEffect, useId, useState } from 'react';
+import { Component, useEffect, useId, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { messageFor } from '../lib/appErrorMessage';
 import CollapsibleMultiCheckList from '../lib/CollapsibleMultiCheckList.jsx';
 import { EditActionConfirm } from '../lib/ConfirmActionModal';
+import DutyChangeHistory from './DutyChangeHistory';
+import { dutyEditModeFor } from './sharedDutySchedule.js';
 import DutyEditorFields from './DutyEditorFields';
 import {
   applyDutyEndDateTime,
@@ -14,21 +16,75 @@ import {
   dutyPayloadFromForm,
 } from './dutyDisplay';
 
-export default function DutyEditModal({ duty, onClose, onSaved = null }) {
+export { dutyEditModeFor };
+
+/**
+ * `mode="reviewer"`: BGH edits the working copy of a school duty through
+ * `duties.reviewerUpdate` (live at once, no re-approval, logged). The form
+ * starts from the server's working copy, not the teacher-facing projection.
+ */
+class DutyEditBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div className="duty-edit-scope">
+        <div className="duty-edit-backdrop" role="presentation" onClick={this.props.onClose}>
+          <div className="duty-edit-modal" role="alertdialog" aria-modal="true" aria-label="Không mở được biểu mẫu" onClick={(event) => event.stopPropagation()}>
+            <div className="duty-edit-modal-body">
+              <p className="work-feedback error" role="alert">{messageFor(this.state.error)}</p>
+            </div>
+            <div className="work-editor-actions duty-editor-actions duty-edit-modal-footer">
+              <button type="button" className="work-primary-button" onClick={this.props.onClose}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default function DutyEditModal(props) {
+  return (
+    <DutyEditBoundary onClose={props.onClose}>
+      <DutyEditModalBody {...props} />
+    </DutyEditBoundary>
+  );
+}
+
+function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) {
   const titleId = useId();
-  const options = useQuery(anyApi.duties.formOptions);
+  const isReviewer = mode === 'reviewer';
+  const managerOptions = useQuery(anyApi.duties.formOptions, isReviewer ? 'skip' : {});
+  const reviewerContext = useQuery(anyApi.duties.reviewerEditContext, isReviewer && duty?._id ? { id: duty._id } : 'skip');
+  const options = isReviewer ? reviewerContext : managerOptions;
   const update = useMutation(anyApi.duties.update);
+  const reviewerUpdate = useMutation(anyApi.duties.reviewerUpdate);
   const [form, setForm] = useState(() => dutyFormFromItem(duty));
   const [pending, setPending] = useState('');
   const [feedback, setFeedback] = useState({ type: '', text: '' });
   const [editConfirm, setEditConfirm] = useState(null);
-  const includeDepartments = Boolean(options?.isOps);
+  const includeDepartments = isReviewer || Boolean(options?.isOps);
 
   useEffect(() => {
     setForm(dutyFormFromItem(duty));
     setFeedback({ type: '', text: '' });
     setEditConfirm(null);
   }, [duty?._id]);
+
+  const reviewerSourceId = reviewerContext?.duty?._id;
+  useEffect(() => {
+    if (!isReviewer || !reviewerContext?.duty) return;
+    setForm(dutyFormFromItem(reviewerContext.duty));
+  }, [isReviewer, reviewerSourceId]);
 
   useEffect(() => {
     const onKey = (event) => {
@@ -53,7 +109,7 @@ export default function DutyEditModal({ duty, onClose, onSaved = null }) {
     setPending('save');
     setFeedback({ type: '', text: '' });
     try {
-      await update({ id: duty._id, ...payload });
+      await (isReviewer ? reviewerUpdate : update)({ id: duty._id, ...payload });
       onSaved?.();
       onClose();
     } catch (error) {
@@ -91,7 +147,7 @@ export default function DutyEditModal({ duty, onClose, onSaved = null }) {
           <div className="work-editor-title duty-edit-modal-header">
             <div>
               <span>CẬP NHẬT LỊCH</span>
-              <h3 id={titleId}>Sửa công tác</h3>
+              <h3 id={titleId}>{isReviewer ? 'Sửa công tác (Ban Giám hiệu)' : 'Sửa công tác'}</h3>
             </div>
             <button type="button" className="duty-editor-close" onClick={onClose} aria-label="Đóng biểu mẫu">
               <span aria-hidden="true">×</span> Đóng
@@ -99,6 +155,11 @@ export default function DutyEditModal({ duty, onClose, onSaved = null }) {
           </div>
 
           <div className="duty-edit-modal-body duty-modern-editor">
+            {isReviewer ? (
+              <p className="duty-reviewer-note" role="note">
+                Thay đổi sẽ áp dụng ngay, không cần duyệt lại và được ghi lịch sử.
+              </p>
+            ) : null}
             {options === undefined ? (
               <p className="lct-loading">Đang tải biểu mẫu sửa công tác…</p>
             ) : (
@@ -142,6 +203,7 @@ export default function DutyEditModal({ duty, onClose, onSaved = null }) {
                 {feedback.text}
               </div>
             ) : null}
+            {duty?.canViewHistory || isReviewer ? <DutyChangeHistory dutyId={duty._id} /> : null}
           </div>
 
           <div className="work-editor-actions duty-editor-actions duty-edit-modal-footer">

@@ -152,7 +152,7 @@ export const commitValidatedInternal = internalMutation({
       });
       const refError = evaluateDutyRefs(input, actor, { departments, users });
       if (refError) throw new Error(refError);
-      const id = await insertCreatedDuty(ctx, actor, input);
+      const id = await insertCreatedDuty(ctx, actor, input, "import");
       created.push({ id: String(id), title: input.title });
     }
 

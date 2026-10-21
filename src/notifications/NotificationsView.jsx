@@ -25,7 +25,7 @@ function NotificationItem({ item, onOpen, onDismiss, canDelete, pending }) {
       <button
         type="button"
         className="notification-card-main"
-        title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : 'Mở công việc này'}
+        title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
         onClick={() => onOpen(item)}
         disabled={pending === item.key}
       >
@@ -107,7 +107,8 @@ export default function NotificationsView({ data, onOpenItem }) {
   }
 
   const dutyItems = data.items.filter((item) => item.kind === 'duty');
-  const workItems = data.items.filter((item) => item.kind === 'work');
+  // "Việc của tôi" reminders sit with Công việc.
+  const workItems = data.items.filter((item) => item.kind === 'work' || item.kind === 'todo');
   const groupItems = data.items.filter((item) => item.kind === 'group');
   const unreadKeys = data.items.filter((item) => !item.read).map((item) => item.key);
 

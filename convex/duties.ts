@@ -35,15 +35,66 @@ import {
   dutyScopeForCreator,
   dutyWeekLastDay,
   dutyWeeksInRange,
+  canReviewerEditDuty,
   isDutyWeekReviewer,
   isTeamDuty,
   legacySnapshotPatch,
+  reviewerEditPatchForDuty,
   projectPublicDuty,
   publishedDutyFields,
   summarizeDutyWeek,
   weeksAffectedByDuty,
 } from "./dutyApproval";
-import { loadDutyWeekRecords, reopenSubmittedWeeks, resolveDutyScope } from "./dutyWeekStore";
+import {
+  dutyViewerLevel,
+  loadDutyWeekRecords,
+  reopenSubmittedWeeks,
+  resolveDutyScope,
+} from "./dutyWeekStore";
+import {
+  buildDutyChangeDiff,
+  canViewDutyChangeHistory,
+  DUTY_ACTOR_KIND_LABELS,
+  DUTY_CHANGE_ACTION_LABELS,
+  dutyLogReferencedIds,
+  dutyWriterKind,
+  formatDutyLogTimestamp,
+  type DutyActorKind,
+  type DutyChangeAction,
+  type DutyLogFields,
+} from "./dutyChangeLog";
+
+/** Field-level history row; names are resolved now so the log stays readable later. */
+export async function writeDutyChangeLog(
+  ctx: { db: any },
+  args: {
+    dutyId: any;
+    actorUserId: string;
+    actorKind: DutyActorKind;
+    action: DutyChangeAction;
+    before: DutyLogFields | null;
+    after: DutyLogFields | null;
+    at: number;
+  },
+) {
+  const refs = dutyLogReferencedIds(args.before, args.after);
+  const [departments, users] = await Promise.all([
+    loadDocsByIds(ctx, refs.departmentIds),
+    loadDocsByIds(ctx, refs.userIds),
+  ]);
+  const changes = buildDutyChangeDiff(args.before, args.after, {
+    departments: new Map(departments.map((row: any) => [String(row._id), String(row.name || row.code || "")])),
+    users: new Map(users.map((row: any) => [String(row._id), String(row.name || row.email || "")])),
+  });
+  await ctx.db.insert("dutyChangeLogs", {
+    dutyId: args.dutyId,
+    actorUserId: String(args.actorUserId),
+    actorKind: args.actorKind,
+    action: args.action,
+    at: args.at,
+    changes,
+  });
+}
 
 async function assertRefs(
   ctx: { db: any },
@@ -87,6 +138,7 @@ export async function insertCreatedDuty(
     participantUserIds: string[];
     otherParticipants: string;
   },
+  logAction: "create" | "import" = "create",
 ) {
   const now = Date.now();
   const scope = dutyScopeForCreator(actor.isOps);
@@ -104,6 +156,15 @@ export async function insertCreatedDuty(
     actorUserId: actor.user._id,
     action: "duty.create",
     details: JSON.stringify({ id, title: input.title, content: input.content }),
+    at: now,
+  });
+  await writeDutyChangeLog(ctx, {
+    dutyId: id,
+    actorUserId: String(actor.user._id),
+    actorKind: dutyWriterKind(actor.isOps),
+    action: logAction,
+    before: null,
+    after: input,
     at: now,
   });
   if (scope === "school") {
@@ -579,6 +640,9 @@ export const sharedSchedule = query({
           updatedAt: duty.updatedAt,
           approvalChange: pending ? (publishedDutyFields(duty) ? "changed" : "added") : null,
           canManage: isAdmin || String(duty.createdBy || "") === String(user._id),
+          // Rows here are never team rows; reviewerUpdate re-checks scope server-side.
+          canReviewerEdit: slice.viewer === "reviewer" && duty.active !== false,
+          canViewHistory: slice.viewer !== "public" || String(duty.createdBy || "") === String(user._id),
           canChat: canAccessDutyChat({
             actorUserId: String(user._id),
             actorRole: String(user.role || ""),
@@ -703,6 +767,15 @@ export const update = mutation({
         details: JSON.stringify({ id: args.id, title: input.title, content: input.content }),
         at: now,
       });
+      await writeDutyChangeLog(ctx, {
+        dutyId: args.id,
+        actorUserId: String(actor.user._id),
+        actorKind: dutyWriterKind(actor.isOps),
+        action: "update",
+        before: current,
+        after: input,
+        at: now,
+      });
       const before = { ...current, scope };
       const after = { ...current, ...patch };
       await reopenSubmittedWeeks(ctx, weeksAffectedByDuty(before, after), String(actor.user._id), now);
@@ -718,6 +791,15 @@ export const update = mutation({
       actorUserId: actor.user._id,
       action: "duty.update",
       details: JSON.stringify({ id: args.id, title: input.title, content: input.content }),
+      at: now,
+    });
+    await writeDutyChangeLog(ctx, {
+      dutyId: args.id,
+      actorUserId: String(actor.user._id),
+      actorKind: dutyWriterKind(actor.isOps),
+      action: "update",
+      before: current,
+      after: input,
       at: now,
     });
     await scheduleDutyPush(ctx, {
@@ -752,10 +834,172 @@ export const remove = mutation({
       details: JSON.stringify({ id: args.id }),
       at: now,
     });
+    await writeDutyChangeLog(ctx, {
+      dutyId: args.id,
+      actorUserId: String(actor.user._id),
+      actorKind: dutyWriterKind(actor.isOps),
+      action: "remove",
+      before: current,
+      after: null,
+      at: now,
+    });
     if (scope === "school") {
       const after = { ...current, ...patch, active: false };
       await reopenSubmittedWeeks(ctx, weeksAffectedByDuty({ ...current, scope }, after), String(actor.user._id), now);
     }
+  },
+});
+
+async function requireDutyReviewer(ctx: any) {
+  const access = await requireDutiesAccess(ctx);
+  const level = await dutyViewerLevel(ctx, access.user);
+  if (!isDutyWeekReviewer(access.user, level)) throw new Error("DUTY_REVIEWER_EDIT_FORBIDDEN");
+  return { ...access, level };
+}
+
+async function loadReviewerEditableDuty(ctx: any, actor: { user: any; level: number }, id: any) {
+  const current = await ctx.db.get(id);
+  if (!current || !current.active) throw new Error("DUTY_NOT_FOUND");
+  const scope = await resolveDutyScope(ctx, current);
+  if (!canReviewerEditDuty(actor.user, actor.level, { ...current, scope })) {
+    throw new Error("DUTY_REVIEWER_EDIT_FORBIDDEN");
+  }
+  return { current, scope };
+}
+
+/** Working copy + catalogs for the BGH editor (BGH picks any department/user, like văn thư). */
+export const reviewerEditContext = query({
+  args: { id: v.id("duties") },
+  handler: async (ctx, args) => {
+    const actor = await requireDutyReviewer(ctx);
+    const { current } = await loadReviewerEditableDuty(ctx, actor, args.id);
+    const [departments, users] = await Promise.all([
+      ctx.db.query("departments").collect(),
+      ctx.db.query("users").collect(),
+    ]);
+    return {
+      duty: {
+        _id: current._id,
+        startDate: current.startDate,
+        endDate: current.endDate,
+        startTime: current.startTime,
+        endTime: current.endTime,
+        allDay: current.allDay,
+        title: current.title || "",
+        content: current.content,
+        locationText: current.locationText || "",
+        departmentIds: current.departmentIds || [],
+        participantUserIds: current.participantUserIds || [],
+        otherParticipants: current.otherParticipants || "",
+      },
+      departments: departments
+        .filter((d) => d.active)
+        .sort((a, b) => a.name.localeCompare(b.name, "vi"))
+        .map((d) => ({ _id: d._id, name: d.name, code: d.code })),
+      users: users
+        .filter((u) => u.status === "active")
+        .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"))
+        .map((u) => ({ _id: u._id, name: u.name, email: u.email, departmentId: u.departmentId })),
+    };
+  },
+});
+
+/**
+ * BGH edits a school duty directly. No create/delete here, and no week reopen:
+ * see `reviewerEditPatchForDuty` for how the approved copy follows the edit.
+ */
+export const reviewerUpdate = mutation({
+  args: {
+    id: v.id("duties"),
+    startDate: v.string(),
+    endDate: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
+    allDay: v.boolean(),
+    title: v.string(),
+    content: v.string(),
+    locationText: v.string(),
+    departmentIds: v.array(v.string()),
+    participantUserIds: v.array(v.string()),
+    otherParticipants: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const actor = await requireDutyReviewer(ctx);
+    const { current, scope } = await loadReviewerEditableDuty(ctx, actor, args.id);
+    const input = cleanDutyInput(args);
+    // Same validation as văn thư: any active department/user, participants optional.
+    await assertRefs(ctx, input, { user: actor.user, isOps: true, positions: [] });
+    const now = Date.now();
+    const change = reviewerEditPatchForDuty({ ...current, _id: String(current._id), scope } as any, input, now);
+    await ctx.db.patch(args.id, {
+      ...change.patch,
+      updatedBy: actor.user._id,
+      updatedAt: now,
+    });
+    await ctx.db.insert("auditLogs", {
+      actorUserId: actor.user._id,
+      action: "duty.reviewer_edit",
+      details: JSON.stringify({ id: args.id, title: input.title, content: input.content, published: change.publishes }),
+      at: now,
+    });
+    await writeDutyChangeLog(ctx, {
+      dutyId: args.id,
+      actorUserId: String(actor.user._id),
+      actorKind: "reviewer",
+      action: "reviewer_edit",
+      before: current,
+      after: input,
+      at: now,
+    });
+    if (change.publishes) {
+      // Same push teachers get when BGH approves an updated row.
+      await scheduleDutyPush(ctx, {
+        dutyId: String(args.id),
+        title: "Công tác đã cập nhật",
+        body: dutyListTitle(input),
+        departmentIds: input.departmentIds,
+        participantUserIds: input.participantUserIds,
+      });
+    }
+    return { published: change.publishes };
+  },
+});
+
+/** Change log for one duty: admin/mod, BGH, and the creator only. Newest first. */
+export const changeHistory = query({
+  args: { dutyId: v.id("duties") },
+  handler: async (ctx, args) => {
+    const { user, isAdmin } = await requireDutiesAccess(ctx);
+    const duty = await ctx.db.get(args.dutyId);
+    if (!duty) throw new Error("DUTY_NOT_FOUND");
+    const isReviewer = isAdmin ? false : isDutyWeekReviewer(user, await dutyViewerLevel(ctx, user));
+    if (
+      !canViewDutyChangeHistory({
+        isOps: isAdmin,
+        isReviewer,
+        isCreator: String(duty.createdBy || "") === String(user._id),
+      })
+    ) {
+      throw new Error("FORBIDDEN");
+    }
+    const rows = await ctx.db
+      .query("dutyChangeLogs")
+      .withIndex("by_duty_at", (q) => q.eq("dutyId", args.dutyId))
+      .order("desc")
+      .take(200);
+    const actors = await loadDocsByIds(ctx, rows.map((row) => row.actorUserId));
+    const actorNames = new Map(actors.map((row: any) => [String(row._id), String(row.name || row.email || "")]));
+    return rows.map((row) => ({
+      _id: row._id,
+      at: row.at,
+      atLabel: formatDutyLogTimestamp(row.at),
+      action: row.action,
+      actionLabel: DUTY_CHANGE_ACTION_LABELS[row.action],
+      actorName: actorNames.get(String(row.actorUserId)) || "Người dùng đã xóa",
+      actorKind: row.actorKind,
+      actorRoleLabel: DUTY_ACTOR_KIND_LABELS[row.actorKind],
+      changes: row.changes,
+    }));
   },
 });
 

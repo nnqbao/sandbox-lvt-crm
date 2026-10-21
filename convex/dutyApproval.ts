@@ -374,3 +374,66 @@ export function legacySnapshotPatch(duty: DutyApprovalRow, now: number) {
     publishedEndDate: fields.endDate,
   };
 }
+
+/**
+ * BGH (the weekly approver) may correct any active school row directly.
+ * Team rows belong to their team lead and stay out of reach; BGH never
+ * creates or deletes through this path.
+ */
+export function canReviewerEditDuty(
+  reviewer: { role?: string; status?: string },
+  reviewerLevel: number,
+  duty: { scope?: string; active?: boolean } | null | undefined,
+) {
+  if (!duty || duty.active === false) return false;
+  if (!isDutyWeekReviewer(reviewer, reviewerLevel)) return false;
+  return duty.scope === "school";
+}
+
+/**
+ * Patch for a BGH edit of a school row (`duty.scope` already resolved).
+ *
+ * BGH is the approver, so the edit is live at once:
+ * - the working fields take the new values;
+ * - when teachers already see an approved copy (or the row is a legacy row that
+ *   counts as approved), `published` takes the same values, so the row has no
+ *   pending change afterwards and the week does not turn `approved_changed`;
+ * - a row that was never approved only changes its working fields; it goes out
+ *   with the next weekly approval.
+ * If văn thư had unapproved edits on this row, the values BGH saves (the editor
+ * starts from the working copy) are what gets published: BGH approves the merged
+ * result for this one row. Callers must NOT reopen submitted weeks for this write,
+ * so a pending submission keeps its `submittedAt` and can still be approved.
+ */
+export function reviewerEditPatchForDuty(
+  duty: DutyApprovalRow,
+  input: DutyPublishedFields,
+  now: number,
+) {
+  const legacy = legacySnapshotPatch(duty, now) as { published?: DutyPublished };
+  const hadPublished = Boolean(duty.published || legacy.published);
+  const fields = pickPublishedFields(input);
+  const working = {
+    ...fields,
+    title: fields.title ?? "",
+    locationText: fields.locationText ?? "",
+    otherParticipants: fields.otherParticipants ?? "",
+  };
+  if (!hadPublished) {
+    return {
+      publishes: false as const,
+      patch: { ...working, scope: "school" as const, approvalTracked: true },
+    };
+  }
+  return {
+    publishes: true as const,
+    patch: {
+      ...working,
+      scope: "school" as const,
+      approvalTracked: true,
+      published: { ...working, updatedAt: now, publishedAt: now },
+      publishedStartDate: fields.startDate,
+      publishedEndDate: fields.endDate,
+    },
+  };
+}

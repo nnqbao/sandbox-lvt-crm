@@ -11,7 +11,7 @@ import DutyReportsView from './reports/DutyReportsView';
 import SharedDutyScheduleView from './duties/SharedDutyScheduleView';
 import { isDutyWeekNotification } from './duties/dutyWeekApproval.js';
 import DutyWorkspaceTabs from './duties/DutyWorkspaceTabs';
-import { WorkUserView } from './work/WorkViews';
+import WorkHub from './work/WorkHub';
 import DocumentTypeSettings from './settings/DocumentTypeSettings';
 import SchoolYearSettings from './settings/SchoolYearSettings';
 import DisplaySettings from './settings/DisplaySettings';
@@ -40,6 +40,7 @@ import { ChatAutoOpenProvider } from './lib/chatAutoOpen.jsx';
 import './management/managementTheme.css';
 import './duties/duties.css';
 import DutyBulkImport from './duties/DutyBulkImport';
+import DutyChangeHistory from './duties/DutyChangeHistory';
 import DutyCreatePreview from './duties/DutyCreatePreview';
 import { EditActionConfirm } from './lib/ConfirmActionModal';
 import DutyEditorFields from './duties/DutyEditorFields';
@@ -145,6 +146,8 @@ function AppShell({ session }) {
   const { signOut } = useAuthActions();
   const { user, isAdmin, isModerator, isOperationalManager, menuAccess } = session;
   const canManageOperations = Boolean(isOperationalManager || isAdmin || isModerator);
+  // UX hint for the Lịch công tác page actions; duties.create re-checks on the server.
+  const canCreateDuties = canManageOperations || Boolean(session.canCreateDuties);
   const workBadge = useQuery(anyApi.work.badge, canManageOperations || menuAccess?.work !== 'hidden' ? {} : 'skip');
   const chatUnread = useQuery(anyApi.chatHub.unreadTotal, {});
   const canUseNotifications = canManageOperations || menuAccess?.notifications !== 'hidden';
@@ -154,7 +157,8 @@ function AppShell({ session }) {
   );
   const visiblePrimaryMenus = useMemo(() => {
     if (canManageOperations) return PRIMARY_MENUS;
-    return PRIMARY_MENUS.filter(([id]) => id === 'chat' || (menuAccess?.[id] && menuAccess[id] !== 'hidden'));
+    // Trao đổi and Công việc ("Việc của tôi") are open to every active account.
+    return PRIMARY_MENUS.filter(([id]) => id === 'chat' || id === 'work' || (menuAccess?.[id] && menuAccess[id] !== 'hidden'));
   }, [canManageOperations, menuAccess]);
   const canUseChat = visiblePrimaryMenus.some(([id]) => id === 'chat');
   const sidebarPrimaryMenus = useMemo(
@@ -515,6 +519,7 @@ function AppShell({ session }) {
           dutyRoute.view === 'shared' ? (
             <SharedDutyScheduleView
               currentUserId={user._id}
+              canCreate={canCreateDuties}
               onChooseView={chooseDutyView}
               focusWeek={
                 isDutyWeekNotification(activeFocusTarget)
@@ -525,6 +530,7 @@ function AppShell({ session }) {
           ) : canManageOperations ? (
             <DutiesAdminView
               currentUserId={user._id}
+              canCreate={canCreateDuties}
               allowManage
               focusTarget={activeFocusTarget}
               dutyPage={dutyRoute.view}
@@ -535,6 +541,7 @@ function AppShell({ session }) {
             <DutiesUserView
               access={menuAccess?.duties || 'view'}
               currentUserId={user._id}
+              canCreate={canCreateDuties}
               focusTarget={activeFocusTarget}
               dutyPage={dutyRoute.view}
               editDutyId={dutyRoute.dutyId}
@@ -542,7 +549,10 @@ function AppShell({ session }) {
             />
           )
         ) : active === 'work' ? (
-          <WorkUserView focusTarget={activeFocusTarget} />
+          <WorkHub
+            focusTarget={activeFocusTarget}
+            workHidden={!canManageOperations && (menuAccess?.work || 'hidden') === 'hidden'}
+          />
         ) : active === 'chat' ? (
           <ChatHub path={chatPath} onNavigate={openChatThread} onOpenEntity={openChatEntity} />
         ) : active === 'people-review' ? (
@@ -639,10 +649,10 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
                   type="button"
                   className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' ? ' is-rejection' : ''}`}
                   key={item.key}
-                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : 'Mở công việc này'}
+                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
                   onClick={() => openItem(item)}
                 >
-                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
+                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.kind === 'todo' ? 'Việc của tôi' : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
                   <strong>{item.title}</strong>
                   <small>{item.description}</small>
                 </button>
@@ -689,6 +699,7 @@ function NavButton({ id, label, active, onClick, nested = false, badge = 0 }) {
 
 function DutiesAdminView({
   currentUserId,
+  canCreate = true,
   allowManage = true,
   focusTarget = null,
   dutyPage = 'personal',
@@ -810,7 +821,13 @@ function DutiesAdminView({
           </button>
         </div>
       ) : (
-        <DutyWorkspaceTabs view="personal" onChoose={onDutyNavigate} />
+        <DutyWorkspaceTabs
+          view="personal"
+          onChoose={onDutyNavigate}
+          canCreate={allowManage && canCreate}
+          onCreate={openCreateEditor}
+          onImport={openImportPanel}
+        />
       )}
       {feedback.text && !editorOpen ? (
         <div className={`work-feedback ${feedback.type}`} role="status" aria-live="polite">
@@ -882,6 +899,7 @@ function DutiesAdminView({
             {feedback.text}
           </div>
         ) : null}
+        {editing ? <DutyChangeHistory dutyId={editing._id} /> : null}
         <div className="work-editor-actions duty-editor-actions">
           <button
             type="button"
@@ -919,8 +937,6 @@ function DutiesAdminView({
       {!editorOpen ? (
         <DutyReportsView
           currentUserId={currentUserId}
-          onCreate={openCreateEditor}
-          onImport={openImportPanel}
           onEdit={(event) => startEdit({ _id: event._id })}
           focusDutyId={focusTarget?.sourceId}
           openChat={Boolean(focusTarget?.openChat && focusTarget?.sourceType === 'duty_chat')}
@@ -934,6 +950,7 @@ function DutiesAdminView({
 function DutiesUserView({
   access,
   currentUserId,
+  canCreate: canCreateHint = false,
   focusTarget = null,
   dutyPage = 'personal',
   editDutyId = null,
@@ -1054,7 +1071,13 @@ function DutiesUserView({
           </button>
         </div>
       ) : (
-        <DutyWorkspaceTabs view="personal" onChoose={onDutyNavigate} />
+        <DutyWorkspaceTabs
+          view="personal"
+          onChoose={onDutyNavigate}
+          canCreate={canCreateHint}
+          onCreate={openCreateEditor}
+          onImport={openImportPanel}
+        />
       )}
 
       {importOpen && !editorOpen ? (
@@ -1100,6 +1123,7 @@ function DutiesUserView({
               {feedback.text}
             </div>
           ) : null}
+          {editing ? <DutyChangeHistory dutyId={editing._id} /> : null}
           <div className="work-editor-actions duty-editor-actions">
             {editing ? (
               <button type="button" className="work-ghost-button" onClick={() => setEditConfirm('cancel')}>
@@ -1142,8 +1166,6 @@ function DutiesUserView({
       {!editorOpen ? (
         <DutyReportsView
           currentUserId={currentUserId}
-          onCreate={openCreateEditor}
-          onImport={openImportPanel}
           onEdit={(event) => startEdit({ _id: event._id })}
           focusDutyId={focusTarget?.sourceId}
           openChat={Boolean(focusTarget?.openChat && focusTarget?.sourceType === 'duty_chat')}

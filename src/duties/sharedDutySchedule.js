@@ -184,6 +184,7 @@ export function buildSharedScheduleRows(mode, anchorIso, events) {
         rowSpan: 1,
         eventId: null,
         canManage: false,
+        canReviewerEdit: false,
         canChat: false,
         edited: false,
         approvalChange: null,
@@ -202,6 +203,7 @@ export function buildSharedScheduleRows(mode, anchorIso, events) {
         rowSpan: index === 0 ? list.length : 0,
         eventId: event._id || null,
         canManage: Boolean(event.canManage),
+        canReviewerEdit: Boolean(event.canReviewerEdit),
         canChat: event.canChat !== false,
         edited: isEditedDuty(event),
         approvalChange: event.approvalChange || null,
@@ -212,8 +214,16 @@ export function buildSharedScheduleRows(mode, anchorIso, events) {
   return { range, rows };
 }
 
+/** Manager/creator edit unless only the BGH direct-edit right applies. */
+export function dutyEditModeFor(duty) {
+  if (duty?.canManage) return 'manager';
+  if (duty?.canReviewerEdit) return 'reviewer';
+  return null;
+}
+
+/** Văn thư/creator edit, or BGH direct edit of a school row. */
 export function canOpenDutyContentEditor(row) {
-  return Boolean(row?.eventId) && row?.canManage === true;
+  return Boolean(row?.eventId) && (row?.canManage === true || row?.canReviewerEdit === true);
 }
 
 export function sharedScheduleFilename(range) {

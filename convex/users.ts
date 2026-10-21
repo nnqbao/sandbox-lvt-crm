@@ -17,7 +17,10 @@ import {
   mutation,
   query,
 } from "./_generated/server";
+import { canCreateAssignments } from "./assignmentPolicy";
+import { isDutyWeekReviewer } from "./dutyApproval";
 import {
+  activePositionLevel,
   adminPermissionOrThrow,
   authUserIdOrThrow,
   currentUserOrThrow,
@@ -165,6 +168,9 @@ export const sessionContext = query({
       position: position
         ? { _id: position._id, name: position.name, level: position.level, code: position.code }
         : null,
+      // UX hints only; duties mutations re-check both on the server.
+      canCreateDuties: canCreateAssignments(user.role, activePositionLevel(user, positions)),
+      isDutyReviewer: isDutyWeekReviewer(user, activePositionLevel(user, positions)),
     };
   },
 });

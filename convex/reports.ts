@@ -15,7 +15,7 @@ import {
 } from "./lib";
 import { canCreateAssignments, dutyListTitle, dutyLocationLabel } from "./assignmentPolicy";
 import { dutyTiming, requireDutiesAccess } from "./duties";
-import { dutyHasPendingChange, projectPublicDuty } from "./dutyApproval";
+import { canReviewerEditDuty, dutyHasPendingChange, isDutyWeekReviewer, projectPublicDuty } from "./dutyApproval";
 import {
   dutyListDateWindow,
   dutyScheduleRevision,
@@ -269,6 +269,7 @@ export const dutyCalendar = query({
     ]);
     const actorLevel = activePositionLevel(actor, positions);
     const canCreate = canCreateAssignments(actor.role, actorLevel);
+    const isReviewer = !isAdmin && isDutyWeekReviewer(actor, actorLevel);
     const canManageSubordinates =
       attendanceConfirmationEnabled && !isAdmin && canEdit && actorLevel > 0;
     const visibleUsers = canViewAll
@@ -435,6 +436,9 @@ export const dutyCalendar = query({
           attendanceStatus: selectedAttendance(String(duty._id), String(selectedUser._id)),
           awaitingApproval: isAdmin && dutyHasPendingChange(duty),
           canManage: isAdmin || String(duty.createdBy || "") === String(actor._id),
+          // BGH corrects school rows directly (reviewerUpdate re-checks on the server).
+          canReviewerEdit: isReviewer && canReviewerEditDuty(actor, actorLevel, duty),
+          canViewHistory: isAdmin || isReviewer || String(duty.createdBy || "") === String(actor._id),
           canMarkSelectedUser,
           canMarkAttendance: canMarkSelectedUser && timing.isOngoing && Boolean(projectPublicDuty(duty)),
           timing: {
