@@ -35,13 +35,12 @@ function inlinePdfFonts() {
       const filePath = id.split("?")[0].replace(/\\/g, "/");
       const entry = INLINE_PDF_FONT_MODULES.find((item) => filePath.endsWith(item.module));
       if (!entry) return null;
-      const keys = Object.keys(entry.fonts);
-      const encoded = keys.map(
-        (key) => `${JSON.stringify(key)}: decode(${JSON.stringify(readFileSync(resolve(process.cwd(), entry.fonts[key])).toString("base64"))})`,
-      );
-      const body = keys.length === 1 && keys[0] === "default"
-        ? `return decode(${JSON.stringify(readFileSync(resolve(process.cwd(), entry.fonts.default)).toString("base64"))});`
-        : `return { ${encoded.join(", ")} };`;
+      /** @param {string} path */
+      const base64 = (path) => JSON.stringify(readFileSync(resolve(process.cwd(), path)).toString("base64"));
+      const fonts = /** @type {Record<string, string>} */ (entry.fonts);
+      const body = "default" in fonts
+        ? `return decode(${base64(fonts.default)});`
+        : `return { ${Object.entries(fonts).map(([key, path]) => `${JSON.stringify(key)}: decode(${base64(path)})`).join(", ")} };`;
       return `
 function decode(base64) {
   const binary = atob(base64);
