@@ -4,7 +4,6 @@ import type { DbCtx } from "./lib";
 import { homeroomActorOrThrow, loadAssignments } from "./homeroomContext";
 import {
   canCorrectDisposition,
-  canImportAttendanceWithoutClassAssignment,
   canReadClass,
   classVisibleInScope,
   findEffectiveHomeroomTeacherAssignment,
@@ -31,6 +30,8 @@ import {
 } from "./homeroomTime";
 import {
   calendarDayFor,
+  classDayMarker,
+  classDayMarkersForYearOnDate,
   classesForYear,
   daysForClassOnDate,
   daysForClassRange,
@@ -173,10 +174,19 @@ export const overview = query({
       .filter((id): id is string => Boolean(id));
     const teachers = await usersByIds(ctx, teacherIds);
 
+    // Điểm danh menu markers; old camera-era days (sourceImportId) also count as "done" for history.
+    const markers = new Set(
+      (scope.mode === "school"
+        ? await classDayMarkersForYearOnDate(ctx, schoolYearId, date)
+        : (await Promise.all(classIds.map((id) => classDayMarker(ctx, id, date)))).filter((row) => row !== null)
+      ).map((row) => row!.classId),
+    );
+
     const classRows = classes.map((row) => {
       const id = String(row._id);
       const counts = EMPTY_COUNTS();
       const classDays = days.filter((day) => day.classId === id);
+      const saved = markers.has(id) || classDays.some((day) => Boolean(day.sourceImportId));
       for (const day of classDays) {
         if (day.effectiveStatus in counts) counts[day.effectiveStatus as keyof typeof counts] += 1;
       }
@@ -190,6 +200,7 @@ export const overview = query({
         rosterCount: enrollmentsCoveringDate(enrollments, { classId: id, date }).length,
         teacherName: teacher ? teachers.get(String(teacher.userId))?.name || "" : "",
         published: classDays.length > 0,
+        saved,
         counts,
         pendingTotal: pendingInScope.filter((day) => day.classId === id).length,
         canCorrect: canCorrectDisposition(actor, assignments, id, date),
@@ -206,7 +217,7 @@ export const overview = query({
       cutoffTime,
       calendarDay: schoolDay.isSchoolDay ? calendarDay : { date, kind: "holiday" },
       visibleClassIds: classIds,
-      publishedClassIds: classRows.filter((row) => row.published).map((row) => row._id),
+      publishedClassIds: classRows.filter((row) => row.saved).map((row) => row._id),
     });
 
     return {
@@ -239,13 +250,15 @@ export const overview = query({
       pendingTotal: pendingInScope.length,
       permissions: {
         isManager: isHomeroomOperationalManager(actor),
-        canImport: canImportAttendanceWithoutClassAssignment(actor),
+        /** Admin/mod also have the Điểm danh menu (role-based full access). */
+        canMarkAttendance: isHomeroomOperationalManager(actor),
         canCorrectAny: classRows.some((row) => row.canCorrect),
       },
     };
   },
 });
 
+/** Legacy "Vắng chờ xử lý" inbox. The web no longer shows it; kept read-only for older native apps. */
 export const pendingAbsences = query({
   args: {
     schoolYearId: v.optional(v.string()),

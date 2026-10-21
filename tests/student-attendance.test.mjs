@@ -16,15 +16,16 @@ test('disposition correction does not change the raw camera observation', () => 
   assert.equal(rawObservation, 'absent');
 });
 
-test('changing a confirmed disposition requires a reason or note and is append-only by contract', () => {
-  assert.throws(
-    () =>
-      assertDispositionChange({
-        previousDisposition: 'excused',
-        nextDisposition: 'unexcused',
-      }),
-    /CORRECTION_REASON_REQUIRED/,
+test('reason/note is optional when toggling Vắng không phép; corrections stay append-only by contract', () => {
+  assert.doesNotThrow(() =>
+    assertDispositionChange({
+      previousDisposition: 'excused',
+      nextDisposition: 'unexcused',
+    }),
   );
+  assert.doesNotThrow(() => assertDispositionChange({ previousDisposition: 'pending', nextDisposition: 'unexcused' }));
+  assert.doesNotThrow(() => assertDispositionChange({ previousDisposition: 'unexcused', nextDisposition: 'excused' }));
+  assert.throws(() => assertDispositionChange({ previousDisposition: 'excused', nextDisposition: 'late' }), /INVALID_DISPOSITION/);
   assert.doesNotThrow(() =>
     assertDispositionChange({
       previousDisposition: 'pending',

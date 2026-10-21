@@ -122,6 +122,21 @@ export async function pendingDaysForClass(ctx: DbCtx, classId: string) {
     .collect();
 }
 
+/** Điểm danh "đã lưu" markers (one per class/day) written by Giám thị or admin/mod. */
+export async function classDayMarker(ctx: DbCtx, classId: string, date: string) {
+  return await ctx.db
+    .query("attendanceClassDays")
+    .withIndex("by_class_date", (q) => q.eq("classId", classId).eq("attendanceDate", date))
+    .first();
+}
+
+export async function classDayMarkersForYearOnDate(ctx: DbCtx, schoolYearId: string, date: string) {
+  return await ctx.db
+    .query("attendanceClassDays")
+    .withIndex("by_year_date", (q) => q.eq("schoolYearId", schoolYearId).eq("attendanceDate", date))
+    .collect();
+}
+
 export async function correctionsForStudent(ctx: DbCtx, studentId: string) {
   return await ctx.db
     .query("studentAttendanceCorrections")

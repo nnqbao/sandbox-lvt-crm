@@ -953,6 +953,35 @@ export default defineSchema({
     .index("by_year_status_date", ["schoolYearId", "effectiveStatus", "attendanceDate"])
     .index("by_class_status_date", ["classId", "effectiveStatus", "attendanceDate"])
     .index("by_import", ["sourceImportId"]),
+  /**
+   * One row per class per school day once Giám thị (or admin/mod) saved its attendance on the
+   * Điểm danh menu. No row = "Chưa điểm danh". Per-student facts stay in studentAttendanceDays.
+   */
+  attendanceClassDays: defineTable({
+    schoolYearId: v.string(),
+    classId: v.string(),
+    attendanceDate: v.string(),
+    savedBy: v.string(),
+    savedAt: v.number(),
+    source: v.union(v.literal("manual"), v.literal("import")),
+    presentCount: v.number(),
+    absentCount: v.number(),
+  })
+    .index("by_class_date", ["classId", "attendanceDate"])
+    .index("by_year_date", ["schoolYearId", "attendanceDate"]),
+  /** Staged Giám thị Excel imports (Lớp học / Tên học sinh / Vắng); purged after 1 hour. */
+  supervisorAttendanceUploads: defineTable({
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+    fileSize: v.number(),
+    uploadedBy: v.string(),
+    schoolYearId: v.string(),
+    attendanceDate: v.string(),
+    status: v.string(), // uploaded | committing | committed | expired
+    classCount: v.optional(v.number()),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  }).index("by_expiresAt", ["expiresAt"]),
   studentAttendanceCorrections: defineTable({
     attendanceDayId: v.string(),
     studentId: v.string(),

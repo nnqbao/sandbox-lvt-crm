@@ -31,6 +31,10 @@ export function isConfirmedDisposition(disposition: string) {
   return disposition === "excused" || disposition === "unexcused" || disposition === "exempt";
 }
 
+/**
+ * GVCN ticks "Vắng không phép" (unexcused) or unticks it (excused). Reason/note is optional since
+ * the Điểm danh redesign; every change is still recorded in studentAttendanceCorrections.
+ */
 export function assertDispositionChange(args: {
   previousDisposition: string;
   nextDisposition: string;
@@ -39,14 +43,6 @@ export function assertDispositionChange(args: {
 }) {
   const next = args.nextDisposition.trim();
   if (!DISPOSITIONS.includes(next as Disposition)) throw new Error("INVALID_DISPOSITION");
-  if (isConfirmedDisposition(args.previousDisposition) && isConfirmedDisposition(next)) {
-    if (!args.reasonCode?.trim() && !args.note?.trim()) {
-      throw new Error("CORRECTION_REASON_REQUIRED");
-    }
-  }
-  if ((next === "excused" || next === "unexcused") && !args.reasonCode?.trim() && !args.note?.trim()) {
-    throw new Error("CORRECTION_REASON_REQUIRED");
-  }
 }
 
 export function applyPublicationPolicy(args: {

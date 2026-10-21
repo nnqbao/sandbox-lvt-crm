@@ -10,7 +10,6 @@
 
 import type * as assignmentPolicy from "../assignmentPolicy.js";
 import type * as attendanceImport from "../attendanceImport.js";
-import type * as attendanceImportParse from "../attendanceImportParse.js";
 import type * as attendanceImportSheet from "../attendanceImportSheet.js";
 import type * as attendanceImportValidate from "../attendanceImportValidate.js";
 import type * as auth from "../auth.js";
@@ -84,6 +83,9 @@ import type * as studentRosterImportParse from "../studentRosterImportParse.js";
 import type * as studentRosterImportSheet from "../studentRosterImportSheet.js";
 import type * as studentRosterImportValidate from "../studentRosterImportValidate.js";
 import type * as students from "../students.js";
+import type * as supervisorAttendance from "../supervisorAttendance.js";
+import type * as supervisorAttendanceParse from "../supervisorAttendanceParse.js";
+import type * as supervisorAttendancePolicy from "../supervisorAttendancePolicy.js";
 import type * as userAvatar from "../userAvatar.js";
 import type * as userAvatarPolicy from "../userAvatarPolicy.js";
 import type * as userImport from "../userImport.js";
@@ -106,7 +108,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   assignmentPolicy: typeof assignmentPolicy;
   attendanceImport: typeof attendanceImport;
-  attendanceImportParse: typeof attendanceImportParse;
   attendanceImportSheet: typeof attendanceImportSheet;
   attendanceImportValidate: typeof attendanceImportValidate;
   auth: typeof auth;
@@ -180,6 +181,9 @@ declare const fullApi: ApiFromModules<{
   studentRosterImportSheet: typeof studentRosterImportSheet;
   studentRosterImportValidate: typeof studentRosterImportValidate;
   students: typeof students;
+  supervisorAttendance: typeof supervisorAttendance;
+  supervisorAttendanceParse: typeof supervisorAttendanceParse;
+  supervisorAttendancePolicy: typeof supervisorAttendancePolicy;
   userAvatar: typeof userAvatar;
   userAvatarPolicy: typeof userAvatarPolicy;
   userImport: typeof userImport;
