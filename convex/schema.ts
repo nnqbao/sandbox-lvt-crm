@@ -264,6 +264,25 @@ export default defineSchema({
     .index("by_start", ["startDate"])
     .index("by_published_start", ["publishedStartDate"])
     .index("by_published_end", ["publishedEndDate"]),
+  /**
+   * Field-level history of every duty write (create/update/remove/import and
+   * BGH direct edits). Values are display strings (names resolved, dd/MM/yyyy).
+   * Readable by admin/mod, BGH, and the duty creator (`duties.changeHistory`).
+   */
+  dutyChangeLogs: defineTable({
+    dutyId: v.id("duties"),
+    actorUserId: v.string(),
+    actorKind: v.union(v.literal("manager"), v.literal("reviewer"), v.literal("team_lead")),
+    action: v.union(
+      v.literal("create"),
+      v.literal("update"),
+      v.literal("reviewer_edit"),
+      v.literal("remove"),
+      v.literal("import"),
+    ),
+    at: v.number(),
+    changes: v.array(v.object({ field: v.string(), before: v.string(), after: v.string() })),
+  }).index("by_duty_at", ["dutyId", "at"]),
   /** Weekly BGH approval state for the shared Lịch công tác (Monday `weekStart`). */
   dutyWeeks: defineTable({
     weekStart: v.string(),
