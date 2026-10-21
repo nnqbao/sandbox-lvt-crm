@@ -66,7 +66,11 @@
       "title": "Tôi là giáo viên",
       "kicker": "Việc hằng ngày",
       "intro": "Xem lịch công tác, nhận và báo hoàn thành công việc, ghi việc riêng, trao đổi với đồng nghiệp.",
-      "topics": []
+      "topics": [
+        "ct-xem-lich-ca-nhan",
+        "ct-xac-nhan-tham-gia",
+        "ct-lich-chung-pdf"
+      ]
     },
     {
       "id": "gvcn",
@@ -96,7 +100,11 @@
       "title": "Tôi là tổ trưởng / Ban Giám hiệu",
       "kicker": "Quản lý chuyên môn",
       "intro": "Tạo và duyệt lịch công tác, duyệt công văn, giao việc cho tổ, theo dõi báo cáo và đánh giá nhân sự.",
-      "topics": []
+      "topics": [
+        "ct-tao-cong-tac",
+        "ct-import-excel",
+        "ct-bgh-duyet-sua"
+      ]
     },
     {
       "id": "van-thu-quan-tri",
@@ -104,6 +112,7 @@
       "kicker": "Moderator · Administrator",
       "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
       "topics": [
+        "ct-nop-duyet-tuan",
         "cn-quan-ly-lop",
         "nh-thiet-lap-nam-hoc"
       ]
