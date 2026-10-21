@@ -340,8 +340,18 @@ test('UI Công tác có nút Import Excel và gọi dutyImport', () => {
   const main = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
   const calendar = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
   const ui = readFileSync(new URL('../src/duties/DutyBulkImport.jsx', import.meta.url), 'utf8');
+  const head = readFileSync(new URL('../src/duties/DutyWorkspaceTabs.jsx', import.meta.url), 'utf8');
+  const shared = readFileSync(new URL('../src/duties/SharedDutyScheduleView.jsx', import.meta.url), 'utf8');
   assert.match(main, /DutyBulkImport/);
-  assert.match(calendar, /DutyCreateToolbarActions/);
+  // Page-level actions live in the Lịch công tác head on both tabs, not inside a tab.
+  assert.match(head, /Import Excel/);
+  assert.match(head, /Tạo công tác/);
+  assert.match(head, /work-primary-button/);
+  assert.doesNotMatch(calendar, /DutyCreateToolbarActions|Import Excel|Tạo công tác/);
+  assert.doesNotMatch(shared, /\+ Tạo công tác/);
+  assert.match(shared, /DutyBulkImport/);
+  assert.match(shared, /canCreate=\{canCreate\}/);
+  assert.equal((main.match(/canCreate=\{canCreateDuties\}/g) || []).length, 3);
   assert.match(ui, /Import Excel/);
   assert.match(ui, /anyApi\.dutyImport\.generateUploadUrl/);
   assert.match(ui, /anyApi\.dutyImport\.validateUpload/);

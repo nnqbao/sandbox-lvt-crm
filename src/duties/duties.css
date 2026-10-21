@@ -302,17 +302,6 @@
   margin-left: auto;
 }
 
-.duty-list-create-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-
-.duty-list-toolbar .duty-list-create-actions .work-primary-button {
-  margin-left: 0;
-}
-
 .duty-bulk-import {
   margin-bottom: 22px;
 }
@@ -1280,4 +1269,88 @@
   html.work-file-preview-split .work-list-tabs button {
     flex: 1 1 100%;
   }
+}
+
+/* Lịch sử chỉnh sửa (duties.changeHistory) */
+.duty-history {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.duty-history-toggle {
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--lvt-navy);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.duty-history-state {
+  margin: 0;
+  color: var(--lvt-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.duty-history-state.is-error {
+  color: var(--lvt-danger-text);
+}
+
+.duty-history-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.duty-history-list > li {
+  padding: 10px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 8px;
+  background: var(--lvt-surface);
+}
+
+.duty-history-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.duty-history-heading strong {
+  color: var(--lvt-ink);
+  font-weight: 700;
+}
+
+.duty-history-heading span {
+  color: var(--lvt-muted);
+  font-weight: 600;
+}
+
+.duty-history-list ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--lvt-ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.duty-reviewer-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--lvt-info-bg);
+  color: var(--lvt-blue);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
 }

@@ -4,19 +4,6 @@ import { anyApi } from 'convex/server';
 import { assertImportFileMeta } from '../lib/userImport.js';
 import { downloadDutyImportTemplate } from '../lib/dutyImportExcel.js';
 
-export function DutyCreateToolbarActions({ onCreate, onImport }) {
-  return (
-    <div className="duty-list-create-actions">
-      <button type="button" className="work-ghost-button" onClick={onImport}>
-        Import Excel
-      </button>
-      <button type="button" className="work-primary-button" onClick={onCreate}>
-        <span>+</span> Tạo công tác
-      </button>
-    </div>
-  );
-}
-
 function formatPreviewTime(row) {
   if (row.allDay) return `${row.startDate} · Cả ngày`;
   return `${row.startDate} ${row.startTime} → ${row.endDate} ${row.endTime}`;

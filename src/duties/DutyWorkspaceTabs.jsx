@@ -6,7 +6,35 @@ import {
 } from './sharedDutySchedule.js';
 import './sharedDutySchedule.css';
 
-export default function DutyWorkspaceTabs({ view, onChoose }) {
+/**
+ * Page head for both Lịch công tác tabs: tabs on the left, page-level actions
+ * (Import Excel, + Tạo công tác) on the right. Actions are not part of any tab.
+ * `canCreate` is a UX hint only; duties.create / dutyImport re-check on the server.
+ */
+export default function DutyWorkspaceTabs({ view, onChoose, canCreate = false, onCreate = null, onImport = null }) {
+  const showActions = Boolean(canCreate && (onCreate || onImport));
+  return (
+    <div className={`duty-workspace-head${showActions ? ' has-actions' : ''}`}>
+      <DutyTabList view={view} onChoose={onChoose} />
+      {showActions ? (
+        <div className="duty-workspace-actions" role="group" aria-label="Thao tác lịch công tác">
+          {onImport ? (
+            <button type="button" className="work-ghost-button" onClick={onImport}>
+              Import Excel
+            </button>
+          ) : null}
+          {onCreate ? (
+            <button type="button" className="work-primary-button" onClick={onCreate}>
+              <span aria-hidden="true">+</span> Tạo công tác
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DutyTabList({ view, onChoose }) {
   return (
     <div className="duty-workspace-tabs" role="tablist" aria-label="Lịch công tác">
       <button

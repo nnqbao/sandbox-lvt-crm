@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { anyApi } from 'convex/server';
 import DutyWorkspaceTabs from './DutyWorkspaceTabs';
-import DutyEditModal from './DutyEditModal';
+import DutyBulkImport from './DutyBulkImport';
+import DutyEditModal, { dutyEditModeFor } from './DutyEditModal';
 import DutyScheduleTable from './DutyScheduleTable';
 import DutyWeekApprovalBar from './DutyWeekApprovalBar';
 import { dutyWeekPill, formatWeekRange, shouldShowUnapprovedNotice } from './dutyWeekApproval.js';
@@ -13,7 +14,8 @@ import {
 import { useCachedDutySchedule } from './useCachedDutySchedule.js';
 import './sharedDutySchedule.css';
 
-export default function SharedDutyScheduleView({ onChooseView, currentUserId = '', focusWeek = null }) {
+export default function SharedDutyScheduleView({ onChooseView, currentUserId = '', focusWeek = null, canCreate = false }) {
+  const [importOpen, setImportOpen] = useState(false);
   const [mode, setMode] = useState('week');
   const [anchorIso, setAnchorIso] = useState(() => focusWeek?.weekStart || toIsoDate(new Date()));
 
@@ -53,7 +55,7 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
 
   const openEditor = (row) => {
     const event = events.find((item) => String(item._id) === String(row.eventId));
-    if (!event?.canManage) return;
+    if (!dutyEditModeFor(event)) return;
     setEditingEvent(event);
   };
 
@@ -66,7 +68,14 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
 
   return (
     <section className="duty-workspace lct-shared-view">
-      <DutyWorkspaceTabs view="shared" onChoose={onChooseView} />
+      <DutyWorkspaceTabs
+        view="shared"
+        onChoose={onChooseView}
+        canCreate={canCreate}
+        onCreate={() => onChooseView('create')}
+        onImport={() => setImportOpen(true)}
+      />
+      {canCreate && importOpen ? <DutyBulkImport onClose={() => setImportOpen(false)} /> : null}
       <div className="lct-shared-toolbar">
         <div className="lct-shared-toolbar-center">
           <div className="lct-period-nav" role="group" aria-label="Chọn kỳ">
@@ -90,11 +99,6 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
           </div>
         </div>
         <div className="lct-download">
-          {data?.canSubmit ? (
-            <button type="button" className="work-ghost-button" onClick={() => onChooseView('create')}>
-              + Tạo công tác
-            </button>
-          ) : null}
           <button
             type="button"
             className="work-primary-button"
@@ -147,7 +151,11 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
       )}
 
       {editingEvent ? (
-        <DutyEditModal duty={editingEvent} onClose={() => setEditingEvent(null)} />
+        <DutyEditModal
+          duty={editingEvent}
+          mode={dutyEditModeFor(editingEvent) || 'manager'}
+          onClose={() => setEditingEvent(null)}
+        />
       ) : null}
     </section>
   );

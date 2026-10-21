@@ -1,3 +1,49 @@
+.duty-workspace-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 50px 0 18px;
+}
+
+.duty-workspace-head.has-actions {
+  justify-content: space-between;
+  margin-top: 24px;
+}
+
+.duty-workspace-head .duty-workspace-tabs {
+  margin: 0;
+}
+
+.duty-workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.duty-workspace-actions button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.duty-workspace-actions .work-ghost-button {
+  color: var(--lvt-navy);
+}
+
+.duty-workspace-actions .work-primary-button {
+  color: white;
+  background: var(--lvt-navy);
+}
+
 .duty-workspace-tabs {
   display: flex;
   gap: 8px;
@@ -543,7 +589,36 @@
   }
 }
 
+@media (max-width: 680px) {
+  .duty-workspace-head,
+  .duty-workspace-head.has-actions {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 16px;
+  }
+
+  .duty-workspace-head .duty-workspace-tabs {
+    width: 100%;
+  }
+
+  .duty-workspace-head .duty-workspace-tabs button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+  }
+
+  .duty-workspace-actions {
+    margin-left: 0;
+  }
+
+  .duty-workspace-actions button {
+    flex: 1 1 0;
+    min-height: 44px;
+  }
+}
+
 @media print {
+  .duty-workspace-actions,
   .lct-week-status,
   .lct-month-weeks,
   .lct-add-participants {
