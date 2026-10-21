@@ -4,6 +4,7 @@ import { isSameDepartmentSubordinate, isOperationalManagerRole, resolveUserMenuA
 import { canAccessDutyChat } from "./dutyMessagePolicy";
 import { projectPublicDuty } from "./dutyApproval";
 import { canAccessWorkChat } from "./workMessagePolicy";
+import { moderatorDepartmentScope } from "./moderatorScope";
 
 type UserRow = {
   _id: string;
@@ -125,6 +126,7 @@ export async function listWorkChatRecipientIds(
         workItems: args.workItems,
         personalTasks: args.personalTasks,
         usersById: args.usersById,
+        departmentScope: moderatorDepartmentScope(user),
       })
     ) {
       continue;

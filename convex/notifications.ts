@@ -29,6 +29,7 @@ import {
 import { chatEventToFeedItem, mergeChatFeedItems } from "./chatNotifications";
 import { canAccessDutyChat } from "./dutyMessagePolicy";
 import { canAccessWorkChat } from "./workMessagePolicy";
+import { moderatorDepartmentScope } from "./moderatorScope";
 import { createMilestones, mergeMilestoneItems, unionMilestoneHours } from "./notificationSettings";
 import { dutyNotificationEndFloor, loadPublicDutiesFromEndDate } from "./dutyRange";
 import { projectPublicDuty } from "./dutyApproval";
@@ -599,6 +600,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
                     workItems: items,
                     personalTasks: personalTasksByDocument.get(documentId) || [],
                     usersById: usersById as Map<string, { status?: string }>,
+                    departmentScope: moderatorDepartmentScope(user),
                   }),
                 );
               }

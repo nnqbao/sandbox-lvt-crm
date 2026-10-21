@@ -200,16 +200,18 @@ export function canSeeLiveWork(args: {
   createdBy: string;
   isAssignee: boolean;
   visibilityMode: WorkVisibilityMode;
+  /** False when a department-scoped moderator looks at an out-of-scope document. */
+  inModeratorScope?: boolean;
 }) {
   if (String(args.actorUserId) === String(args.createdBy)) return true;
   if (args.isAssignee) return true;
   if (args.visibilityMode === WORK_VISIBILITY_CREATOR) return false;
-  if (isOperationalManagerRole(args.actorRole)) return true;
+  if (isOperationalManagerRole(args.actorRole)) return args.inModeratorScope !== false;
   return args.actorLevel === 4 || args.actorLevel === 5;
 }
 
-export function canSeeArchivedWork(actorRole: string) {
-  return isOperationalManagerRole(actorRole);
+export function canSeeArchivedWork(actorRole: string, inModeratorScope = true) {
+  return isOperationalManagerRole(actorRole) && inModeratorScope;
 }
 
 const WORK_COMPLETED_STATUSES = new Set(["completed", "completed_late"]);

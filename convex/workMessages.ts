@@ -26,6 +26,7 @@ import {
 import { listWorkChatRecipientIds } from "./chatAudience";
 import { applyChatRecall, publishChatMessage } from "./chatInbox";
 import { clampChatPageLimit } from "./chatHubPolicy";
+import { moderatorDepartmentScope } from "./moderatorScope";
 
 async function requireWorkChatActor(ctx: any) {
   const user = await currentUserOrThrow(ctx);
@@ -90,6 +91,7 @@ async function authorizeWorkChat(ctx: any, documentId: string) {
     workItems,
     personalTasks,
     usersById,
+    departmentScope: moderatorDepartmentScope(actor.user),
   });
   if (!allowed) throw new Error("WORK_CHAT_FORBIDDEN");
   return { actor, document, usersById };

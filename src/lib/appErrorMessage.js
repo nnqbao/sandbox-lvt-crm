@@ -153,6 +153,7 @@ export function messageFor(error) {
     DUTY_NOT_FOUND: 'Không tìm thấy công tác.',
     NOT_A_PARTICIPANT: 'Bạn không nằm trong danh sách tham gia công tác này.',
     NOT_A_SUBORDINATE: 'Chỉ được giao hoặc cập nhật cấp dưới trong cùng phòng ban.',
+    MODERATOR_DEPARTMENT_SCOPE: 'Moderator chỉ được thao tác trong phòng ban được gán.',
     ATTENDANCE_OUTSIDE_WINDOW: 'Chỉ xác nhận tham gia trong thời gian diễn ra công tác.',
     ATTENDANCE_CONFIRMATION_DISABLED: 'Xác nhận tham gia đang được tắt trong thiết lập hiển thị.',
     INVALID_WORK_FILE: 'Tệp công văn không đúng định dạng được hỗ trợ.',
