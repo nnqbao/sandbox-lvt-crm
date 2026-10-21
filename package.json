@@ -14,7 +14,9 @@
     "typecheck": "./node_modules/.bin/tsc --project tsconfig.app.json && ./node_modules/.bin/tsc --project convex/tsconfig.json --noEmit",
     "typecheck:convex-codegen": "./scripts/lvt-convex-cloud-env.sh dev ./node_modules/.bin/convex codegen --typecheck enable",
     "convex:dev": "./scripts/lvt-convex-cloud-env.sh dev ./node_modules/.bin/convex dev",
-    "convex:deploy": "./scripts/lvt-convex-cloud-env.sh prod ./node_modules/.bin/convex deploy"
+    "convex:deploy": "./scripts/lvt-convex-cloud-env.sh prod ./node_modules/.bin/convex deploy",
+    "guide:build": "node scripts/build-guide.mjs",
+    "guide:shots": "node scripts/guide-shots/run.mjs"
   },
   "dependencies": {
     "@auth/core": "0.41.3",

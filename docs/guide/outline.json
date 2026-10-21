@@ -1,0 +1,155 @@
+{
+  "updated": "22/10/2026",
+  "roles": [
+    {
+      "part": "bat-dau-nhanh",
+      "icon": "🚀",
+      "title": "Bắt đầu nhanh",
+      "text": "Đăng nhập, quên mật khẩu, làm quen màn hình"
+    },
+    {
+      "part": "giao-vien",
+      "icon": "👩‍🏫",
+      "title": "Tôi là giáo viên",
+      "text": "Lịch công tác, công việc, việc của tôi, trao đổi"
+    },
+    {
+      "part": "gvcn",
+      "icon": "🏫",
+      "title": "Tôi là GVCN",
+      "text": "Lớp chủ nhiệm, điểm danh lớp, báo cáo"
+    },
+    {
+      "part": "giam-thi",
+      "icon": "📋",
+      "title": "Tôi là Giám thị",
+      "text": "Điểm danh các lớp theo khối, nhập Excel"
+    },
+    {
+      "part": "to-truong-bgh",
+      "icon": "🧭",
+      "title": "Tổ trưởng / BGH",
+      "text": "Tạo, duyệt, sửa lịch; giao và duyệt việc; báo cáo"
+    },
+    {
+      "part": "van-thu-quan-tri",
+      "icon": "🗂️",
+      "title": "Văn thư / Quản trị",
+      "text": "Lịch tuần, lớp, tài khoản, nhóm quyền, năm học"
+    },
+    {
+      "part": "tra-cuu-menu",
+      "icon": "📚",
+      "title": "Tra cứu theo menu",
+      "text": "Mỗi menu có gì, ai thấy, nút nào làm gì"
+    }
+  ],
+  "parts": [
+    {
+      "id": "bat-dau-nhanh",
+      "title": "Bắt đầu nhanh",
+      "kicker": "Cho mọi người",
+      "intro": "Đăng nhập lần đầu, lấy lại mật khẩu và làm quen với màn hình chính.",
+      "topics": [
+        "dang-nhap",
+        "quen-mat-khau",
+        "doi-mat-khau-lan-dau",
+        "giao-dien-chung",
+        "vai-tro-va-quyen",
+        "tb-thong-bao",
+        "tai-khoan-ca-nhan",
+        "doi-mat-khau",
+        "thiet-bi-dang-nhap"
+      ]
+    },
+    {
+      "id": "giao-vien",
+      "title": "Tôi là giáo viên",
+      "kicker": "Việc hằng ngày",
+      "intro": "Xem lịch công tác, nhận và báo hoàn thành công việc, ghi việc riêng, trao đổi với đồng nghiệp.",
+      "topics": [
+        "ct-xem-lich-ca-nhan",
+        "ct-xac-nhan-tham-gia",
+        "ct-lich-chung-pdf",
+        "cv-viec-duoc-giao",
+        "cv-bi-tra-ve",
+        "cv-viec-cua-toi",
+        "td-trao-doi",
+        "td-nhom",
+        "dg-ho-so-cua-toi",
+        "ln-ghi-nhan-loi"
+      ]
+    },
+    {
+      "id": "gvcn",
+      "title": "Tôi là giáo viên chủ nhiệm (GVCN)",
+      "kicker": "Lớp chủ nhiệm",
+      "intro": "Theo dõi sĩ số, điểm danh của lớp mình, đánh dấu vắng không phép và xuất báo cáo.",
+      "topics": [
+        "cn-tong-quan-lop",
+        "cn-diem-danh-lop",
+        "cn-danh-sach-hoc-sinh",
+        "cn-bao-cao-xuat-file"
+      ]
+    },
+    {
+      "id": "giam-thi",
+      "title": "Tôi là Giám thị",
+      "kicker": "Điểm danh",
+      "intro": "Điểm danh học sinh vắng của các lớp theo khối, trực tiếp trên màn hình hoặc nhập file Excel.",
+      "topics": [
+        "dd-diem-danh-man-hinh",
+        "dd-diem-danh-excel",
+        "dd-diem-danh-dien-thoai"
+      ]
+    },
+    {
+      "id": "to-truong-bgh",
+      "title": "Tôi là tổ trưởng / Ban Giám hiệu",
+      "kicker": "Quản lý chuyên môn",
+      "intro": "Tạo lịch cho tổ, duyệt và sửa lịch tuần của trường, giao việc và duyệt kết quả, theo dõi báo cáo và đánh giá nhân sự.",
+      "topics": [
+        "ct-tao-cong-tac",
+        "ct-import-excel",
+        "ct-bgh-duyet-sua",
+        "cv-tao-cong-viec",
+        "cv-duyet-hoan-thanh",
+        "bc-bao-cao-cong-viec",
+        "dg-danh-gia-nguoi-khac"
+      ]
+    },
+    {
+      "id": "van-thu-quan-tri",
+      "title": "Văn thư / Quản trị hệ thống",
+      "kicker": "Moderator · Administrator",
+      "intro": "Soạn và nộp lịch tuần, quản lý lớp, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
+      "topics": [
+        "tl-trinh-tu-thiet-lap",
+        "ct-nop-duyet-tuan",
+        "cn-quan-ly-lop",
+        "tl-nguoi-dung",
+        "tl-quan-ly-tai-khoan",
+        "tl-import-export",
+        "tl-phong-ban",
+        "tl-chuc-vu",
+        "tl-nhom-quyen",
+        "nh-thiet-lap-nam-hoc",
+        "tl-loai-van-ban",
+        "tl-hien-thi"
+      ]
+    },
+    {
+      "id": "tra-cuu-menu",
+      "title": "Tra cứu theo menu",
+      "kicker": "Tham khảo",
+      "intro": "Tóm tắt từng menu: dùng để làm gì, ai nhìn thấy, các nút chính và liên kết tới hướng dẫn chi tiết.",
+      "topics": [
+        "menu-lich-cong-tac",
+        "menu-cong-viec",
+        "menu-lop-chu-nhiem",
+        "menu-khac",
+        "khi-khong-thay"
+      ]
+    }
+  ]
+}

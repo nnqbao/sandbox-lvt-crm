@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 290" role="img" aria-labelledby="t d"><title id="t">Sơ đồ phân quyền</title><desc id="d">Ba yếu tố quyết định quyền: vai trò, nhóm quyền và chức vụ.</desc><style>
+text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-serif}
+.t{font-size:17px;font-weight:800;fill:#14355f}
+.s{font-size:13px;font-weight:500;fill:#2b465e}
+.k{font-size:11px;font-weight:800;letter-spacing:.08em;fill:#0e7363}
+.n{font-size:15px;font-weight:800;fill:#fff}
+.a{fill:none;stroke:#28639a;stroke-width:2.5;marker-end:url(#arr)}
+.ad{fill:none;stroke:#c0472f;stroke-width:2;stroke-dasharray:6 5;marker-end:url(#arrr)}
+.cap{font-size:12px;font-weight:600;fill:#5a6b7c}
+</style>
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#28639a"/></marker>
+<marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#c0472f"/></marker>
+</defs><rect width="900" height="290" rx="16" fill="#fff"/><rect x="20" y="30" width="270" height="200" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="20" y="30" width="6" height="200" rx="3" fill="#138f7b"/>
+<text x="42" y="54" class="k">1 · VAI TRÒ</text>
+<text x="42" y="74" class="t">Admin · Moderator · User</text>
+<text x="42" y="102" class="s">Administrator: toàn quyền,</text>
+<text x="42" y="121" class="s">có Thiết lập tối cao.</text>
+<text x="42" y="140" class="s">Moderator: quản lý nghiệp vụ,</text>
+<text x="42" y="159" class="s">có thể giới hạn theo phòng ban.</text>
+<text x="42" y="178" class="s">User: theo nhóm quyền.</text>
+<rect x="315" y="30" width="270" height="200" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="315" y="30" width="6" height="200" rx="3" fill="#e9ad43"/>
+<text x="337" y="54" class="k">2 · NHÓM QUYỀN</text>
+<text x="337" y="74" class="t">Menu nào, mức nào</text>
+<text x="337" y="102" class="s">Ẩn · Xem · Xem tối cao</text>
+<text x="337" y="121" class="s">Giám thị: chỉ ở menu Điểm danh</text>
+<text x="337" y="140" class="s">Trao đổi và Việc của tôi</text>
+<text x="337" y="159" class="s">luôn có với mọi người.</text>
+<rect x="610" y="30" width="270" height="200" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="610" y="30" width="6" height="200" rx="3" fill="#28639a"/>
+<text x="632" y="54" class="k">3 · CHỨC VỤ</text>
+<text x="632" y="74" class="t">Cấp bậc 1–5 sao</text>
+<text x="632" y="102" class="s">2–3 sao: tạo lịch tổ, giao việc</text>
+<text x="632" y="121" class="s">4–5 sao: duyệt và sửa lịch tuần,</text>
+<text x="632" y="140" class="s">ghi nhận xét đánh giá.</text>
+<text x="632" y="159" class="s">Cấp cao quản lý cấp thấp hơn.</text>
+<text x="450" y="268" text-anchor="middle" class="cap">Menu và nút mỗi người thấy = vai trò + nhóm quyền + chức vụ (+ phòng ban)</text></svg>
