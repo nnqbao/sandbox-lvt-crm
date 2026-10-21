@@ -75,7 +75,9 @@
         "cv-bi-tra-ve",
         "cv-viec-cua-toi",
         "td-trao-doi",
-        "td-nhom"
+        "td-nhom",
+        "dg-ho-so-cua-toi",
+        "ln-ghi-nhan-loi"
       ]
     },
     {
@@ -112,7 +114,8 @@
         "ct-bgh-duyet-sua",
         "cv-tao-cong-viec",
         "cv-duyet-hoan-thanh",
-        "bc-bao-cao-cong-viec"
+        "bc-bao-cao-cong-viec",
+        "dg-danh-gia-nguoi-khac"
       ]
     },
     {
