@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" role="img" aria-labelledby="t d"><title id="t">Luồng Điểm danh</title><desc id="d">Giám thị điểm danh, GVCN đánh dấu vắng không phép, sau đó xem báo cáo chuyên cần.</desc><style>
+text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-serif}
+.t{font-size:17px;font-weight:800;fill:#14355f}
+.s{font-size:13px;font-weight:500;fill:#2b465e}
+.k{font-size:11px;font-weight:800;letter-spacing:.08em;fill:#0e7363}
+.n{font-size:15px;font-weight:800;fill:#fff}
+.a{fill:none;stroke:#28639a;stroke-width:2.5;marker-end:url(#arr)}
+.ad{fill:none;stroke:#c0472f;stroke-width:2;stroke-dasharray:6 5;marker-end:url(#arrr)}
+.cap{font-size:12px;font-weight:600;fill:#5a6b7c}
+</style>
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#28639a"/></marker>
+<marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#c0472f"/></marker>
+</defs><rect width="900" height="280" rx="16" fill="#fff"/><rect x="20" y="30" width="250" height="180" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="20" y="30" width="6" height="180" rx="3" fill="#138f7b"/>
+<circle cx="50" cy="60" r="15" fill="#c0472f"/><text x="50" y="65" text-anchor="middle" class="n">1</text>
+<text x="74" y="54" class="k">GIÁM THỊ</text>
+<text x="74" y="74" class="t">Điểm danh buổi sáng</text>
+<text x="42" y="102" class="s">Menu Điểm danh → khối → lớp</text>
+<text x="42" y="121" class="s">Tích “Vắng” → Lưu lớp</text>
+<text x="42" y="140" class="s">hoặc Import Excel nhiều lớp</text>
+<rect x="325" y="30" width="250" height="180" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="325" y="30" width="6" height="180" rx="3" fill="#e9ad43"/>
+<circle cx="355" cy="60" r="15" fill="#c0472f"/><text x="355" y="65" text-anchor="middle" class="n">2</text>
+<text x="379" y="54" class="k">GVCN</text>
+<text x="379" y="74" class="t">Phân loại vắng</text>
+<text x="347" y="102" class="s">Lớp chủ nhiệm → tab Điểm danh</text>
+<text x="347" y="121" class="s">Mặc định: Vắng có phép</text>
+<text x="347" y="140" class="s">Tích “Vắng không phép” nếu cần</text>
+<rect x="630" y="30" width="250" height="180" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="630" y="30" width="6" height="180" rx="3" fill="#28639a"/>
+<circle cx="660" cy="60" r="15" fill="#c0472f"/><text x="660" y="65" text-anchor="middle" class="n">3</text>
+<text x="684" y="54" class="k">GVCN · BGH</text>
+<text x="684" y="74" class="t">Báo cáo chuyên cần</text>
+<text x="652" y="102" class="s">Tab Báo cáo: tuần / tháng / năm</text>
+<text x="652" y="121" class="s">Tải Excel hoặc PDF</text>
+<text x="652" y="140" class="s">BGH xem toàn trường</text>
+<path class="a" d="M272 120 H322"/>
+<path class="a" d="M577 120 H627"/>
+<text x="450" y="250" text-anchor="middle" class="cap">Quá giờ nhắc (ví dụ 08:30) mà lớp chưa có dữ liệu → tổng quan báo đỏ cho người quản lý</text></svg>

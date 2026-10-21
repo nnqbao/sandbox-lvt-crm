@@ -78,11 +78,16 @@ export const queries = {
   'users:sessionContext': sessionContext,
   'users:bootstrap': () => ({
     currentUser: USERS[0],
-    users: USERS,
+    // One account locked after too many wrong passwords, to illustrate "Mở khóa ĐN".
+    users: USERS.map((u) => (u._id === 'u_t5' ? { ...u, loginLockedAt: T0 - 2 * HOUR } : u)),
     departments: DEPARTMENTS,
     permissionGroups: PERMISSION_GROUPS,
     positions: POSITIONS,
-    systemRoles: ['admin', 'moderator', 'user'],
+    systemRoles: [
+      { key: 'admin', name: 'Administrator' },
+      { key: 'moderator', name: 'Moderator' },
+      { key: 'user', name: 'User' },
+    ],
   }),
   'departments:list': () => ({ departments: DEPARTMENTS, users: slimUsers('departmentId') }),
   'positions:list': () => ({ positions: [...POSITIONS].sort((a, b) => b.level - a.level), users: slimUsers('positionId') }),

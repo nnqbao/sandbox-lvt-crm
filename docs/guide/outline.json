@@ -124,9 +124,18 @@
       "kicker": "Moderator · Administrator",
       "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
       "topics": [
+        "tl-trinh-tu-thiet-lap",
         "ct-nop-duyet-tuan",
         "cn-quan-ly-lop",
-        "nh-thiet-lap-nam-hoc"
+        "tl-nguoi-dung",
+        "tl-quan-ly-tai-khoan",
+        "tl-import-export",
+        "tl-phong-ban",
+        "tl-chuc-vu",
+        "tl-nhom-quyen",
+        "nh-thiet-lap-nam-hoc",
+        "tl-loai-van-ban",
+        "tl-hien-thi"
       ]
     },
     {
