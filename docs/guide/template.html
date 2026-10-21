@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="description" content="Cẩm nang sử dụng CRM nội bộ Trường THCS Lê Văn Tám: hướng dẫn theo vai trò, có hình minh họa từng bước.">
+<title>Cẩm nang CRM · THCS Lê Văn Tám</title>
+<link rel="icon" href="/assets/logo-thcs-le-van-tam.png">
+<style>
+/*{{CSS}}*/
+</style>
+</head>
+<body>
+<a class="skip-link" href="#noi-dung">Bỏ qua mục lục, tới nội dung</a>
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <img class="hero-logo" src="/assets/logo-thcs-le-van-tam.png" alt="Logo Trường THCS Lê Văn Tám" width="64" height="64">
+    <div>
+      <p class="hero-kicker">CRM nội bộ · Trường THCS Lê Văn Tám</p>
+      <h1>Cẩm nang sử dụng</h1>
+      <p class="hero-sub">Hướng dẫn từng bước, có hình minh họa đánh số. Chọn vai trò của thầy cô để bắt đầu, hoặc gõ điều cần tìm vào ô tìm kiếm.</p>
+      <p class="hero-meta">{{TOPIC_COUNT}} chủ đề · {{FIGURE_COUNT}} hình minh họa · Cập nhật {{UPDATED}}</p>
+    </div>
+  </div>
+  <nav class="role-cards" aria-label="Chọn theo vai trò">{{ROLE_CARDS}}</nav>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Mục lục và tìm kiếm">
+    <div class="search-box" role="search">
+      <label for="guide-search">Tìm trong cẩm nang</label>
+      <div class="search-field">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="guide-search" type="search" placeholder="Ví dụ: điểm danh, quên mật khẩu" autocomplete="off">
+        <button type="button" class="search-clear" aria-label="Xóa nội dung tìm kiếm" hidden>×</button>
+      </div>
+      <p class="search-status" role="status" aria-live="polite"></p>
+    </div>
+    <details class="toc" open>
+      <summary>Mục lục</summary>
+      <ol class="toc-list">
+{{TOC}}
+      </ol>
+    </details>
+  </aside>
+
+  <main id="noi-dung" class="content" tabindex="-1">
+    <p class="search-empty" hidden>Không tìm thấy mục nào phù hợp. Thử từ khóa ngắn hơn, ví dụ “lịch”, “mật khẩu”, “vắng”.</p>
+{{CONTENT}}
+    <footer class="page-foot">
+      <p>Không thấy menu hoặc nút như trong hình? Menu của mỗi người phụ thuộc vào vai trò, phòng ban, chức vụ và nhóm quyền. Hãy liên hệ quản trị viên của trường để kiểm tra.</p>
+      <p>Mọi tên người, lớp và học sinh trong hình minh họa đều là ví dụ, không phải dữ liệu thật.</p>
+    </footer>
+  </main>
+</div>
+
+<a class="back-to-top" href="#top" aria-label="Lên đầu trang">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>
+</a>
+
+<dialog class="lightbox" aria-label="Hình phóng to">
+  <button type="button" class="lightbox-close" aria-label="Đóng hình phóng to">×</button>
+  <img alt="">
+  <p class="lightbox-caption"></p>
+</dialog>
+
+<script>
+/*{{JS}}*/
+</script>
+</body>
+</html>

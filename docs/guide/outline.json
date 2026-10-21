@@ -1,0 +1,107 @@
+{
+  "updated": "21/10/2026",
+  "roles": [
+    {
+      "part": "bat-dau-nhanh",
+      "icon": "🚀",
+      "title": "Bắt đầu nhanh",
+      "text": "Đăng nhập, quên mật khẩu, làm quen màn hình"
+    },
+    {
+      "part": "giao-vien",
+      "icon": "👩‍🏫",
+      "title": "Tôi là giáo viên",
+      "text": "Lịch công tác, công việc, việc của tôi, trao đổi"
+    },
+    {
+      "part": "gvcn",
+      "icon": "🏫",
+      "title": "Tôi là GVCN",
+      "text": "Lớp chủ nhiệm, điểm danh lớp, báo cáo"
+    },
+    {
+      "part": "giam-thi",
+      "icon": "📋",
+      "title": "Tôi là Giám thị",
+      "text": "Điểm danh các lớp theo khối, nhập Excel"
+    },
+    {
+      "part": "to-truong-bgh",
+      "icon": "🧭",
+      "title": "Tổ trưởng / BGH",
+      "text": "Tạo, duyệt, sửa lịch; duyệt công văn; báo cáo"
+    },
+    {
+      "part": "van-thu-quan-tri",
+      "icon": "🗂️",
+      "title": "Văn thư / Quản trị",
+      "text": "Công văn, tài khoản, nhóm quyền, năm học"
+    },
+    {
+      "part": "tra-cuu-menu",
+      "icon": "📚",
+      "title": "Tra cứu theo menu",
+      "text": "Mỗi menu có gì, ai thấy, nút nào làm gì"
+    }
+  ],
+  "parts": [
+    {
+      "id": "bat-dau-nhanh",
+      "title": "Bắt đầu nhanh",
+      "kicker": "Cho mọi người",
+      "intro": "Đăng nhập lần đầu, lấy lại mật khẩu và làm quen với màn hình chính.",
+      "topics": [
+        "dang-nhap",
+        "quen-mat-khau",
+        "doi-mat-khau-lan-dau",
+        "giao-dien-chung",
+        "vai-tro-va-quyen",
+        "tai-khoan-ca-nhan",
+        "doi-mat-khau",
+        "thiet-bi-dang-nhap"
+      ]
+    },
+    {
+      "id": "giao-vien",
+      "title": "Tôi là giáo viên",
+      "kicker": "Việc hằng ngày",
+      "intro": "Xem lịch công tác, nhận và báo hoàn thành công việc, ghi việc riêng, trao đổi với đồng nghiệp.",
+      "topics": []
+    },
+    {
+      "id": "gvcn",
+      "title": "Tôi là giáo viên chủ nhiệm (GVCN)",
+      "kicker": "Lớp chủ nhiệm",
+      "intro": "Theo dõi sĩ số, điểm danh của lớp mình, đánh dấu vắng không phép và xuất báo cáo.",
+      "topics": []
+    },
+    {
+      "id": "giam-thi",
+      "title": "Tôi là Giám thị",
+      "kicker": "Điểm danh",
+      "intro": "Điểm danh học sinh vắng của các lớp theo khối, trực tiếp trên màn hình hoặc nhập file Excel.",
+      "topics": []
+    },
+    {
+      "id": "to-truong-bgh",
+      "title": "Tôi là tổ trưởng / Ban Giám hiệu",
+      "kicker": "Quản lý chuyên môn",
+      "intro": "Tạo và duyệt lịch công tác, duyệt công văn, giao việc cho tổ, theo dõi báo cáo và đánh giá nhân sự.",
+      "topics": []
+    },
+    {
+      "id": "van-thu-quan-tri",
+      "title": "Văn thư / Quản trị hệ thống",
+      "kicker": "Moderator · Administrator",
+      "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
+      "topics": []
+    },
+    {
+      "id": "tra-cuu-menu",
+      "title": "Tra cứu theo menu",
+      "kicker": "Tham khảo",
+      "intro": "Tóm tắt từng menu: dùng để làm gì, ai nhìn thấy, các nút chính và liên kết tới hướng dẫn chi tiết.",
+      "topics": []
+    }
+  ]
+}
