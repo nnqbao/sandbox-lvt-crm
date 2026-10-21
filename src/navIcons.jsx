@@ -45,6 +45,13 @@ const NAV_ICONS = {
       <path d="M10 20.5v-5h4v5" />
     </NavGlyph>
   ),
+  attendance: () => (
+    <NavGlyph>
+      <rect x="5" y="4.5" width="14" height="16.5" rx="2" />
+      <path d="M9 3h6v3H9z" />
+      <path d="m8.8 13.2 2.2 2.2 4.4-4.6" />
+    </NavGlyph>
+  ),
   'people-review': () => (
     <NavGlyph>
       <circle cx="9" cy="8.2" r="3" />

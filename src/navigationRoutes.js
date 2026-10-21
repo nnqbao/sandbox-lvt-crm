@@ -7,6 +7,7 @@ const MENU_PATHS = Object.freeze({
   chat: '/trao-doi',
   work: '/cong-viec',
   homeroom: '/lop-chu-nhiem',
+  attendance: '/diem-danh',
   'people-review': '/danh-gia-nhan-su',
   'staff-faults': '/ghi-nhan-loi',
   profile: '/thong-tin-ca-nhan',
@@ -85,8 +86,6 @@ function normalizePathname(pathname) {
 export function homeroomPathname(args = {}) {
   if (args.studentId) return `/lop-chu-nhiem/hoc-sinh/${encodeURIComponent(args.studentId)}`;
   if (args.manageClasses) return '/lop-chu-nhiem/quan-ly-lop';
-  if (args.pendingAbsences) return '/lop-chu-nhiem/vang-cho-xu-ly';
-  if (args.importAttendance) return '/lop-chu-nhiem/nhap-diem-danh';
   if (args.classId && args.tab) {
     return `/lop-chu-nhiem/lop/${encodeURIComponent(args.classId)}/${args.tab}`;
   }

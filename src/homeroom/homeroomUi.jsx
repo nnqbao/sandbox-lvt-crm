@@ -57,6 +57,8 @@ const ICONS = {
   close: <path d="M6 6l12 12M18 6 6 18" />,
   chevronLeft: <path d="m14.5 6-6 6 6 6" />,
   chevronRight: <path d="m9.5 6 6 6-6 6" />,
+  chevronDown: <path d="m6 9.5 6 6 6-6" />,
+  chevronUp: <path d="m6 14.5 6-6 6 6" />,
   arrowRight: (
     <>
       <path d="M4.5 12h15" />
