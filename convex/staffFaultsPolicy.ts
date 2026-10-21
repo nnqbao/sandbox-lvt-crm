@@ -10,6 +10,8 @@ export function canAddStaffFault(actor: { isOps: boolean; level: number }): bool
 /**
  * `view`: faults targeting the actor, plus faults the actor recorded.
  * `view_all` / operational managers: every active fault in the query result.
+ * A department-scoped moderator (`departmentScope`) sees, beyond their own,
+ * only faults whose target belongs to that department.
  */
 export function canSeeStaffFaultRecord(args: {
   isOps: boolean;
@@ -17,8 +19,14 @@ export function canSeeStaffFaultRecord(args: {
   actorUserId: string;
   targetUserId: string;
   recordedByUserId: string;
+  departmentScope?: string | null;
+  targetDepartmentId?: string | null;
 }): boolean {
-  if (args.isOps || args.access === "view_all") return true;
   const me = String(args.actorUserId);
-  return String(args.targetUserId) === me || String(args.recordedByUserId) === me;
+  if (String(args.targetUserId) === me || String(args.recordedByUserId) === me) return true;
+  if (args.isOps) {
+    if (!args.departmentScope) return true;
+    return String(args.targetDepartmentId || "") === String(args.departmentScope);
+  }
+  return args.access === "view_all";
 }
