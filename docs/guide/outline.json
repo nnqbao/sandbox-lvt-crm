@@ -69,7 +69,10 @@
       "topics": [
         "ct-xem-lich-ca-nhan",
         "ct-xac-nhan-tham-gia",
-        "ct-lich-chung-pdf"
+        "ct-lich-chung-pdf",
+        "cv-viec-duoc-giao",
+        "cv-bi-tra-ve",
+        "cv-viec-cua-toi"
       ]
     },
     {
@@ -103,7 +106,10 @@
       "topics": [
         "ct-tao-cong-tac",
         "ct-import-excel",
-        "ct-bgh-duyet-sua"
+        "ct-bgh-duyet-sua",
+        "cv-tao-cong-viec",
+        "cv-duyet-hoan-thanh",
+        "bc-bao-cao-cong-viec"
       ]
     },
     {
