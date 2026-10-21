@@ -360,6 +360,26 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_kind_source", ["userId", "kind", "sourceId"]),
+  /**
+   * "Việc của tôi": private to-dos. Owner-only (admin/mod included in "others"),
+   * independent of the work menu and work-document approval.
+   */
+  personalTodos: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    note: v.optional(v.string()),
+    dueAt: v.optional(v.number()),
+    remindAt: v.optional(v.number()),
+    /** Set by the reminder job when it fires; drives the in-app bell item. */
+    remindedAt: v.optional(v.number()),
+    reminderJobId: v.optional(v.id("_scheduled_functions")),
+    completedAt: v.optional(v.number()),
+    active: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user_active_due", ["userId", "active", "dueAt"])
+    .index("by_user_active_completed", ["userId", "active", "completedAt"]),
   /** FCM registration tokens, one row per Android app installation. */
   pushTokens: defineTable({
     userId: v.string(),

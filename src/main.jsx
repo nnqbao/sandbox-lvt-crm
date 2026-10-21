@@ -11,7 +11,7 @@ import DutyReportsView from './reports/DutyReportsView';
 import SharedDutyScheduleView from './duties/SharedDutyScheduleView';
 import { isDutyWeekNotification } from './duties/dutyWeekApproval.js';
 import DutyWorkspaceTabs from './duties/DutyWorkspaceTabs';
-import { WorkUserView } from './work/WorkViews';
+import WorkHub from './work/WorkHub';
 import DocumentTypeSettings from './settings/DocumentTypeSettings';
 import SchoolYearSettings from './settings/SchoolYearSettings';
 import DisplaySettings from './settings/DisplaySettings';
@@ -157,7 +157,8 @@ function AppShell({ session }) {
   );
   const visiblePrimaryMenus = useMemo(() => {
     if (canManageOperations) return PRIMARY_MENUS;
-    return PRIMARY_MENUS.filter(([id]) => id === 'chat' || (menuAccess?.[id] && menuAccess[id] !== 'hidden'));
+    // Trao đổi and Công việc ("Việc của tôi") are open to every active account.
+    return PRIMARY_MENUS.filter(([id]) => id === 'chat' || id === 'work' || (menuAccess?.[id] && menuAccess[id] !== 'hidden'));
   }, [canManageOperations, menuAccess]);
   const canUseChat = visiblePrimaryMenus.some(([id]) => id === 'chat');
   const sidebarPrimaryMenus = useMemo(
@@ -548,7 +549,10 @@ function AppShell({ session }) {
             />
           )
         ) : active === 'work' ? (
-          <WorkUserView focusTarget={activeFocusTarget} />
+          <WorkHub
+            focusTarget={activeFocusTarget}
+            workHidden={!canManageOperations && (menuAccess?.work || 'hidden') === 'hidden'}
+          />
         ) : active === 'chat' ? (
           <ChatHub path={chatPath} onNavigate={openChatThread} onOpenEntity={openChatEntity} />
         ) : active === 'people-review' ? (
@@ -645,10 +649,10 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
                   type="button"
                   className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' ? ' is-rejection' : ''}`}
                   key={item.key}
-                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : 'Mở công việc này'}
+                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
                   onClick={() => openItem(item)}
                 >
-                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
+                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.kind === 'todo' ? 'Việc của tôi' : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
                   <strong>{item.title}</strong>
                   <small>{item.description}</small>
                 </button>

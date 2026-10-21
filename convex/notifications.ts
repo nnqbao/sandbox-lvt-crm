@@ -1,3 +1,4 @@
+import { todoReminderNotificationItem } from "./personalTodoPolicy";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import {
@@ -673,7 +674,15 @@ async function notificationItems(ctx: any, requestedNow?: number) {
     })
     .map((row: any) => chatEventToFeedItem(row));
   const chatItems = mergeChatFeedItems([storedChatItems, computedChatItems], now);
-  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones]
+  // "Việc của tôi": owner's own fired reminders only; independent of work/duties menus.
+  const todoRows = await ctx.db
+    .query("personalTodos")
+    .withIndex("by_user_active_due", (q: any) => q.eq("userId", user._id).eq("active", true))
+    .collect();
+  const todoItems = todoRows
+    .map((row: any) => todoReminderNotificationItem(row))
+    .filter((item: any): item is NonNullable<ReturnType<typeof todoReminderNotificationItem>> => item !== null);
+  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones, ...todoItems]
     .sort((a, b) => b.availableAt - a.availableAt || a.title.localeCompare(b.title, "vi"));
   const [reads, dismissals] = await Promise.all([
     ctx.db

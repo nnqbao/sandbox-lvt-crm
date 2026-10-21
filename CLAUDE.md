@@ -46,6 +46,7 @@
 - Forgot-password sends email **before** rotating credentials. Mail failure must not leave an unknown password. Per-user cooldown only; do not add IP rate limits.
 - Profile password change requires `currentPassword`. The forced `mustChangePassword` gate (web / Android / iOS) only sends `newPassword`.
 - Work access requires an active account with no pending mandatory password change. Ordinary users also require the `work` menu not to be hidden.
+- "Việc của tôi" (`personalTodos`) is owner-only (not even admin/mod) and independent of the `work` menu access and work-document approval; the Công việc menu is shown to every active user, with only that tab when `work` is hidden.
 - Work-document create/update/delete operations require the operational-manager `work:write` gate.
 - Every protected Convex mutation/query must re-check authorization server-side.
 - Every private-file metadata/download request must authenticate and authorize the current user.
