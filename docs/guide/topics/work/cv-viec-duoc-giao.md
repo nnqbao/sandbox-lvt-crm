@@ -32,4 +32,4 @@ Việc chỉ được tính **hoàn thành** khi người giao duyệt. Nộp sa
 Nhắn người giao việc qua nút trao đổi trên thẻ. Họ có thể bấm **Chưa duyệt** để trả về, khi đó thầy cô nộp lại file đúng.
 
 ??? Số đỏ cạnh menu Công việc là gì?
-Là tổng số việc chưa xong của thầy cô cộng với số bài nộp đang chờ thầy cô duyệt (nếu thầy cô có giao việc).
+Là tổng của: việc được giao mà thầy cô chưa xong, bài nộp đang chờ thầy cô duyệt và việc thầy cô tạo mà chưa hoàn thành.

@@ -235,7 +235,6 @@ export const queries = {
       actorName: 'Đỗ Thị G', actorKind: 'manager', actorRoleLabel: 'Văn thư', changes: [],
     },
   ],
-  'dutyMessages:list': () => ({ messages: [], canSend: true }),
   'personalReminders:listMine': () => [],
 };
 

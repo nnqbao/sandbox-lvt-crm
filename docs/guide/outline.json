@@ -56,6 +56,7 @@
         "doi-mat-khau-lan-dau",
         "giao-dien-chung",
         "vai-tro-va-quyen",
+        "tb-thong-bao",
         "tai-khoan-ca-nhan",
         "doi-mat-khau",
         "thiet-bi-dang-nhap"
@@ -72,7 +73,9 @@
         "ct-lich-chung-pdf",
         "cv-viec-duoc-giao",
         "cv-bi-tra-ve",
-        "cv-viec-cua-toi"
+        "cv-viec-cua-toi",
+        "td-trao-doi",
+        "td-nhom"
       ]
     },
     {
