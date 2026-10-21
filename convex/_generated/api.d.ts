@@ -58,6 +58,7 @@ import type * as loginSecurity from "../loginSecurity.js";
 import type * as mail from "../mail.js";
 import type * as mailTransport from "../mailTransport.js";
 import type * as menuAccess from "../menuAccess.js";
+import type * as moderatorScope from "../moderatorScope.js";
 import type * as notificationSettings from "../notificationSettings.js";
 import type * as notifications from "../notifications.js";
 import type * as peopleReview from "../peopleReview.js";
@@ -156,6 +157,7 @@ declare const fullApi: ApiFromModules<{
   mail: typeof mail;
   mailTransport: typeof mailTransport;
   menuAccess: typeof menuAccess;
+  moderatorScope: typeof moderatorScope;
   notificationSettings: typeof notificationSettings;
   notifications: typeof notifications;
   peopleReview: typeof peopleReview;

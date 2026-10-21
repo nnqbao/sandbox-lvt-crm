@@ -44,6 +44,13 @@ import {
   listActiveDocumentTypes,
 } from "./documentTypes";
 import { requireDocumentTypeId, resolveDisplayedDocumentType } from "./documentTypePolicy";
+import {
+  isUserInModeratorScope,
+  isWorkDocumentInModeratorScope,
+  MODERATOR_DEPARTMENT_SCOPE_ERROR,
+  moderatorDepartmentScope,
+  workDocumentScopeAssignments,
+} from "./moderatorScope";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -332,13 +339,46 @@ function assignmentTypeOf(item: any): "department" | "individual" {
 }
 
 async function requireWorkWrite(ctx: any) {
-  const actor = await assignmentCreatorOrThrow(ctx);
+  const base = await assignmentCreatorOrThrow(ctx);
+  const actor = { ...base, departmentScope: moderatorDepartmentScope(base.user) };
   if (actor.isOps) return actor;
   const menuAccess = await resolveUserMenuAccess(ctx, actor.user);
   if ((menuAccess.work || "hidden") === "hidden") {
     throw new Error("FORBIDDEN: work menu hidden");
   }
   return actor;
+}
+
+function usersByIdMap(users: any[]) {
+  return new Map<string, any>(users.map((user: any) => [String(user._id), user]));
+}
+
+/** Department-scoped moderators manage only documents whose every assignment is inside their department. */
+function isDocumentInScope(
+  scope: string | null,
+  document: any,
+  usersById: Map<string, { departmentId?: string | null }>,
+) {
+  return isWorkDocumentInModeratorScope(scope, workDocumentScopeAssignments(document), usersById);
+}
+
+function personalTaskInScope(
+  scope: string | null,
+  task: any,
+  activeWorkItems: any[],
+  docsById: Map<string, any>,
+  usersById: Map<string, { departmentId?: string | null }>,
+) {
+  if (!scope) return true;
+  const item = activeWorkItems.find((workItem: any) => String(workItem._id) === String(task.workItemId));
+  const document = item ? docsById.get(String(item.documentId)) : null;
+  return Boolean(document) && isDocumentInScope(scope, document, usersById);
+}
+
+async function documentInActorScope(ctx: any, scope: string | null, document: any) {
+  if (!scope) return true;
+  const users = await ctx.db.query("users").collect();
+  return isDocumentInScope(scope, document, usersByIdMap(users));
 }
 
 async function releasePendingWorkDocuments(ctx: any) {
@@ -356,9 +396,15 @@ async function releasePendingWorkDocuments(ctx: any) {
 async function assertWorkAssignmentsForActor(
   ctx: any,
   assignmentInputs: DocumentAssignmentInput[],
-  actor: { user: any; isOps: boolean; positions: any[] },
+  actor: { user: any; isOps: boolean; positions: any[]; departmentScope: string | null },
 ) {
   const { assignments } = await validateDocumentWorkflow(ctx, assignmentInputs, []);
+  if (actor.isOps && actor.departmentScope) {
+    const users = await ctx.db.query("users").collect();
+    if (!isWorkDocumentInModeratorScope(actor.departmentScope, assignments, usersByIdMap(users))) {
+      throw new Error(MODERATOR_DEPARTMENT_SCOPE_ERROR);
+    }
+  }
   if (!actor.isOps) {
     for (const assignment of assignments) {
       if (assignment.type !== "individual") throw new Error("WORK_DEPARTMENT_FORBIDDEN");
@@ -386,6 +432,7 @@ async function requireWorkAccess(ctx: any) {
     user,
     access: isOperationalManagerRole(user.role) ? "view_all" : menuAccess.work,
     isAdmin: isOperationalManagerRole(user.role),
+    departmentScope: moderatorDepartmentScope(user),
     level: isOperationalManagerRole(user.role) ? 5 : activePositionLevel(user, positions),
     positions,
   };
@@ -491,11 +538,13 @@ function isWorkManagementListVisible(args: {
   actorLevel: number;
   actorDepartmentId: string;
   visibilityMode: "creator" | "school";
-  usersById: Map<string, { status?: string }>;
+  usersById: Map<string, { status?: string; departmentId?: string }>;
+  departmentScope: string | null;
 }) {
+  const inModeratorScope = isDocumentInScope(args.departmentScope, args.document, args.usersById);
   const archived = args.items.some((item: any) => isWorkItemArchived(args.document, item, args.usersById))
     || isWorkItemArchived(args.document, { assignmentType: "department" }, args.usersById);
-  if (archived) return canSeeArchivedWork(args.actorRole);
+  if (archived) return canSeeArchivedWork(args.actorRole, inModeratorScope);
   const isAssignee = args.items.some((item: any) => {
     if (assignmentTypeOf(item) === "individual") {
       return (item.assigneeUserIds || []).some((id: string) => String(id) === String(args.actorUserId));
@@ -509,6 +558,7 @@ function isWorkManagementListVisible(args: {
     createdBy: String(args.document.createdBy),
     isAssignee,
     visibilityMode: args.visibilityMode,
+    inModeratorScope,
   });
 }
 
@@ -871,7 +921,8 @@ export const authorizeFileDownload = query({
       throw new Error("WORK_FILE_NOT_FOUND");
     }
 
-    let allowed = access.isAdmin || String(document.createdBy) === String(access.user._id);
+    let allowed = String(document.createdBy) === String(access.user._id)
+      || (access.isAdmin && await documentInActorScope(ctx, access.departmentScope, document));
     if (!allowed) {
       allowed = document.approverUserIds.some(
         (id: string) => String(id) === String(access.user._id),
@@ -918,17 +969,21 @@ export const formOptions = query({
     const visibilityMode = await getWorkVisibilityMode(ctx);
     const { activeUsers, departments, positions } = await catalog(ctx);
     const users = activeUsers.filter((user: any) => {
-      if (actor.isOps) return true;
+      if (actor.isOps) return isUserInModeratorScope(actor.departmentScope, user);
       return isSameDepartmentSubordinate(actor.user, user, actor.positions);
     });
     return {
       canCreate: true,
       isOps: actor.isOps,
+      departmentScope: actor.departmentScope,
       visibilityMode,
       assignerMode: WORK_ASSIGNER_MODE_ADMIN_MOD,
       departments: actor.isOps
         ? departments
             .filter((department: any) => department.active)
+            .filter((department: any) =>
+              !actor.departmentScope || String(department._id) === String(actor.departmentScope),
+            )
             .sort((a: any, b: any) => a.name.localeCompare(b.name, "vi"))
             .map((department: any) => ({
               _id: department._id,
@@ -1085,10 +1140,13 @@ export const updateDocument = mutation({
     if (!document?.active) throw new Error("WORK_DOCUMENT_NOT_FOUND");
     const relatedBefore = await relatedDocumentWork(ctx, args.documentId);
     const creatorMutable = canCreatorMutateWork(relatedBefore.workItems);
-    if (!actor.isOps && String(document.createdBy) !== String(actor.user._id)) {
-      throw new Error("WORK_UPDATE_FORBIDDEN");
+    // Out-of-scope documents fall back to ordinary creator rules for a scoped moderator.
+    const managesAsOps = actor.isOps
+      && await documentInActorScope(ctx, actor.departmentScope, document);
+    if (!managesAsOps && String(document.createdBy) !== String(actor.user._id)) {
+      throw new Error(actor.isOps ? MODERATOR_DEPARTMENT_SCOPE_ERROR : "WORK_UPDATE_FORBIDDEN");
     }
-    if (!actor.isOps && !creatorMutable) throw new Error("WORK_DOCUMENT_IMMUTABLE");
+    if (!managesAsOps && !creatorMutable) throw new Error("WORK_DOCUMENT_IMMUTABLE");
 
     const replacementRequested =
       args.driveFileId !== undefined
@@ -1213,10 +1271,12 @@ export const deleteDocument = mutation({
     const document = await ctx.db.get(args.documentId);
     if (!document?.active) throw new Error("WORK_DOCUMENT_NOT_FOUND");
     const related = await relatedDocumentWork(ctx, args.documentId);
-    if (!actor.isOps && String(document.createdBy) !== String(actor.user._id)) {
-      throw new Error("WORK_UPDATE_FORBIDDEN");
+    const managesAsOps = actor.isOps
+      && await documentInActorScope(ctx, actor.departmentScope, document);
+    if (!managesAsOps && String(document.createdBy) !== String(actor.user._id)) {
+      throw new Error(actor.isOps ? MODERATOR_DEPARTMENT_SCOPE_ERROR : "WORK_UPDATE_FORBIDDEN");
     }
-    if (!actor.isOps && !canCreatorMutateWork(related.workItems)) {
+    if (!managesAsOps && !canCreatorMutateWork(related.workItems)) {
       throw new Error("WORK_DOCUMENT_IMMUTABLE");
     }
 
@@ -1298,7 +1358,7 @@ export const listAdmin = query({
     ]);
     const activeDocuments = documents.filter((document: any) => document.active);
     const activeWorkItems = workItems.filter((item: any) => item.active);
-    const usersById = new Map<string, { status?: string }>(
+    const usersById = new Map<string, { status?: string; departmentId?: string }>(
       catalogData.users.map((user: any) => [String(user._id), user]),
     );
     const visibleDocuments = activeDocuments.filter((document: any) =>
@@ -1311,6 +1371,7 @@ export const listAdmin = query({
         actorDepartmentId: String(actor.user.departmentId || ""),
         visibilityMode,
         usersById,
+        departmentScope: actor.departmentScope,
       }),
     );
     const views = await Promise.all(
@@ -1352,8 +1413,15 @@ export const listAdmin = query({
             })),
           };
         });
+        const view = await documentView(ctx, document, catalogData, items);
+        // UX only (server re-checks): a scoped moderator cannot manage out-of-scope
+        // documents they did not create, even when they see them as an assignee.
+        const outOfScopeForMod = Boolean(actor.departmentScope)
+          && String(document.createdBy) !== String(actor.user._id)
+          && !isDocumentInScope(actor.departmentScope, document, usersById);
         return {
-          ...(await documentView(ctx, document, catalogData, items)),
+          ...view,
+          ...(outOfScopeForMod ? { canEdit: false, canDelete: false } : {}),
           assignments: assignmentViews,
           workStatus: managementDocumentWorkStatus(document, items, catalogData),
           taskCount: assignmentViews.reduce(
@@ -1764,7 +1832,8 @@ export const reviewPersonalCompletion = mutation({
 
     const target = await ctx.db.get(args.userId as Id<"users">);
     const targetLevel = target ? activePositionLevel(target, access.positions) : 0;
-    let canReview = access.isAdmin;
+    let canReview = access.isAdmin
+      && await documentInActorScope(ctx, access.departmentScope, parentDocument);
     if (!canReview && assignerMode === WORK_ASSIGNER_MODE_SUPERVISOR) {
       // L2/L3 review level-1 subordinates only (matches listMine badge/UI).
       canReview =
@@ -2089,7 +2158,16 @@ export const listMine = query({
           (user: any) => String(user._id) === String(row.userId),
         );
         const targetLevel = target ? activePositionLevel(target, catalogData.positions) : 0;
-        const canReview = access.isAdmin
+        const canReview = (
+          access.isAdmin
+          && personalTaskInScope(
+            access.departmentScope,
+            task,
+            activeWorkItems,
+            docsById,
+            usersByIdMap(catalogData.users),
+          )
+        )
           || (
             (access.level === 2 || access.level === 3) &&
             targetLevel > 0 &&
@@ -2213,7 +2291,7 @@ export const badge = query({
     const activeDocuments = documents.filter((document: any) => document.active);
     const activeWorkItems = workItems.filter((item: any) => item.active);
     const docsById = new Map(activeDocuments.map((document: any) => [String(document._id), document]));
-    const usersById = new Map<string, { status?: string }>(
+    const usersById = new Map<string, { status?: string; departmentId?: string }>(
       catalogData.users.map((user: any) => [String(user._id), user]),
     );
     const tasksByItem = new Map<string, any[]>();
@@ -2244,7 +2322,10 @@ export const badge = query({
             (user: any) => String(user._id) === String(row.userId),
           );
           const targetLevel = target ? activePositionLevel(target, catalogData.positions) : 0;
-          const canReview = access.isAdmin
+          const canReview = (
+            access.isAdmin
+            && personalTaskInScope(access.departmentScope, task, activeWorkItems, docsById, usersById)
+          )
             || (
               (access.level === 2 || access.level === 3) &&
               targetLevel > 0 &&
@@ -2309,6 +2390,7 @@ export const badge = query({
           actorDepartmentId: String(access.user.departmentId || ""),
           visibilityMode,
           usersById,
+          departmentScope: access.departmentScope,
         })) continue;
         if (!isWorkStatusCompleted(managementDocumentWorkStatus(document, items, catalogData))) {
           incompleteCreatedCount += 1;

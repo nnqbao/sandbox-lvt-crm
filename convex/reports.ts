@@ -14,6 +14,12 @@ import {
   WORK_ASSIGNER_MODE_ADMIN_MOD,
 } from "./lib";
 import { canCreateAssignments, dutyListTitle, dutyLocationLabel } from "./assignmentPolicy";
+import {
+  filterUsersInModeratorScope,
+  isWorkDocumentInModeratorScope,
+  moderatorDepartmentScope,
+  workDocumentScopeAssignments,
+} from "./moderatorScope";
 import { dutyTiming, requireDutiesAccess } from "./duties";
 import { canReviewerEditDuty, dutyHasPendingChange, isDutyWeekReviewer, projectPublicDuty } from "./dutyApproval";
 import {
@@ -579,8 +585,10 @@ export const workCalendar = query({
       isOperationalManagerRole(actor.role) || menuAccess.reports === "view_all";
     const actorLevel = isOperationalManagerRole(actor.role)
       ? 5 : activePositionLevel(actor, positions);
+    // Báo cáo: a department-scoped moderator's view_all narrows to their department (+ self).
+    const actorScope = moderatorDepartmentScope(actor);
     const visibleUsers = canViewAll
-      ? activeUsers
+      ? filterUsersInModeratorScope(actorScope, activeUsers, String(actor._id))
       : activeUsers.filter(
           (user) =>
             String(user._id) === String(actor._id) ||
@@ -612,8 +620,15 @@ export const workCalendar = query({
     const kpi = emptyKpi();
 
     if (selectedCanViewAll) {
+      const usersById = new Map(users.map((user) => [String(user._id), user]));
+      const selectedScope = moderatorDepartmentScope(selectedUser);
       for (const document of activeDocuments) {
         if (!inRange(document.deadline) || !["approved", "pending"].includes(document.status)) continue;
+        const assignments = workDocumentScopeAssignments(document);
+        if (
+          !isWorkDocumentInModeratorScope(actorScope, assignments, usersById)
+          || !isWorkDocumentInModeratorScope(selectedScope, assignments, usersById)
+        ) continue;
         events.push({
           _id: String(document._id),
           content: document.fileName || document.content || "Công văn chưa đặt tên",

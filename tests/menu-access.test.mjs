@@ -12,6 +12,7 @@ import {
   isMenuVisible,
   isSupervisorAccess,
   isViewAllAccess,
+  menuAccessEntriesEqual,
   migrateSupervisorMenuAccess,
   normalizeMenuAccess,
   SYSTEM_MENU_DEFS,
@@ -118,6 +119,25 @@ test('migration moves homeroom Giám thị to attendance and is idempotent', () 
   const otherMap = Object.fromEntries(other.menuAccess.map((e) => [e.menu, e.access]));
   assert.equal(otherMap.homeroom, 'view');
   assert.equal(otherMap.attendance, 'hidden');
+});
+
+test('migration re-run is a no-op even when stored objects reorder keys', () => {
+  const first = migrateSupervisorMenuAccess([
+    { menu: 'homeroom', access: 'supervisor' },
+    { menu: 'duties', access: 'view' },
+  ]);
+  assert.equal(menuAccessEntriesEqual(first.menuAccess, [{ menu: 'homeroom', access: 'supervisor' }]), false);
+  // Convex returns stored documents with keys sorted (access before menu).
+  const stored = first.menuAccess.map((entry) => ({ access: entry.access, menu: entry.menu }));
+  assert.notEqual(JSON.stringify(stored), JSON.stringify(first.menuAccess));
+  const second = migrateSupervisorMenuAccess(stored);
+  assert.equal(menuAccessEntriesEqual(second.menuAccess, stored), true);
+  // Order-insensitive, but a different access or a missing menu is a change.
+  assert.equal(menuAccessEntriesEqual([...stored].reverse(), stored), true);
+  const changed = stored.map((entry) => (entry.menu === 'duties' ? { ...entry, access: 'view_all' } : entry));
+  assert.equal(menuAccessEntriesEqual(changed, stored), false);
+  assert.equal(menuAccessEntriesEqual(stored.slice(1), stored), false);
+  assert.equal(menuAccessEntriesEqual(undefined, []), true);
 });
 
 test('legacy edit normalizes to view and is never promoted to supervisor', () => {
