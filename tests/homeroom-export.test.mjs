@@ -99,9 +99,9 @@ test('XLSX and PDF export matrices use code, name, class/year titles, and keep 5
   assert.match(banner, /6A1/);
   assert.match(banner, /2026-2027/);
   assert.doesNotMatch(banner, /Lớp ngoài phạm vi|Năm học rò rỉ/);
-  assert.deepEqual(xlsx[1], ['Ngày', 'Mã HS', 'Học sinh', 'Trạng thái hiệu lực', 'Quan sát camera']);
-  assert.deepEqual(xlsx[2], ['2026-09-01', 'QA-HS001', 'Nguyễn An', 'Có mặt', 'Đúng giờ']);
-  assert.deepEqual(xlsx[3], ['2026-09-02', 'QA-HS001', 'Nguyễn An', 'Vắng không phép', 'Chưa điểm danh']);
+  assert.deepEqual(xlsx[1], ['Ngày', 'Mã HS', 'Học sinh', 'Trạng thái hiệu lực', 'Ghi nhận điểm danh']);
+  assert.deepEqual(xlsx[2], ['2026-09-01', 'QA-HS001', 'Nguyễn An', 'Có mặt', 'Có mặt']);
+  assert.deepEqual(xlsx[3], ['2026-09-02', 'QA-HS001', 'Nguyễn An', 'Vắng không phép', 'Vắng']);
   for (const row of xlsx) {
     assertNoInternalIdentity(Array.isArray(row) ? row.join(' | ') : row);
   }

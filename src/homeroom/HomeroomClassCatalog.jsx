@@ -52,7 +52,7 @@ function ClassFormFields({ value, onChange, schoolYears = undefined }) {
           title="Chỉ dùng chữ, số, _ hoặc -"
           placeholder="Ví dụ: 6A1"
         />
-        <small>Phải trùng cột “Mã lớp” trong file điểm danh.</small>
+        <small>Chữ, số, _ hoặc -. File Excel điểm danh nhận tên lớp hoặc mã lớp.</small>
       </label>
       <label className="hr-field">
         <span>Tên lớp *</span>
@@ -289,7 +289,7 @@ export function ClassCatalogPanel({ session, yearId, schoolYears = [], onOpenCla
         <Loading label="Đang tải danh sách lớp…" />
       ) : !rows.length ? (
         <EmptyState icon="classes" title="Chưa có lớp trong năm học này.">
-          Tạo lớp rồi phân công giáo viên chủ nhiệm. Mã lớp cần trùng với cột “Mã lớp” trong file điểm danh.
+          Tạo lớp rồi phân công giáo viên chủ nhiệm. Giám thị điểm danh các lớp đang hoạt động tại menu Điểm danh.
         </EmptyState>
       ) : !visible.length ? (
         <EmptyState icon="search" title="Không có lớp phù hợp bộ lọc." />

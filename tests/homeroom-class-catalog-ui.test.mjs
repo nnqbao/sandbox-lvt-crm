@@ -46,7 +46,7 @@ const contextSource = readFileSync(new URL('../convex/homeroomContext.ts', impor
 const detailSource = readFileSync(new URL('../src/homeroom/HomeroomClassDetail.jsx', import.meta.url), 'utf8');
 const overviewSource = readFileSync(new URL('../src/homeroom/HomeroomOverview.jsx', import.meta.url), 'utf8');
 const rosterSource = readFileSync(new URL('../src/homeroom/HomeroomRoster.jsx', import.meta.url), 'utf8');
-const importSource = readFileSync(new URL('../src/homeroom/HomeroomAttendanceImport.jsx', import.meta.url), 'utf8');
+const attendancePageSource = readFileSync(new URL('../src/attendance/AttendancePage.jsx', import.meta.url), 'utf8');
 
 test('catalog and assignment controls are manager-only and ordinary users never see them', () => {
   assert.match(catalogUiSource, /Tạo lớp đầu tiên/);
@@ -313,8 +313,9 @@ test('listScoped is teacher overview; catalog uses its own manager-only query', 
   assert.match(catalogUiSource, /includeArchived:\s*true/);
   assert.match(catalogUiSource, /AssignTeacherModal/);
   assert.match(reportsSource, /status === ["']active["']/);
-  assert.doesNotMatch(importSource, /listScoped/);
-  assert.doesNotMatch(importSource, /includeArchived:\s*true/);
+  // Điểm danh (Giám thị) reads its own roster query, never the teacher overview or the catalog.
+  assert.doesNotMatch(attendancePageSource, /listScoped|listCatalog/);
+  assert.match(attendancePageSource, /supervisorAttendance\.roster/);
   assert.deepEqual(
     filterActiveClasses([
       { _id: 'a', status: 'active', code: '6A1' },
