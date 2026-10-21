@@ -1487,7 +1487,7 @@ function UserManagement() {
           </select>
           <small>
             {usesPermissionGroup
-              ? 'Chỉ áp dụng cho User. Quyết định menu Ẩn / Xem / Xem tối cao / Giám thị (Giám thị chỉ dành cho Lớp chủ nhiệm).'
+              ? 'Chỉ áp dụng cho User. Quyết định menu Ẩn / Xem / Xem tối cao / Giám thị (Giám thị chỉ dành cho menu Điểm danh).'
               : `${ROLE_LABELS[form.role]} có toàn quyền chức năng — không cần gán nhóm quyền.`}
           </small>
         </label>
