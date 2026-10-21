@@ -73,7 +73,12 @@
       "title": "Tôi là giáo viên chủ nhiệm (GVCN)",
       "kicker": "Lớp chủ nhiệm",
       "intro": "Theo dõi sĩ số, điểm danh của lớp mình, đánh dấu vắng không phép và xuất báo cáo.",
-      "topics": []
+      "topics": [
+        "cn-tong-quan-lop",
+        "cn-diem-danh-lop",
+        "cn-danh-sach-hoc-sinh",
+        "cn-bao-cao-xuat-file"
+      ]
     },
     {
       "id": "giam-thi",
@@ -99,6 +104,7 @@
       "kicker": "Moderator · Administrator",
       "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
       "topics": [
+        "cn-quan-ly-lop",
         "nh-thiet-lap-nam-hoc"
       ]
     },

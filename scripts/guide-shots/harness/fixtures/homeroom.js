@@ -1,5 +1,5 @@
 // Lớp chủ nhiệm (homeroom): classes, rosters, class attendance, reports, roster import.
-// ALL STUDENTS ARE FICTIONAL ("Học sinh Mẫu"-style generic names, codes HSM…).
+// ALL STUDENTS ARE FICTIONAL ("Học sinh Mẫu NN", codes HSM…). Never use realistic names.
 import { DAY, T0, USERS } from './personas.js';
 
 const YEAR_ID = 'sy_2627';
@@ -8,12 +8,12 @@ const nameOf = (id) => USERS.find((u) => u._id === id)?.name || '';
 
 // ---------------------------------------------------------------- classes
 const CLASS_DEFS = [
-  { _id: 'c_6a1', code: '6A1', gradeLevel: 6, teacher: 'u_t7', roster: 35 },
-  { _id: 'c_6a2', code: '6A2', gradeLevel: 6, teacher: 'u_t8', roster: 34 },
-  { _id: 'c_7a1', code: '7A1', gradeLevel: 7, teacher: null, roster: 33 },
-  { _id: 'c_7a2', code: '7A2', gradeLevel: 7, teacher: 'u_gvcn', roster: 32 },
-  { _id: 'c_8a1', code: '8A1', gradeLevel: 8, teacher: 'u_leader', roster: 36 },
-  { _id: 'c_9a1', code: '9A1', gradeLevel: 9, teacher: 'u_t6', roster: 31 },
+  { _id: 'c_6a1', code: '6-1', gradeLevel: 6, teacher: 'u_t7', roster: 35 },
+  { _id: 'c_6a2', code: '6-2', gradeLevel: 6, teacher: 'u_t8', roster: 34 },
+  { _id: 'c_7a1', code: '7-1', gradeLevel: 7, teacher: null, roster: 33 },
+  { _id: 'c_7a2', code: '7-2', gradeLevel: 7, teacher: 'u_gvcn', roster: 32 },
+  { _id: 'c_8a1', code: '8-1', gradeLevel: 8, teacher: 'u_leader', roster: 36 },
+  { _id: 'c_9a1', code: '9-1', gradeLevel: 9, teacher: 'u_t6', roster: 31 },
 ];
 
 const classDoc = (def) => ({
@@ -21,7 +21,7 @@ const classDoc = (def) => ({
   _creationTime: T0 - 50 * DAY,
   schoolYearId: YEAR_ID,
   code: def.code,
-  name: `Lớp ${def.code}`,
+  name: `Lớp ${def.code.replace('-', '/')}`,
   gradeLevel: def.gradeLevel,
   status: 'active',
   notes: def._id === 'c_7a2' ? 'Phòng học tầng 2, dãy B' : undefined,
@@ -65,7 +65,7 @@ const STUDENTS = GIVEN.map(([given, gender], index) => {
   return {
     _id: `st_${String(n).padStart(2, '0')}`,
     studentCode: `HSM07${String(n).padStart(2, '0')}`,
-    fullName: `${FAMILY[index % FAMILY.length]} ${given}`,
+    fullName: `Học sinh Mẫu ${String(n).padStart(2, '0')}`, // obviously fictional
     dateOfBirth: `2013-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
     gender,
     rosterNumber: n,
@@ -73,7 +73,7 @@ const STUDENTS = GIVEN.map(([given, gender], index) => {
   };
 });
 
-const fakePhone = (n) => `0900 000 ${String(100 + n).padStart(3, '0')}`;
+const fakePhone = (n) => `0123 456 ${String(700 + n)}`; // retired 0123 prefix: cannot be a real number
 const guardiansOf = (student, n) => [
   {
     _id: `g_${student._id}_m`,
@@ -212,7 +212,7 @@ function attendanceSummary(args) {
       days,
     },
     studentTotals,
-    exportPayload: { className: 'Lớp 7A2', schoolYearName: '2026-2027', from: args.from, to: args.to, rows: [] },
+    exportPayload: { className: 'Lớp 7/2', schoolYearName: '2026-2027', from: args.from, to: args.to, rows: [] },
   };
 }
 
@@ -236,7 +236,7 @@ function overview(args, { persona }) {
     return {
       _id: def._id,
       code: def.code,
-      name: `Lớp ${def.code}`,
+      name: `Lớp ${def.code.replace('-', '/')}`,
       gradeLevel: def.gradeLevel,
       status: 'active',
       rosterCount: def.roster,
@@ -331,8 +331,8 @@ function studentScoped(args) {
       {
         _id: `en_${s._id}`,
         classId: 'c_7a2',
-        classCode: '7A2',
-        className: 'Lớp 7A2',
+        classCode: '7-2',
+        className: 'Lớp 7/2',
         startDate: '2026-09-05',
         status: 'active',
         rosterNumber: s.rosterNumber,
