@@ -16,7 +16,7 @@ import {
   sharedScheduleFilename,
 } from '../src/duties/sharedDutySchedule.js';
 import { dutiesPathname, parseDutyPath } from '../src/duties/dutyRoutes.js';
-import { buildSharedDutySchedulePdf } from '../src/duties/sharedDutySchedulePdf.js';
+import { buildSharedDutySchedulePdf, SHARED_SCHEDULE_PDF_FONT } from '../src/duties/sharedDutySchedulePdf.js';
 import { VIETNAMESE_PDF_FONT } from '../src/homeroom/homeroomExport.js';
 import { parseSharedScheduleQuery } from '../scripts/lib/shared-duty-schedule-pdf.mjs';
 
@@ -148,7 +148,8 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   const built = buildSharedDutySchedulePdf(payload);
   assert.equal(Buffer.from(built.bytes.slice(0, 5)).toString('ascii'), '%PDF-');
   assert.equal(built.filename, 'LCT tu 07.9-12.9.pdf');
-  assert.equal(built.doc.getFont().fontName, VIETNAMESE_PDF_FONT.family);
+  assert.equal(built.doc.getFont().fontName, SHARED_SCHEDULE_PDF_FONT.family);
+  assert.notEqual(SHARED_SCHEDULE_PDF_FONT.family, VIETNAMESE_PDF_FONT.family);
   const visible = built.visibleTexts.join('\n');
   assert.match(visible, /UBND PHƯỜNG BÌNH THẠNH/);
   assert.match(visible, /LÊ VĂN TÁM/);
@@ -165,6 +166,29 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   assert.match(visible, /Thứ Bảy/);
   assert.match(visible, /12\/9/);
   assert.match(visible, /Thứ Năm/);
+});
+
+test('PDF lịch chung nhúng Tinos Regular + Bold (Times New Roman metrics), không dùng NotoSans', () => {
+  for (const name of ['Tinos-Regular.ttf', 'Tinos-Bold.ttf']) {
+    const bytes = readFileSync(new URL(`../src/assets/fonts/${name}`, import.meta.url));
+    assert.ok(bytes.subarray(0, 4).equals(Buffer.from([0, 1, 0, 0])), `${name} must be a TrueType font`);
+    assert.ok(bytes.length > 100_000);
+  }
+  assert.match(readFileSync(new URL('../src/assets/fonts/Tinos-OFL.txt', import.meta.url), 'utf8'), /SIL Open Font License/i);
+  const payload = buildSharedScheduleRows('week', '2026-09-09', sampleEvents);
+  const built = buildSharedDutySchedulePdf(payload);
+  assert.deepEqual([...built.doc.getFontList().Tinos].sort(), ['bold', 'normal']);
+  const latin1 = Buffer.from(built.bytes).toString('latin1');
+  const baseFonts = [...latin1.matchAll(/\/BaseFont\s*\/([^\s[/]+)/g)].map((match) => match[1]);
+  assert.ok(baseFonts.includes('Tinos'), `fonts: ${baseFonts}`);
+  assert.ok(!baseFonts.some((name) => /NotoSans/.test(name)), `fonts: ${baseFonts}`);
+  // Regular + Bold TrueType programs embedded (standard-14 fonts carry no FontFile2).
+  assert.ok((latin1.match(/\/FontFile2/g) || []).length >= 2);
+  assert.match(latin1, /FontFile2/);
+  const vite = readFileSync(new URL('../vite.config.js', import.meta.url), 'utf8');
+  assert.match(vite, /src\/duties\/sharedDutyScheduleFont\.js/);
+  assert.match(vite, /Tinos-Regular\.ttf/);
+  assert.match(vite, /Tinos-Bold\.ttf/);
 });
 
 test('ô công tác đã sửa khi updatedAt muộn hơn createdAt quá dung sai', () => {

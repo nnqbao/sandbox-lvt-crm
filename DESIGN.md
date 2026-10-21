@@ -58,7 +58,7 @@ Quy tắc:
 ## 2. Chữ
 
 - Font: **Montserrat Variable** (`@fontsource-variable/montserrat`), fallback `ui-sans-serif, system-ui, sans-serif`. Không thêm font khác.
-- **Ngoại lệ duy nhất:** bảng lịch chính thức của **Lịch công tác** (`src/duties/sharedDutySchedule.css`, class `lct-*`: quốc hiệu, tiêu đề, bảng lịch, bản in/PDF) dùng **Times New Roman**, để giống mẫu Word mà thầy cô đã quen. Không dùng Times New Roman ở chỗ nào khác.
+- **Ngoại lệ duy nhất:** bảng lịch chính thức của **Lịch công tác** (`src/duties/sharedDutySchedule.css`, class `lct-*`: quốc hiệu, tiêu đề, bảng lịch, bản in/PDF) dùng **Times New Roman**, để giống mẫu Word mà thầy cô đã quen. Bản PDF nhúng **Tinos** (Regular/Bold, cùng số đo với Times New Roman, OFL) vì không thể nhúng Times New Roman. Không dùng Times New Roman / Tinos ở chỗ nào khác; PDF Lớp chủ nhiệm giữ Noto Sans.
 - Không dùng Georgia hay font serif cho số liệu hoặc tiêu đề trang trí. Báo cáo đã chuyển sang Montserrat; vài chỗ cũ (Bán trú, Công việc, Đánh giá nhân sự, banner Quản trị) sẽ chuyển dần khi sửa tới.
 - Cỡ chữ cho UI mới:
 

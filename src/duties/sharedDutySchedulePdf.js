@@ -1,7 +1,6 @@
 import { jsPDF } from 'jspdf';
 
-import { VIETNAMESE_PDF_FONT } from '../homeroom/homeroomExport.js';
-import { loadVietnamesePdfFontBytes } from '../homeroom/vietnamesePdfFont.js';
+import { loadSharedSchedulePdfFontBytes } from './sharedDutyScheduleFont.js';
 import {
   LCT_ISSUING_AUTHORITY,
   LCT_NATIONAL_MOTTO_SUB,
@@ -45,12 +44,27 @@ function bytesToVfsString(bytes) {
   return binary;
 }
 
-function applyVietnamesePdfFont(doc) {
-  if (!doc.existsFileInVFS(VIETNAMESE_PDF_FONT.fileName)) {
-    doc.addFileToVFS(VIETNAMESE_PDF_FONT.fileName, bytesToVfsString(loadVietnamesePdfFontBytes()));
-    doc.addFont(VIETNAMESE_PDF_FONT.fileName, VIETNAMESE_PDF_FONT.family, VIETNAMESE_PDF_FONT.style);
-  }
-  doc.setFont(VIETNAMESE_PDF_FONT.family, VIETNAMESE_PDF_FONT.style);
+/** Tinos = Times New Roman metrics, matching the Word template (DESIGN.md §2). */
+export const SHARED_SCHEDULE_PDF_FONT = Object.freeze({
+  family: 'Tinos',
+  regular: Object.freeze({ fileName: 'Tinos-Regular.ttf', style: 'normal' }),
+  bold: Object.freeze({ fileName: 'Tinos-Bold.ttf', style: 'bold' }),
+});
+
+function registerScheduleFonts(doc) {
+  const { regular, bold } = SHARED_SCHEDULE_PDF_FONT;
+  if (doc.existsFileInVFS(regular.fileName) && doc.existsFileInVFS(bold.fileName)) return;
+  const bytes = loadSharedSchedulePdfFontBytes();
+  doc.addFileToVFS(regular.fileName, bytesToVfsString(bytes.regular));
+  doc.addFont(regular.fileName, SHARED_SCHEDULE_PDF_FONT.family, regular.style);
+  doc.addFileToVFS(bold.fileName, bytesToVfsString(bytes.bold));
+  doc.addFont(bold.fileName, SHARED_SCHEDULE_PDF_FONT.family, bold.style);
+}
+
+/** @param {'normal' | 'bold'} [style] */
+function applyScheduleFont(doc, style = 'normal') {
+  registerScheduleFonts(doc);
+  doc.setFont(SHARED_SCHEDULE_PDF_FONT.family, style);
 }
 
 function columnWidths(contentWidth) {
@@ -75,7 +89,7 @@ function rowHeight(lineCount) {
  */
 export function buildSharedDutySchedulePdf(payload) {
   const doc = new jsPDF({ unit: PAGE.unit, format: PAGE.format });
-  applyVietnamesePdfFont(doc);
+  applyScheduleFont(doc);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const contentWidth = pageWidth - PAGE.marginX * 2;
@@ -90,7 +104,7 @@ export function buildSharedDutySchedulePdf(payload) {
   };
 
   const drawWrapped = (lines, x, y, options = {}) => {
-    applyVietnamesePdfFont(doc);
+    applyScheduleFont(doc, options.bold ? 'bold' : 'normal');
     if (options.fontSize) doc.setFontSize(options.fontSize);
     doc.setTextColor(PAGE.ink[0], PAGE.ink[1], PAGE.ink[2]);
     for (const line of lines) {
@@ -111,17 +125,17 @@ export function buildSharedDutySchedulePdf(payload) {
 
   doc.setFontSize(PAGE.headerSize);
   drawWrapped([LCT_ISSUING_AUTHORITY], leftCenter, y, { fontSize: PAGE.headerSize, align: 'center' });
-  drawWrapped([LCT_NATIONAL_MOTTO_TITLE], rightCenter, y, { fontSize: PAGE.headerSize, align: 'center' });
+  drawWrapped([LCT_NATIONAL_MOTTO_TITLE], rightCenter, y, { fontSize: PAGE.headerSize, align: 'center', bold: true });
   y += PAGE.lineHeight;
-  drawWrapped([LCT_SCHOOL_LINES[0]], leftCenter, y, { fontSize: PAGE.headerSize, align: 'center' });
-  drawWrapped([LCT_NATIONAL_MOTTO_SUB], rightCenter, y, { fontSize: PAGE.headerSize, align: 'center' });
+  drawWrapped([LCT_SCHOOL_LINES[0]], leftCenter, y, { fontSize: PAGE.headerSize, align: 'center', bold: true });
+  drawWrapped([LCT_NATIONAL_MOTTO_SUB], rightCenter, y, { fontSize: PAGE.headerSize, align: 'center', bold: true });
   y += PAGE.lineHeight;
-  drawWrapped([LCT_SCHOOL_LINES[1]], leftCenter, y, { fontSize: PAGE.headerSize, align: 'center' });
+  drawWrapped([LCT_SCHOOL_LINES[1]], leftCenter, y, { fontSize: PAGE.headerSize, align: 'center', bold: true });
   y += PAGE.lineHeight + 10;
 
   doc.setFontSize(PAGE.titleSize);
   const title = payload.range?.title || '';
-  drawWrapped([title], pageWidth / 2, y, { fontSize: PAGE.titleSize, align: 'center' });
+  drawWrapped([title], pageWidth / 2, y, { fontSize: PAGE.titleSize, align: 'center', bold: true });
   y += 18;
 
   const headers = ['Ngày', 'Thời gian', 'Nội dung', 'Địa điểm', 'Thành phần'];
@@ -133,7 +147,7 @@ export function buildSharedDutySchedulePdf(payload) {
   }
 
   const drawHeader = (top) => {
-    applyVietnamesePdfFont(doc);
+    applyScheduleFont(doc, 'bold');
     doc.setFillColor(PAGE.headerFill[0], PAGE.headerFill[1], PAGE.headerFill[2]);
     doc.setDrawColor(PAGE.border[0], PAGE.border[1], PAGE.border[2]);
     doc.setLineWidth(0.5);
@@ -160,7 +174,6 @@ export function buildSharedDutySchedulePdf(payload) {
     const height = rowHeight(Math.max(...wrapped.map((lines) => lines.length), 1));
     if (y + height > footerTop) {
       doc.addPage();
-      applyVietnamesePdfFont(doc);
       y = PAGE.marginTop;
       y = drawHeader(y);
     }
@@ -173,6 +186,8 @@ export function buildSharedDutySchedulePdf(payload) {
       doc.line(lineX, y, lineX, y + height);
     }
     wrapped.forEach((lines, index) => {
+      // Day column is bold like the Word template's row headers.
+      applyScheduleFont(doc, index === 0 ? 'bold' : 'normal');
       let textY = y + PAGE.cellPadY + 10;
       for (const line of lines) {
         if (String(line).trim() && String(line).trim() !== '') {
@@ -191,7 +206,7 @@ export function buildSharedDutySchedulePdf(payload) {
   const footers = [];
   for (let page = 1; page <= pageCount; page += 1) {
     doc.setPage(page);
-    applyVietnamesePdfFont(doc);
+    applyScheduleFont(doc);
     doc.setFontSize(8);
     doc.setTextColor(90, 96, 105);
     const label = `Trang ${page}/${pageCount}`;
