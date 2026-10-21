@@ -12,14 +12,14 @@ Mỗi tài khoản có **một vai trò**:
 | Vai trò | Ai thường giữ | Được làm gì |
 |---|---|---|
 | **Administrator** | Quản trị viên CNTT | Toàn quyền, gồm phần **Thiết lập tối cao** (tài khoản, phòng ban, chức vụ, nhóm quyền, năm học…). |
-| **Moderator** | Văn thư, người điều phối | Quản lý nghiệp vụ hằng ngày: công văn, lịch công tác, lớp, báo cáo. Không vào Thiết lập tối cao. |
+| **Moderator** | Văn thư, người điều phối | Quản lý nghiệp vụ hằng ngày: giao việc, lịch công tác, lớp, báo cáo. Không vào Thiết lập tối cao. |
 | **User** | Giáo viên, nhân viên, BGH | Dùng các menu mà **nhóm quyền** cho phép. |
 
 Với **User**, ba thứ quyết định những gì thầy cô thấy:
 
 - **Nhóm quyền**: mỗi menu ở một mức **Ẩn** (không thấy), **Xem** (dùng trong phạm vi của mình) hoặc **Xem tối cao** (xem rộng hơn, ví dụ toàn trường).
 - **Giám thị**: mức đặc biệt, chỉ có ở menu **Điểm danh**. Người có mức này điểm danh được các lớp; nó không mở thêm menu nào khác.
-- **Chức vụ** (1 đến 5 sao): cấp cao hơn mới duyệt, giao việc hay ghi nhận lỗi cho cấp thấp hơn. Tổ trưởng, tổ phó (2–3 sao) tạo được lịch công tác cho tổ; Phó Hiệu trưởng, Hiệu trưởng (4–5 sao) duyệt công văn và duyệt, sửa lịch công tác tuần.
+- **Chức vụ** (1 đến 5 sao): cấp cao hơn mới duyệt, giao việc hay ghi nhận lỗi cho cấp thấp hơn. Tổ trưởng, tổ phó (2–3 sao) tạo được lịch công tác cho tổ và giao việc; Phó Hiệu trưởng, Hiệu trưởng (4–5 sao) duyệt, sửa lịch công tác tuần và ghi nhận xét đánh giá.
 
 ![Cùng một ứng dụng nhưng menu khác nhau: giáo viên](menu-giao-vien)
 ![Giám thị](menu-giam-thi)

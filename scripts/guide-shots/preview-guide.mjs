@@ -53,6 +53,7 @@ try {
     await page.goto(base);
     await page.evaluate('document.fonts.ready.then(() => true)');
     if (args.print) await page.send('Emulation.setEmulatedMedia', { media: 'print' });
+    await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] }).catch(() => {});
     const overflow = await page.evaluate('document.documentElement.scrollWidth - window.innerWidth');
     const broken = await page.evaluate(`Promise.all([...document.images].map((img) => { img.loading = 'eager'; return img.decode().then(() => null, () => img.getAttribute('src')); })).then((list) => list.filter(Boolean))`);
     console.log(`${width}px: tràn ngang ${overflow}px; ảnh lỗi: ${broken.length ? broken.join(', ') : 'không'}`);
@@ -63,10 +64,10 @@ try {
         await new Promise((r) => setTimeout(r, 300));
       }
       if (anchor !== 'top') {
-        await page.evaluate(`document.getElementById(${JSON.stringify(anchor)}).scrollIntoView({ block: 'start' })`);
+        await page.evaluate(`document.getElementById(${JSON.stringify(anchor)}).scrollIntoView({ block: 'start', behavior: 'instant' })`);
       }
       await new Promise((r) => setTimeout(r, 400));
-      let clip;
+      let clip = await page.evaluate('({ x: 0, y: window.scrollY, width: window.innerWidth, height: window.innerHeight })');
       if (args.full && anchor !== 'top') {
         clip = await page.evaluate(`(() => { const r = document.getElementById(${JSON.stringify(anchor)}).getBoundingClientRect(); return { x: 0, y: r.top + scrollY - 8, width: innerWidth, height: Math.min(r.height + 16, 6000) }; })()`);
       }

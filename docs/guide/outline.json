@@ -1,5 +1,5 @@
 {
-  "updated": "21/10/2026",
+  "updated": "22/10/2026",
   "roles": [
     {
       "part": "bat-dau-nhanh",
@@ -29,13 +29,13 @@
       "part": "to-truong-bgh",
       "icon": "🧭",
       "title": "Tổ trưởng / BGH",
-      "text": "Tạo, duyệt, sửa lịch; duyệt công văn; báo cáo"
+      "text": "Tạo, duyệt, sửa lịch; giao và duyệt việc; báo cáo"
     },
     {
       "part": "van-thu-quan-tri",
       "icon": "🗂️",
       "title": "Văn thư / Quản trị",
-      "text": "Công văn, tài khoản, nhóm quyền, năm học"
+      "text": "Lịch tuần, lớp, tài khoản, nhóm quyền, năm học"
     },
     {
       "part": "tra-cuu-menu",
@@ -107,7 +107,7 @@
       "id": "to-truong-bgh",
       "title": "Tôi là tổ trưởng / Ban Giám hiệu",
       "kicker": "Quản lý chuyên môn",
-      "intro": "Tạo và duyệt lịch công tác, duyệt công văn, giao việc cho tổ, theo dõi báo cáo và đánh giá nhân sự.",
+      "intro": "Tạo lịch cho tổ, duyệt và sửa lịch tuần của trường, giao việc và duyệt kết quả, theo dõi báo cáo và đánh giá nhân sự.",
       "topics": [
         "ct-tao-cong-tac",
         "ct-import-excel",
@@ -122,7 +122,7 @@
       "id": "van-thu-quan-tri",
       "title": "Văn thư / Quản trị hệ thống",
       "kicker": "Moderator · Administrator",
-      "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
+      "intro": "Soạn và nộp lịch tuần, quản lý lớp, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
       "topics": [
         "tl-trinh-tu-thiet-lap",
         "ct-nop-duyet-tuan",
@@ -143,7 +143,13 @@
       "title": "Tra cứu theo menu",
       "kicker": "Tham khảo",
       "intro": "Tóm tắt từng menu: dùng để làm gì, ai nhìn thấy, các nút chính và liên kết tới hướng dẫn chi tiết.",
-      "topics": []
+      "topics": [
+        "menu-lich-cong-tac",
+        "menu-cong-viec",
+        "menu-lop-chu-nhiem",
+        "menu-khac",
+        "khi-khong-thay"
+      ]
     }
   ]
 }
