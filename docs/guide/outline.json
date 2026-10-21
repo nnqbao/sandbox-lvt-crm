@@ -80,7 +80,11 @@
       "title": "Tôi là Giám thị",
       "kicker": "Điểm danh",
       "intro": "Điểm danh học sinh vắng của các lớp theo khối, trực tiếp trên màn hình hoặc nhập file Excel.",
-      "topics": []
+      "topics": [
+        "dd-diem-danh-man-hinh",
+        "dd-diem-danh-excel",
+        "dd-diem-danh-dien-thoai"
+      ]
     },
     {
       "id": "to-truong-bgh",
@@ -94,7 +98,9 @@
       "title": "Văn thư / Quản trị hệ thống",
       "kicker": "Moderator · Administrator",
       "intro": "Nhập công văn và giao việc, quản lý tài khoản, phòng ban, chức vụ, nhóm quyền, năm học.",
-      "topics": []
+      "topics": [
+        "nh-thiet-lap-nam-hoc"
+      ]
     },
     {
       "id": "tra-cuu-menu",

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-labelledby="t d">
+  <title id="t">File Excel mẫu điểm danh</title>
+  <desc id="d">Bảng tính có ba cột Lớp học, Tên học sinh, Vắng. Học sinh vắng được ghi chữ x ở cột Vắng.</desc>
+  <style>
+    text { font-family: 'Montserrat Variable', Montserrat, ui-sans-serif, system-ui, sans-serif; }
+    .hd { font-size: 14px; font-weight: 800; fill: #fff; }
+    .c { font-size: 14px; font-weight: 500; fill: #16243e; }
+    .n { font-size: 12px; font-weight: 600; fill: #5a6b7c; }
+    .x { font-size: 18px; font-weight: 800; fill: #c0472f; }
+    .note { font-size: 13px; font-weight: 600; fill: #2b465e; }
+  </style>
+  <rect x="0" y="0" width="760" height="380" rx="16" fill="#fff"/>
+  <!-- window bar -->
+  <rect x="20" y="18" width="520" height="34" rx="8" fill="#eef2f5"/>
+  <circle cx="40" cy="35" r="6" fill="#e36d55"/><circle cx="58" cy="35" r="6" fill="#e9ad43"/><circle cx="76" cy="35" r="6" fill="#138f7b"/>
+  <text x="96" y="40" class="n">diem_danh_21-10-2026.xlsx</text>
+  <!-- column letters -->
+  <g transform="translate(20,60)">
+    <rect width="520" height="24" fill="#f4f7f8" stroke="#dce5eb"/>
+    <text x="14" y="17" class="n">#</text>
+    <text x="100" y="17" class="n">A</text><text x="300" y="17" class="n">B</text><text x="460" y="17" class="n">C</text>
+    <!-- header row -->
+    <rect y="24" width="520" height="34" fill="#14355f"/>
+    <text x="14" y="46" class="n" style="fill:#c9d6e3">1</text>
+    <text x="48" y="46" class="hd">Lớp học</text>
+    <text x="178" y="46" class="hd">Tên học sinh</text>
+    <text x="440" y="46" class="hd">Vắng</text>
+    <!-- rows -->
+    <g class="rows">
+      <rect y="58" width="520" height="34" fill="#fff" stroke="#dce5eb"/>
+      <text x="14" y="80" class="n">2</text><text x="48" y="80" class="c">6/1</text><text x="178" y="80" class="c">Học sinh Mẫu 01</text>
+      <rect y="92" width="520" height="34" fill="#ffebe7" stroke="#efc7bf"/>
+      <text x="14" y="114" class="n">3</text><text x="48" y="114" class="c">6/1</text><text x="178" y="114" class="c">Học sinh Mẫu 02</text><text x="452" y="115" class="x">x</text>
+      <rect y="126" width="520" height="34" fill="#fff" stroke="#dce5eb"/>
+      <text x="14" y="148" class="n">4</text><text x="48" y="148" class="c">6/1</text><text x="178" y="148" class="c">Học sinh Mẫu 03</text>
+      <rect y="160" width="520" height="34" fill="#fff" stroke="#dce5eb"/>
+      <text x="14" y="182" class="n">5</text><text x="48" y="182" class="c">6/2</text><text x="178" y="182" class="c">Học sinh Mẫu 01</text>
+      <rect y="194" width="520" height="34" fill="#ffebe7" stroke="#efc7bf"/>
+      <text x="14" y="216" class="n">6</text><text x="48" y="216" class="c">6/2</text><text x="178" y="216" class="c">Học sinh Mẫu 02</text><text x="452" y="217" class="x">x</text>
+      <rect y="228" width="520" height="34" fill="#fff" stroke="#dce5eb"/>
+      <text x="14" y="250" class="n">7</text><text x="48" y="250" class="c">6/2</text><text x="178" y="250" class="c">Học sinh Mẫu 03</text>
+      <rect y="262" width="520" height="34" fill="#fbfcfc" stroke="#dce5eb"/>
+      <text x="14" y="284" class="n">…</text><text x="48" y="284" class="c" style="fill:#5a6b7c">…</text>
+    </g>
+    <line x1="36" y1="24" x2="36" y2="296" stroke="#dce5eb"/>
+    <line x1="164" y1="24" x2="164" y2="296" stroke="#dce5eb"/>
+    <line x1="420" y1="24" x2="420" y2="296" stroke="#dce5eb"/>
+  </g>
+  <!-- notes -->
+  <g transform="translate(560,70)">
+    <circle cx="15" cy="15" r="15" fill="#c0472f"/><text x="15" y="20" text-anchor="middle" class="hd">1</text>
+    <text x="38" y="12" class="note">Giữ nguyên cột</text><text x="38" y="30" class="note">Lớp học và</text><text x="38" y="48" class="note">Tên học sinh.</text>
+    <g transform="translate(0,80)">
+      <circle cx="15" cy="15" r="15" fill="#c0472f"/><text x="15" y="20" text-anchor="middle" class="hd">2</text>
+      <text x="38" y="12" class="note">Gõ chữ x vào</text><text x="38" y="30" class="note">cột Vắng nếu</text><text x="38" y="48" class="note">học sinh vắng.</text>
+    </g>
+    <g transform="translate(0,160)">
+      <circle cx="15" cy="15" r="15" fill="#c0472f"/><text x="15" y="20" text-anchor="middle" class="hd">3</text>
+      <text x="38" y="12" class="note">Để trống =</text><text x="38" y="30" class="note">có mặt.</text>
+    </g>
+  </g>
+  <path d="M556 150 C 520 160, 500 160, 486 172" fill="none" stroke="#c0472f" stroke-width="2" stroke-dasharray="4 4"/>
+</svg>

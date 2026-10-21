@@ -129,7 +129,10 @@ export class Page {
     this.initScriptId = null;
     connection.on((message) => {
       if (message.sessionId !== sessionId) return;
-      if (message.method === 'Runtime.consoleAPICalled') {
+      if (message.method === 'Page.javascriptDialogOpening') {
+        // e.g. "unsaved changes" beforeunload prompts between shots
+        this.send('Page.handleJavaScriptDialog', { accept: true }).catch(() => {});
+      } else if (message.method === 'Runtime.consoleAPICalled') {
         const text = message.params.args.map((arg) => arg.value ?? arg.description ?? '').join(' ');
         this.consoleMessages.push(`${message.params.type}: ${text}`);
       } else if (message.method === 'Runtime.exceptionThrown') {
@@ -177,6 +180,7 @@ export class Page {
         }
       });
     });
+    loaded.catch(() => {});
     this.consoleMessages = [];
     await this.send('Page.navigate', { url });
     await loaded;

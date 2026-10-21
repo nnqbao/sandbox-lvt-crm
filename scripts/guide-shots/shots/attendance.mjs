@@ -43,6 +43,8 @@ export default [
       { n: 2, target: { css: '.att-students li.is-absent .att-absent-toggle', nth: 0 }, pos: 'left' },
       { n: 3, target: '.att-savebar .primary-button', pos: 'left' },
     ],
+    clip: { target: '.att-class.is-open', pad: 20 },
+    maxHeight: 760,
   },
   {
     id: 'dd-import-xem-truoc',
@@ -102,7 +104,7 @@ export default [
     callouts: [
       { n: 1, target: { css: '.att-class-head', text: 'Lớp 7/3' }, pos: 'tr', dx: -16 },
       { n: 2, target: { css: '.att-students li.is-absent .att-absent-toggle', nth: 0 }, pos: 'left' },
-      { n: 3, target: '.att-savebar .primary-button', pos: 'top' },
+      { n: 3, target: '.att-savebar .primary-button', pos: 'tl' },
     ],
   },
   {
@@ -115,7 +117,7 @@ export default [
       { n: 2, target: '.sy-year-tab[aria-current="true"]', pos: 'left' },
       { n: 3, target: '.sy-stats', pos: 'tl' },
       { n: 4, target: { css: 'button', text: 'Gợi ý ngày lễ Việt Nam' }, pos: 'left' },
-      { n: 5, target: { css: 'button', text: 'Thêm đợt nghỉ' }, pos: 'top' },
+      { n: 5, target: { css: 'button', text: 'Thêm đợt nghỉ' }, pos: 'right' },
     ],
     clip: { target: '.sy-layout', pad: 16 },
     maxHeight: 980,
@@ -146,9 +148,14 @@ export default [
       { click: { css: 'button', text: 'Thêm đợt nghỉ' } },
       { waitFor: '#sy-holiday-form' },
       { click: { css: '.sy-presets button', text: 'Nghỉ giữa học kỳ' } },
-      { fill: { css: '#sy-holiday-form label', text: 'Từ ngày' }, value: '' },
+      { fill: { css: '#sy-holiday-form input[type=date]', nth: 0 }, value: '2026-11-09' },
+      { fill: { css: '#sy-holiday-form input[type=date]', nth: 1 }, value: '2026-11-13' },
     ],
-    callouts: [],
+    callouts: [
+      { n: 1, target: '.sy-presets', pos: 'left' },
+      { n: 2, target: { css: '#sy-holiday-form label', text: 'Từ ngày' }, pos: 'left' },
+      { n: 3, target: 'button[form=sy-holiday-form]', pos: 'top' },
+    ],
     clip: { target: '[role=dialog]', pad: 24 },
   },
 ];
