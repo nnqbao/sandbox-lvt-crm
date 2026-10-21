@@ -110,14 +110,11 @@ test('class lists in convex queries and homeroom UI use the natural class order'
   assert.match(reports, /const sortClasses = sortClassesNatural;/);
   assert.match(reports, /compareClasses\(classA, classB\)/);
   assert.match(reports, /gradeLevel: klass\?\.gradeLevel \?\? null/);
-  const attendanceImport = read('convex/attendanceImport.ts');
-  assert.match(attendanceImport, /\.sort\(compareClasses\)/);
-  assert.match(attendanceImport, /compareClasses\(activeClasses\.get\(a\)!, activeClasses\.get\(b\)!\)/);
-  for (const path of ['convex/homeroomClasses.ts', 'convex/homeroomReports.ts', 'convex/attendanceImport.ts']) {
+  assert.match(read('convex/supervisorAttendance.ts'), /\.sort\(compareClasses\)/);
+  for (const path of ['convex/homeroomClasses.ts', 'convex/homeroomReports.ts', 'convex/supervisorAttendance.ts']) {
     assert.doesNotMatch(read(path), /a\.code\.localeCompare\(b\.code/, `${path} must not sort classes alphabetically`);
   }
   assert.match(read('src/homeroom/HomeroomOverview.jsx'), /sortClassesNatural\(overview\?\.classes\)/);
   assert.match(read('src/homeroom/HomeroomClassCatalog.jsx'), /sortClassesNatural\(classes\)/);
   assert.match(read('src/homeroom/HomeroomRoster.jsx'), /sortClassesNatural\(classes\)/);
-  assert.match(read('src/homeroom/HomeroomPendingAbsences.jsx'), /\.sort\(compareClasses\)/);
 });

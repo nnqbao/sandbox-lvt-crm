@@ -23,9 +23,9 @@ export const STATUS_SHORT = {
 export const STATUS_ORDER = ['present', 'late', 'absent_pending', 'absent_excused', 'absent_unexcused', 'no_data'];
 
 export const RAW_LABELS = {
-  present: 'Đúng giờ',
+  present: 'Có mặt',
   late: 'Đi trễ',
-  absent: 'Chưa điểm danh',
+  absent: 'Vắng',
   unknown: 'Không rõ',
 };
 
@@ -36,12 +36,6 @@ export function statusLabel(status) {
 export function rawLabel(raw) {
   return RAW_LABELS[raw] || '—';
 }
-
-/** Lý do gợi ý khi GVCN phân loại vắng. "Không lý do" chỉ hợp với Không phép. */
-export const REASON_PRESETS = {
-  excused: ['Phụ huynh xin phép', 'Ốm / khám bệnh', 'Việc gia đình', 'Tham gia hoạt động của trường'],
-  unexcused: ['Không có lý do', 'Phụ huynh không liên lạc được', 'Bỏ học / trốn học'],
-};
 
 export const GUARDIAN_RELATIONSHIPS = [
   ['father', 'Cha'],

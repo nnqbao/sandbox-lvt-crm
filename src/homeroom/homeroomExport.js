@@ -62,10 +62,11 @@ export function buildAttendanceReportVisibleMatrix(days) {
   ];
 }
 
+/** What was observed (Giám thị điểm danh; "Đi trễ" only exists in old camera data). */
 const RAW_OBSERVATION_LABELS = {
-  present: 'Đúng giờ',
+  present: 'Có mặt',
   late: 'Đi trễ',
-  absent: 'Chưa điểm danh',
+  absent: 'Vắng',
   unknown: 'Không rõ',
 };
 
@@ -85,7 +86,7 @@ export function buildAttendanceXlsxMatrix(payload) {
   ];
   return [
     [header.join(' | ')],
-    ['Ngày', 'Mã HS', 'Học sinh', 'Trạng thái hiệu lực', 'Quan sát camera'],
+    ['Ngày', 'Mã HS', 'Học sinh', 'Trạng thái hiệu lực', 'Ghi nhận điểm danh'],
     ...(payload.rows || []).map((row) => [
       row.attendanceDate,
       row.studentCode,

@@ -6,10 +6,8 @@ import { homeroomRoles, parseHomeroomPath } from './homeroomRoutes';
 import { vietnamTodayYmd } from './homeroomTime';
 import { formatDateLong, isYmd } from './homeroomLabels';
 import { HomeroomStudentQueryErrorBoundary } from './studentQueryErrorBoundary';
-import { HomeroomViewErrorBoundary, Icon, Loading, SilentBoundary } from './homeroomUi';
+import { HomeroomViewErrorBoundary, Icon, Loading } from './homeroomUi';
 import HomeroomOverview from './HomeroomOverview';
-import HomeroomPendingAbsences from './HomeroomPendingAbsences';
-import HomeroomAttendanceImport from './HomeroomAttendanceImport';
 import HomeroomClassDetail from './HomeroomClassDetail';
 import HomeroomStudentDetail from './HomeroomStudentDetail';
 import { ClassCatalogPanel } from './HomeroomClassCatalog';
@@ -61,8 +59,6 @@ export default function HomeroomRouter({ session }) {
 
   const nav = {
     overview: () => go(homeroomPathname()),
-    pending: () => go(homeroomPathname({ pendingAbsences: true })),
-    import: (date = '') => go(homeroomPathname({ importAttendance: true }), { date }),
     manage: () => go(homeroomPathname({ manageClasses: true })),
     openClass: (id, tab = '', date = '') => go(homeroomPathname({ classId: id, tab: tab || undefined }), { date }),
     openStudent: (id) => go(homeroomPathname({ studentId: id })),
@@ -79,8 +75,6 @@ export default function HomeroomRouter({ session }) {
 
   const navItems = [
     { key: 'overview', label: 'Tổng quan', icon: 'overview', show: true, onClick: nav.overview },
-    { key: 'pending', label: 'Vắng chờ xử lý', icon: 'inbox', show: roles.seesClasses, onClick: nav.pending, badge: true },
-    { key: 'import', label: 'Nhập điểm danh', icon: 'upload', show: roles.canImport, onClick: () => nav.import() },
     { key: 'manage', label: 'Quản lý lớp', icon: 'classes', show: roles.isManager, onClick: nav.manage },
   ].filter((item) => item.show);
   const activeKey = route.view === 'class' || route.view === 'student' ? '' : route.view;
@@ -126,11 +120,6 @@ export default function HomeroomRouter({ session }) {
               >
                 <Icon name={item.icon} size={16} />
                 <span>{item.label}</span>
-                {item.badge ? (
-                  <SilentBoundary>
-                    <PendingBadge yearId={selectedYearId} />
-                  </SilentBoundary>
-                ) : null}
               </button>
             ))}
           </nav>
@@ -143,14 +132,6 @@ export default function HomeroomRouter({ session }) {
         <HomeroomViewErrorBoundary resetKey={resetKey} onBack={nav.overview}>
           {route.view === 'overview' ? (
             <HomeroomOverview yearId={selectedYearId} roles={roles} nav={nav} />
-          ) : route.view === 'pending' ? (
-            <HomeroomPendingAbsences yearId={selectedYearId} nav={nav} />
-          ) : route.view === 'import' ? (
-            roles.canImport ? (
-              <HomeroomAttendanceImport yearId={selectedYearId} initialDate={location.date} nav={nav} />
-            ) : (
-              <Forbidden text="Chỉ Giám thị hoặc quản trị được nhập điểm danh." onBack={nav.overview} />
-            )
           ) : route.view === 'manage' ? (
             roles.isManager ? (
               <ClassCatalogPanel session={session} yearId={selectedYearId} schoolYears={years} onOpenClass={(id) => nav.openClass(id)} />
@@ -175,13 +156,6 @@ export default function HomeroomRouter({ session }) {
       )}
     </section>
   );
-}
-
-function PendingBadge({ yearId }) {
-  const overview = useQuery(anyApi.homeroomReports.overview, { schoolYearId: yearId });
-  const total = overview?.pendingTotal || 0;
-  if (!total) return null;
-  return <span className="hr-badge" aria-label={`${total} buổi vắng chờ xử lý`}>{total > 99 ? '99+' : total}</span>;
 }
 
 function Forbidden({ text, onBack }) {

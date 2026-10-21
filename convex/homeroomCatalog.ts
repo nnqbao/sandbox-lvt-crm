@@ -112,6 +112,8 @@ export const SCHOOL_YEAR_USAGE_TABLES = [
   "studentAttendanceDays",
   "attendanceImportUploads",
   "studentRosterImportUploads",
+  "attendanceClassDays",
+  "supervisorAttendanceUploads",
 ] as const;
 
 /**

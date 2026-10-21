@@ -28,6 +28,7 @@ import { isPublicAccountDeletionPath, isPublicPrivacyPath } from './privacy/priv
 import PeopleReviewView from './peopleReview/PeopleReviewView';
 import StaffFaultsView from './peopleReview/StaffFaultsView';
 import HomeroomRouter from './homeroom/HomeroomRouter';
+import AttendancePage from './attendance/AttendancePage';
 import DevicesPanel from './profile/DevicesPanel';
 import { describeWebDevice } from './profile/deviceSession';
 import { convexErrorText, messageFor } from './lib/appErrorMessage';
@@ -73,6 +74,7 @@ const PRIMARY_MENUS = [
   ['duties', 'Lịch công tác'],
   ['work', 'Công việc'],
   ['homeroom', 'Lớp chủ nhiệm'],
+  ['attendance', 'Điểm danh'],
   ['people-review', 'Đánh giá nhân sự'],
   ['staff-faults', 'Ghi nhận lỗi'],
 ];
@@ -96,6 +98,11 @@ const ACCESS_LABELS = {
   edit: 'Xem',
 };
 const MATRIX_ACCESS_LEVELS = ['hidden', 'view', 'view_all', 'supervisor'];
+/** Giám thị chỉ có ở menu Điểm danh; menu Điểm danh chỉ có Ẩn / Giám thị (backend kiểm tra lại). */
+function isMatrixLevelAvailable(menuId, level) {
+  if (menuId === 'attendance') return level === 'hidden' || level === 'supervisor';
+  return level !== 'supervisor';
+}
 
 function signInMessageFor(error) {
   const raw = convexErrorText(error);
@@ -563,6 +570,8 @@ function AppShell({ session }) {
           <WorkReportsView />
         ) : active === 'homeroom' ? (
           <HomeroomRouter session={session} />
+        ) : active === 'attendance' ? (
+          <AttendancePage />
         ) : active === 'profile' || (active === 'settings' && !isAdmin) ? (
           <ProfileView session={session} />
         ) : active === 'change-password' ? (
@@ -1992,7 +2001,7 @@ function PermissionGroupManagement() {
           <h2>Thiết lập nhóm quyền</h2>
           <p>
             Mỗi nhóm quy định quyền trên menu Quản trị hệ thống: Ẩn, Xem (thao tác nghiệp vụ trong phạm vi của mình), Xem tối cao (thao tác nghiệp vụ trên phạm vi toàn trường), hoặc Giám thị.
-            Giám thị chỉ dành cho menu Lớp chủ nhiệm; các menu khác không thể chọn mức này.
+            Giám thị chỉ dành cho menu Điểm danh (menu này chỉ có Ẩn hoặc Giám thị); các menu khác không thể chọn mức Giám thị.
             Mã nhóm quyền (tối đa 20 ký tự) dùng khi import user hàng loạt.
           </p>
         </div>
@@ -2056,7 +2065,7 @@ function PermissionGroupManagement() {
             <div className="perm-matrix-row" key={menu.id}>
               <span>{menu.label}</span>
               {MATRIX_ACCESS_LEVELS.map((level) => {
-                if (level === 'supervisor' && menu.id !== 'homeroom') {
+                if (!isMatrixLevelAvailable(menu.id, level)) {
                   return (
                     <span key={level} className="radio-cell radio-cell-unavailable" aria-hidden="true">
                       —

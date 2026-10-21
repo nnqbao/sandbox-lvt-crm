@@ -20,18 +20,6 @@ import {
   REPLACE_MODE_SUPPLEMENT,
 } from '../convex/attendanceImportValidate.ts';
 import {
-  ATTENDANCE_REPLACE_MODE_REQUIRED,
-  attendanceReplaceModeChoices,
-  buildAttendancePublishArgs,
-  buildAttendanceValidateArgs,
-  classPreviewState,
-  isAttendanceReplaceModeRequired,
-  publishPlan,
-  REPLACE_MODE_CANCEL as UI_REPLACE_MODE_CANCEL,
-  REPLACE_MODE_REPLACE as UI_REPLACE_MODE_REPLACE,
-  REPLACE_MODE_SUPPLEMENT as UI_REPLACE_MODE_SUPPLEMENT,
-} from '../src/homeroom/attendanceImportPreview.js';
-import {
   applyPublicationPolicy,
   attendanceImportPublishResult,
   planAttendanceImportWrites,
@@ -40,7 +28,6 @@ import { enrollmentsCoveringDate } from '../convex/homeroomCatalog.ts';
 import { assertImportUploadUsable } from '../convex/userImportPolicy.ts';
 import { messageFor } from '../src/lib/appErrorMessage.js';
 
-const importUiSource = readFileSync(new URL('../src/homeroom/HomeroomAttendanceImport.jsx', import.meta.url), 'utf8');
 
 const students = [
   { studentId: 's1', studentCode: 'HS001', fullName: 'Nguyễn Văn A', dateOfBirth: '2014-03-11', classId: 'c1', classCode: '7/1', enrollmentId: 'e1' },
@@ -272,81 +259,26 @@ test('publication roster is date-effective after a transfer', () => {
   assert.deepEqual(afterTransfer.map((row) => row.studentId), ['s2']);
 });
 
-test('frontend validates once; there is no name-confirmation step anymore', () => {
-  assert.deepEqual(buildAttendanceValidateArgs({ uploadId: 'up-1' }), { uploadId: 'up-1' });
-  assert.match(importUiSource, /buildAttendanceValidateArgs\(\{ uploadId \}\)/);
-  assert.doesNotMatch(importUiSource, /confirmNameMatches|Xác nhận khớp/);
-});
-
-test('publish never invents a replace mode; ATTENDANCE_REPLACE_MODE_REQUIRED exposes the backend choices', () => {
-  assert.equal(UI_REPLACE_MODE_SUPPLEMENT, REPLACE_MODE_SUPPLEMENT);
-  assert.equal(UI_REPLACE_MODE_REPLACE, REPLACE_MODE_REPLACE);
-  assert.equal(UI_REPLACE_MODE_CANCEL, REPLACE_MODE_CANCEL);
-  assert.deepEqual(buildAttendancePublishArgs({ uploadId: 'up-1' }), { uploadId: 'up-1' });
-  assert.equal('replaceMode' in buildAttendancePublishArgs({ uploadId: 'up-1', replaceMode: undefined }), false);
-  assert.equal('replaceMode' in buildAttendancePublishArgs({ uploadId: 'up-1', replaceMode: '' }), false);
-  assert.equal('replaceMode' in buildAttendancePublishArgs({ uploadId: 'up-1', replaceMode: 'silent' }), false);
-  for (const mode of [REPLACE_MODE_SUPPLEMENT, REPLACE_MODE_REPLACE, REPLACE_MODE_CANCEL]) {
-    assert.deepEqual(buildAttendancePublishArgs({ uploadId: 'up-1', replaceMode: mode }), { uploadId: 'up-1', replaceMode: mode });
-  }
-  assert.deepEqual(
-    attendanceReplaceModeChoices().map((item) => item.replaceMode),
-    [REPLACE_MODE_SUPPLEMENT, REPLACE_MODE_REPLACE, REPLACE_MODE_CANCEL],
-  );
-  assert.equal(isAttendanceReplaceModeRequired(new Error(ATTENDANCE_REPLACE_MODE_REQUIRED)), true);
-  assert.equal(isAttendanceReplaceModeRequired(new Error('IMPORT_ROWS_UNRESOLVED')), false);
-  const [supplement, replace, cancel] = attendanceReplaceModeChoices();
-  assert.match(supplement.label, /Bổ sung/);
-  assert.match(supplement.description, /chưa có dữ liệu/i);
-  assert.match(replace.label, /Ghi đè/);
-  assert.match(replace.description, /phân loại/i);
-  assert.match(cancel.label, /Bỏ qua/);
-});
-
-test('publish plan: conflicts need a mode, cancel only publishes fresh classes, broken classes are skipped', () => {
-  const preview = {
-    classes: [
-      { classId: 'c1', code: '6A1', publishable: true, alreadyPublished: false, missingCount: 2, errorCount: 0 },
-      { classId: 'c2', code: '6A2', publishable: true, alreadyPublished: true, missingCount: 1, errorCount: 0 },
-      { classId: 'c3', code: '6A3', publishable: false, alreadyPublished: false, missingCount: 0, errorCount: 3 },
-    ],
-  };
-  const noMode = publishPlan(preview, '');
-  assert.equal(noMode.needsReplaceMode, true);
-  assert.deepEqual(noMode.conflicts.map((row) => row.code), ['6A2']);
-  assert.deepEqual(noMode.willPublish.map((row) => row.code), ['6A1', '6A2']);
-  assert.deepEqual(noMode.skipped.map((row) => row.code), ['6A3']);
-  assert.equal(noMode.missingStudents, 3);
-  const cancel = publishPlan(preview, REPLACE_MODE_CANCEL);
-  assert.deepEqual(cancel.willPublish.map((row) => row.code), ['6A1']);
-  assert.equal(cancel.missingStudents, 2);
-  assert.equal(publishPlan(null, '').willPublish.length, 0);
-
-  assert.equal(classPreviewState(preview.classes[0]).key, 'ready');
-  assert.equal(classPreviewState(preview.classes[1]).key, 'existing');
-  assert.equal(classPreviewState(preview.classes[2]).key, 'error');
-  assert.equal(classPreviewState({ errorCount: 0, publishable: false }).key, 'error');
-});
-
-test('attendance import UI shows replace-mode choices only when a class already has data', () => {
-  assert.match(importUiSource, /isAttendanceReplaceModeRequired\(err\)/);
-  assert.match(importUiSource, /buildAttendancePublishArgs\(\{ uploadId: preview\.uploadId, replaceMode \}\)/);
-  const choiceBlock = importUiSource.slice(importUiSource.indexOf('{plan.needsReplaceMode ? ('));
-  assert.match(choiceBlock, /attendanceReplaceModeChoices\(\)\.map/);
-  assert.match(choiceBlock, /setReplaceMode\(choice\.replaceMode\)/);
-  assert.doesNotMatch(importUiSource, /replaceMode:\s*['"](supplement|replace_camera_observations)['"]/);
-  assert.match(importUiSource, /useState\(''\)/);
-  assert.match(importUiSource, /generateUploadUrl\(\{ schoolYearId: yearId, attendanceDate: date \}\)/);
-  assert.match(importUiSource, /downloadAttendanceImportTemplate/);
-});
-
-test('attendance internal helpers are not public and cannot mutate another upload', () => {
+test('camera import write paths are retired; history stays read-only and the web UI is gone', () => {
   const source = readFileSync(new URL('../convex/attendanceImport.ts', import.meta.url), 'utf8');
-  for (const name of ['getUploadInternal', 'loadSchoolRosterInternal', 'storePreviewInternal']) {
-    assert.match(source, new RegExp(`export const ${name} = internal(Query|Mutation)`));
-    assert.doesNotMatch(source, new RegExp(`export const ${name} = (query|mutation)\\(`));
+  for (const name of ['generateUploadUrl', 'registerUpload', 'validate', 'publish']) {
+    const start = source.indexOf(`export const ${name} =`);
+    assert.ok(start >= 0, name);
+    const block = source.slice(start, source.indexOf('});', start));
+    assert.match(block, /retired\(\)/, name);
+    assert.doesNotMatch(block, /ctx\.db\.(insert|patch)|storage\.generateUploadUrl/, name);
   }
-  assert.match(source, /internal\.attendanceImport\.(getUploadInternal|storePreviewInternal|loadSchoolRosterInternal)/);
+  assert.match(source, /ATTENDANCE_CAMERA_IMPORT_RETIRED/);
+  assert.match(source, /export const uploadsForDate = query/);
+  for (const removed of [
+    '../src/homeroom/HomeroomAttendanceImport.jsx',
+    '../src/homeroom/attendanceImportPreview.js',
+    '../src/lib/attendanceImportExcel.js',
+    '../convex/attendanceImportParse.ts',
+  ]) {
+    assert.equal(existsSync(fileURLToPath(new URL(removed, import.meta.url))), false, removed);
+  }
+  assert.match(messageFor(new Error('ATTENDANCE_CAMERA_IMPORT_RETIRED')), /đã ngừng/);
   assert.throws(
     () =>
       assertImportUploadUsable(
@@ -451,28 +383,4 @@ test('supplement that changes zero rows still publishes the upload with a truthf
     count: 0,
   });
 
-  const source = readFileSync(new URL('../convex/attendanceImport.ts', import.meta.url), 'utf8');
-  const publishFn = source.slice(source.indexOf('async function publishStoredImport'));
-  assert.match(publishFn, /planAttendanceImportWrites/);
-  assert.match(publishFn, /attendanceImportPublishResult/);
-  assert.match(publishFn, /status:\s*['"]published['"]/);
-  assert.match(publishFn, /ATTENDANCE_REPLACE_MODE_REQUIRED/);
-});
-
-test('school attendance template round-trips through the server header detector and is not the roster template', async () => {
-  const {
-    ATTENDANCE_IMPORT_TEMPLATE_FILENAME,
-    ATTENDANCE_IMPORT_TEMPLATE_HEADERS,
-    attendanceImportTemplateMatrix,
-  } = await import('../src/lib/attendanceImportExcel.js');
-  const { ROSTER_IMPORT_HEADERS } = await import('../src/lib/rosterImportExcel.js');
-  assert.equal(ATTENDANCE_IMPORT_TEMPLATE_FILENAME, 'mau_diem_danh_toan_truong.xlsx');
-  assert.notDeepEqual(ATTENDANCE_IMPORT_TEMPLATE_HEADERS, ROSTER_IMPORT_HEADERS);
-  assert.deepEqual(ATTENDANCE_IMPORT_TEMPLATE_HEADERS, FILE_HEADER);
-  const parsed = rowsFromAttendanceMatrix(attendanceImportTemplateMatrix());
-  assert.equal(parsed.ok, true);
-  assert.equal(parsed.headerRowIndex, 0);
-  for (const row of parsed.rows) {
-    assert.notEqual(parseSchoolCameraStatus(row.rawStatus), null);
-  }
 });

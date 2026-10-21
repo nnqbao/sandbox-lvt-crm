@@ -73,10 +73,10 @@ test('per-student totals rank most absences first and compute the rate over rate
   assert.equal(buildStudentTotalsMatrix({}).length, 1);
 });
 
-test('camera observation labels are Vietnamese in exports', () => {
-  assert.equal(rawObservationLabel('present'), 'Đúng giờ');
+test('observation labels are Vietnamese in exports (Đi trễ kept for old camera data)', () => {
+  assert.equal(rawObservationLabel('present'), 'Có mặt');
   assert.equal(rawObservationLabel('late'), 'Đi trễ');
-  assert.equal(rawObservationLabel('absent'), 'Chưa điểm danh');
+  assert.equal(rawObservationLabel('absent'), 'Vắng');
   assert.equal(rawObservationLabel('unknown'), 'Không rõ');
   assert.equal(rawObservationLabel(''), '');
 });

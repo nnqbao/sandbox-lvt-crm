@@ -21,6 +21,7 @@ import { assertDispositionChange, deriveEffectiveStatus } from "./studentAttenda
 import { resolveSchoolDay } from "./homeroomAlerts";
 import {
   calendarDayFor,
+  classDayMarker,
   correctionsForStudent,
   daysForClassOnDate,
   daysForClassRange,
@@ -30,6 +31,7 @@ import {
   getClassById,
   getYearById,
   studentsByIds,
+  usersByIds,
 } from "./homeroomData";
 
 export const DISPOSITION_BATCH_LIMIT = 100;
@@ -72,10 +74,16 @@ export const listDailyClass = query({
     const assignments = await loadAssignments(ctx, klass.schoolYearId);
     const year = await getYearById(ctx, klass.schoolYearId);
     const calendarDay = await calendarDayFor(ctx, klass.schoolYearId, date);
+    const marker = await classDayMarker(ctx, args.classId, date);
+    const saver = marker ? (await usersByIds(ctx, [marker.savedBy])).get(marker.savedBy) : undefined;
     return {
       date,
       rows,
       published: days.length > 0,
+      /** Giám thị / admin đã lưu điểm danh lớp này trên menu Điểm danh (null = chưa). */
+      classSaved: marker
+        ? { savedAt: marker.savedAt, savedByName: saver?.name || "", source: marker.source, absentCount: marker.absentCount }
+        : null,
       archived: klass.status === "archived",
       canCorrect: klass.status !== "archived" && canCorrectDisposition(actor, assignments, args.classId, date),
       schoolDay: resolveSchoolDay(date, calendarDay, year),
@@ -169,7 +177,7 @@ async function applyDisposition(
   return { attendanceDayId: String(day._id), effectiveStatus: nextEffective, unchanged: false };
 }
 
-/** GVCN (lớp mình) hoặc Admin/Mod phân loại một buổi camera ghi "Vắng". */
+/** GVCN (lớp mình) hoặc Admin/Mod đánh dấu một buổi "Vắng" là có phép / không phép. */
 export const setDisposition = mutation({
   args: {
     attendanceDayId: v.string(),

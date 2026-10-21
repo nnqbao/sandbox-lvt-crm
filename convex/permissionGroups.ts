@@ -9,7 +9,10 @@ import {
   type LegacyMenuAccess,
   type MenuAccess,
 } from "./lib";
-import { cleanPermissionGroupMenuAccess, normalizeMenuAccess } from "./menuAccess";
+import {
+  cleanPermissionGroupMenuAccess,
+  migrateSupervisorMenuAccess,
+} from "./menuAccess";
 
 const accessValidator = v.union(
   v.literal("hidden"),
@@ -62,7 +65,11 @@ async function releaseInactiveCodeIfNeeded(
   await ctx.db.patch(duplicate._id, { code: undefined, updatedAt: Date.now() });
 }
 
-/** Backfill missing codes and remap legacy `edit` menu access to `view`. Safe to call repeatedly. */
+/**
+ * Backfill missing codes, remap legacy `edit` menu access to `view`, fill missing menus
+ * (e.g. `attendance=hidden`) and move a legacy homeroom Giám thị to the attendance menu.
+ * Safe to call repeatedly.
+ */
 export const ensureCodes = mutation({
   args: {},
   handler: async (ctx) => {
@@ -74,7 +81,7 @@ export const ensureCodes = mutation({
     const now = Date.now();
     let patched = 0;
     for (const group of groups) {
-      const menuAccess = normalizeMenuAccess(group.menuAccess);
+      const { menuAccess } = migrateSupervisorMenuAccess(group.menuAccess);
       const accessChanged = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
       const patch: { code?: string; menuAccess?: typeof menuAccess; updatedAt: number } = {
         updatedAt: now,
@@ -104,7 +111,7 @@ export const remapLegacyEditAccess = internalMutation({
     const now = Date.now();
     const results = [];
     for (const group of groups) {
-      const menuAccess = normalizeMenuAccess(group.menuAccess);
+      const { menuAccess } = migrateSupervisorMenuAccess(group.menuAccess);
       const hadEdit = (group.menuAccess || []).some((entry) => entry.access === "edit");
       const patched = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
       if (patched) {
@@ -123,6 +130,41 @@ export const remapLegacyEditAccess = internalMutation({
   },
 });
 
+/**
+ * One-time, idempotent migration: Giám thị moves from menu `homeroom` to menu `attendance`.
+ * homeroom=supervisor → homeroom=hidden + attendance=supervisor; every other group gets
+ * attendance=hidden. Run once after deploying the attendance menu:
+ *   ./scripts/lvt-convex-cloud-env.sh dev ./node_modules/.bin/convex run permissionGroups:migrateSupervisorToAttendance
+ */
+export const migrateSupervisorToAttendance = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const groups = await ctx.db.query("permissionGroups").collect();
+    const now = Date.now();
+    const results = [];
+    for (const group of groups) {
+      const { menuAccess, movedSupervisor } = migrateSupervisorMenuAccess(group.menuAccess);
+      const patched = JSON.stringify(menuAccess) !== JSON.stringify(group.menuAccess);
+      if (patched) {
+        await ctx.db.patch(group._id, { menuAccess, updatedAt: now });
+      }
+      results.push({ name: group.name, code: group.code || "", active: group.active, movedSupervisor, patched });
+    }
+    if (results.some((row) => row.patched)) {
+      await ctx.db.insert("auditLogs", {
+        actorUserId: "system",
+        action: "permissionGroup.migrateSupervisorToAttendance",
+        details: JSON.stringify({
+          patched: results.filter((row) => row.patched).length,
+          moved: results.filter((row) => row.movedSupervisor).map((row) => row.code || row.name),
+        }),
+        at: now,
+      });
+    }
+    return results;
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -133,7 +175,7 @@ export const list = query({
     ]);
     return {
       groups: groups
-        .map((group) => ({ ...group, menuAccess: normalizeMenuAccess(group.menuAccess) }))
+        .map((group) => ({ ...group, menuAccess: migrateSupervisorMenuAccess(group.menuAccess).menuAccess }))
         .sort((a, b) => a.name.localeCompare(b.name, "vi")),
       menus: SYSTEM_MENU_DEFS.map((m) => ({ id: m.id, label: m.label })),
       users: users.map((u) => ({
@@ -215,7 +257,7 @@ export const update = mutation({
       name: args.name,
       code: args.code,
       description: args.description,
-      menuAccess: args.menuAccess || current.menuAccess,
+      menuAccess: args.menuAccess || migrateSupervisorMenuAccess(current.menuAccess).menuAccess,
     });
     await releaseInactiveCodeIfNeeded(ctx, input.code, args.id);
     const duplicate = await findGroupByCode(ctx, input.code);

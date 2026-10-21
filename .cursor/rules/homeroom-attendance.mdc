@@ -4,17 +4,19 @@ Canonical plan: `docs/plans/2026-08-15-homeroom-attendance-three-phase-plan.md`.
 
 ## Permission
 
-- Giám thị is `{ menu: "homeroom", access: "supervisor" }`, not `users.role`.
-- Reject `supervisor` on every other menu (`INVALID_MENU_ACCESS`).
+- Giám thị is `{ menu: "attendance", access: "supervisor" }` (menu Điểm danh, `/diem-danh`), not `users.role`.
+- Reject `supervisor` on every other menu, including `homeroom` (`INVALID_MENU_ACCESS`). `attendance` accepts only `hidden` / `supervisor`; admin/mod get it by role.
 - Legacy `edit` normalizes to `view`; do not reuse `edit` as Giám thị.
-- `supervisor` is not `view_all`. Teacher overview and generic class/student read come from effective `homeroom_teacher` class assignments only.
-- Giám thị (`homeroom` menu access `supervisor`) and admin/mod may upload/validate/publish attendance for any **active** class without a class assignment. Historical `supervisor` / whole-school assignment rows do not grant scope.
+- `supervisor` is not `view_all` and grants no homeroom access. Teacher overview and generic class/student read come from effective `homeroom_teacher` class assignments only.
+- Giám thị and admin/mod mark any **active** class on the Điểm danh menu (`convex/supervisorAttendance.ts`, rules in `supervisorAttendancePolicy.ts`): Giám thị today only, admin/mod also past dates of the year, never future. Excel import is staged (Storage → register ≤2 MiB `.xlsx`, 1 h purge → server parse/validate → all-or-nothing preview → commit).
+- Camera import is retired: write paths throw `ATTENDANCE_CAMERA_IMPORT_RETIRED`; keep its tables/rows for history. Historical `supervisor` / whole-school assignment rows do not grant scope.
+- GVCN (or admin/mod) only toggles absent rows `excused` ↔ `unexcused`; reason optional; every change appends `studentAttendanceCorrections`. A class/day without `attendanceClassDays` is "Chưa điểm danh".
 - Admin/mod catalog management is a separate surface. Do not mix all classes into the teacher overview.
 
 ## Data
 
 - Do not reuse `dutyAttendances` or employee user-import for students.
-- Camera observation and human disposition are separate facts; never overwrite raw observation.
+- Observation (`rawObservation`) and disposition are separate facts. Only Giám thị/admin marking on Điểm danh rewrites `rawObservation` (present/absent); GVCN changes disposition only.
 - School-year history is immutable: transfers close+create enrollment/assignment rows.
 - Transfer/replacement date belongs only to the new class/teacher. Old enrollment `endDate` and old GVCN `effectiveTo` are the day before (`addDaysYmd(date, -1)`); coverage is inclusive. Reject transfer before the current enrollment `startDate`.
 - GVCN replacement keeps the outgoing row `active: true` so date-effective historical access still works. Reserve `active: false` for revocation/removal that must erase current and future access.

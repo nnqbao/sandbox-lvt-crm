@@ -30,8 +30,9 @@ test('homeroom keeps /lop-chu-nhiem and supports deep subroutes for back/forward
   });
   assert.equal(homeroomPathname({ classId: 'c1', tab: 'diem-danh' }), '/lop-chu-nhiem/lop/c1/diem-danh');
   assert.equal(homeroomPathname({ manageClasses: true }), '/lop-chu-nhiem/quan-ly-lop');
-  assert.equal(homeroomPathname({ importAttendance: true }), '/lop-chu-nhiem/nhap-diem-danh');
-  assert.equal(homeroomPathname({ pendingAbsences: true }), '/lop-chu-nhiem/vang-cho-xu-ly');
+  // Retired pages no longer have their own path helpers.
+  assert.equal(homeroomPathname({ importAttendance: true }), '/lop-chu-nhiem');
+  assert.equal(homeroomPathname({ pendingAbsences: true }), '/lop-chu-nhiem');
   const nested = routeForPathname('/lop-chu-nhiem/lop/c1/bao-cao');
   assert.equal(nested?.menu, 'homeroom');
   assert.equal(nested?.homeroomPath, '/lop-chu-nhiem/lop/c1/bao-cao');
@@ -40,9 +41,10 @@ test('homeroom keeps /lop-chu-nhiem and supports deep subroutes for back/forward
   assert.equal(routeForPathname('/lop-chu-nhiem/nhap-diem-danh')?.menu, 'homeroom');
 
   assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem'), { view: 'overview' });
-  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/vang-cho-xu-ly'), { view: 'pending' });
-  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/nhap-diem-danh'), { view: 'import' });
-  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/import-diem-danh/c1'), { view: 'import' });
+  // Vắng chờ xử lý / Nhập điểm danh camera were retired; old links land on the overview.
+  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/vang-cho-xu-ly'), { view: 'overview' });
+  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/nhap-diem-danh'), { view: 'overview' });
+  assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/import-diem-danh/c1'), { view: 'overview' });
   assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/quan-ly-lop'), { view: 'manage' });
   // Lịch học đã chuyển sang Thiết lập tối cao › Thiết lập năm học; link cũ rơi về tổng quan.
   assert.deepEqual(parseHomeroomPath('/lop-chu-nhiem/lich-hoc'), { view: 'overview' });
@@ -55,27 +57,26 @@ test('homeroom keeps /lop-chu-nhiem and supports deep subroutes for back/forward
   }
 });
 
-test('homeroom roles: managers see everything, supervisors only import, view_all sees classes', () => {
+test('homeroom roles: managers and view_all; Giám thị has no homeroom role anymore', () => {
   assert.deepEqual(homeroomRoles({ isOperationalManager: true, menuAccess: { homeroom: 'view' } }), {
     isManager: true,
-    isSupervisor: false,
     isViewAll: false,
-    canImport: true,
-    seesClasses: true,
   });
-  const supervisor = homeroomRoles({ menuAccess: { homeroom: 'supervisor' } });
-  assert.equal(supervisor.isSupervisor, true);
-  assert.equal(supervisor.canImport, true);
-  assert.equal(supervisor.seesClasses, false);
-  const viewAll = homeroomRoles({ menuAccess: { homeroom: 'view_all' } });
-  assert.equal(viewAll.isViewAll, true);
-  assert.equal(viewAll.canImport, false);
-  assert.equal(viewAll.seesClasses, true);
-  const teacher = homeroomRoles({ menuAccess: { homeroom: 'view' } });
-  assert.equal(teacher.isManager, false);
-  assert.equal(teacher.canImport, false);
-  assert.equal(teacher.seesClasses, true);
+  const legacySupervisor = homeroomRoles({ menuAccess: { homeroom: 'supervisor' } });
+  assert.deepEqual(legacySupervisor, { isManager: false, isViewAll: false });
+  assert.equal(homeroomRoles({ menuAccess: { homeroom: 'view_all' } }).isViewAll, true);
+  assert.equal(homeroomRoles({ menuAccess: { homeroom: 'view' } }).isManager, false);
   assert.equal(homeroomRoles(null).isManager, false);
+  const router = readFileSync(new URL('../src/homeroom/HomeroomRouter.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(router, /HomeroomAttendanceImport|HomeroomPendingAbsences|Vắng chờ xử lý|Nhập điểm danh/);
+  const overview = readFileSync(new URL('../src/homeroom/HomeroomOverview.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(overview, /SupervisorOverview|isSupervisor|nav\.import|nav\.pending/);
+});
+
+test('/diem-danh is its own menu, not a homeroom sub-route', () => {
+  assert.equal(pathnameForMenu('attendance'), '/diem-danh');
+  assert.deepEqual(routeForPathname('/diem-danh'), { menu: 'attendance', reportSection: undefined });
+  assert.equal(routeForPathname('/lop-chu-nhiem/lop/c1/diem-danh')?.menu, 'homeroom');
 });
 
 test('homeroom frontend date defaults use Vietnam calendar, including UTC 18:00', () => {

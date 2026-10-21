@@ -12,7 +12,7 @@ import {
 test('Ghi nhận lỗi is a primary permission-group menu', () => {
   const menu = SYSTEM_MENU_DEFS.find((item) => item.id === STAFF_FAULTS_MENU_ID);
   assert.equal(menu?.label, 'Ghi nhận lỗi');
-  assert.equal(SYSTEM_MENU_DEFS.length, 7);
+  assert.equal(SYSTEM_MENU_DEFS.length, 8);
 });
 
 test('nút thêm ghi nhận lỗi chỉ dành cho admin/mod và cấp 2–5★', () => {

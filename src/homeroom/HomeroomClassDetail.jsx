@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { vietnamTodayYmd } from './homeroomTime';
 import {
@@ -9,17 +9,22 @@ import {
   formatTime,
   isYmd,
   percent,
-  rawLabel,
   schoolDayLabel,
   startOfMonth,
   startOfWeek,
-  STATUS_SHORT,
   studentInitials,
   weekdayLabel,
 } from './homeroomLabels';
 import { AttendanceReportsTable } from './AttendanceReportsTable';
 import { downloadAttendancePdf, downloadAttendanceXlsx } from './homeroomExport';
-import { ClassifyAbsenceModal, DISPOSITION_BATCH_LIMIT } from './HomeroomDisposition';
+import { messageFor } from '../lib/appErrorMessage';
+import {
+  classNotMarked,
+  isUnexcused,
+  nextDispositionForToggle,
+  notMarkedMessage,
+  splitAttendanceRows,
+} from './attendanceDay';
 import HomeroomRoster from './HomeroomRoster';
 import { ClassManagePanel } from './HomeroomClassCatalog';
 import { classStatusLabel } from './classCatalog';
@@ -33,7 +38,6 @@ import {
   Kpi,
   Loading,
   Notice,
-  SilentBoundary,
   StatusChip,
 } from './homeroomUi';
 
@@ -73,7 +77,7 @@ export default function HomeroomClassDetail({ classId, tab, initialDate = '', se
       </header>
       {archived ? (
         <Notice tone="warn" icon="archive" title="Lớp đã lưu trữ — chỉ xem.">
-          Không thể nhập điểm danh, phân loại vắng hay thay đổi danh sách.{detail.permissions.canManage ? ' Có thể khôi phục lớp trong tab Quản lý lớp.' : ''}
+          Không thể điểm danh, đánh dấu vắng không phép hay thay đổi danh sách.{detail.permissions.canManage ? ' Có thể khôi phục lớp trong tab Quản lý lớp.' : ''}
         </Notice>
       ) : null}
       <nav className="hr-tabs" aria-label="Điều hướng lớp">
@@ -90,7 +94,7 @@ export default function HomeroomClassDetail({ classId, tab, initialDate = '', se
       </nav>
       <HomeroomViewErrorBoundary resetKey={current} onBack={() => nav.openClass(classId)} backLabel="Về danh sách lớp">
         {current === 'diem-danh' ? (
-          <AttendanceTab classId={classId} detail={detail} initialDate={initialDate} nav={nav} />
+          <AttendanceTab classId={classId} initialDate={initialDate} nav={nav} />
         ) : current === 'bao-cao' ? (
           <ReportsTab classId={classId} detail={detail} />
         ) : current === 'quan-ly' ? (
@@ -105,54 +109,58 @@ export default function HomeroomClassDetail({ classId, tab, initialDate = '', se
 
 /* ------------------------------ Điểm danh ------------------------------ */
 
-const FILTERS = ['all', 'present', 'late', 'absent_pending', 'absent_excused', 'absent_unexcused', 'no_data'];
-
-function AttendanceTab({ classId, detail, initialDate, nav }) {
+function AttendanceTab({ classId, initialDate, nav }) {
   const today = vietnamTodayYmd();
   const [date, setDate] = useState(() => (isYmd(initialDate) ? initialDate : today));
-  const [filter, setFilter] = useState('all');
-  const [selected, setSelected] = useState(() => new Set());
-  const [modal, setModal] = useState(null);
+  const [busyId, setBusyId] = useState('');
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const setDisposition = useMutation(anyApi.studentAttendance.setDisposition);
   const data = useQuery(anyApi.studentAttendance.listDailyClass, { classId, attendanceDate: date });
 
   const rows = data?.rows || [];
+  const { absent, others } = useMemo(() => splitAttendanceRows(rows), [rows]);
   const counts = useMemo(() => {
-    const result = { all: rows.length };
-    for (const key of FILTERS.slice(1)) result[key] = 0;
-    for (const row of rows) result[row.day?.effectiveStatus || 'no_data'] += 1;
+    const result = {};
+    for (const row of rows) {
+      const key = row.day?.effectiveStatus || 'no_data';
+      result[key] = (result[key] || 0) + 1;
+    }
     return result;
   }, [rows]);
-  const visible = rows.filter((row) => filter === 'all' || (row.day?.effectiveStatus || 'no_data') === filter);
-  const pendingRows = rows.filter((row) => row.day?.effectiveStatus === 'absent_pending');
   const canCorrect = Boolean(data?.canCorrect);
 
   const changeDate = (next) => {
     setDate(next);
-    setSelected(new Set());
+    setError('');
     setSuccess('');
   };
 
-  const toModalRow = (row) => ({
-    _id: row.day._id,
-    fullName: row.student.fullName,
-    studentCode: row.student.studentCode,
-    attendanceDate: date,
-    disposition: row.day.disposition,
-    effectiveStatus: row.day.effectiveStatus,
-    reasonCode: row.day.reasonCode,
-    note: row.day.note,
-  });
+  const save = async (row, patch, message) => {
+    setBusyId(row.day._id);
+    setError('');
+    setSuccess('');
+    try {
+      await setDisposition({
+        attendanceDayId: row.day._id,
+        nextDisposition: patch.nextDisposition ?? row.day.disposition,
+        reasonCode: row.day.reasonCode || undefined,
+        note: (patch.note ?? row.day.note) || undefined,
+      });
+      setSuccess(message);
+    } catch (err) {
+      setError(messageFor(err));
+    } finally {
+      setBusyId('');
+    }
+  };
 
-  const toggle = (id) =>
-    setSelected((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else if (next.size < DISPOSITION_BATCH_LIMIT) next.add(id);
-      return next;
-    });
-
-  const selectedRows = rows.filter((row) => row.day && selected.has(row.day._id));
+  const toggleUnexcused = (row, checked) =>
+    save(
+      row,
+      { nextDisposition: nextDispositionForToggle(checked) },
+      `${row.student.fullName}: ${checked ? 'vắng không phép' : 'vắng có phép'}.`,
+    );
 
   return (
     <div className="hr-stack">
@@ -170,30 +178,17 @@ function AttendanceTab({ classId, detail, initialDate, nav }) {
         ) : null}
       </div>
 
-      <SilentBoundary>
-        <OtherPendingDays classId={classId} schoolYearId={detail.class.schoolYearId} currentDate={date} onPick={changeDate} />
-      </SilentBoundary>
-
       {data === undefined ? (
         <Loading label="Đang tải điểm danh…" />
       ) : !rows.length ? (
         <EmptyState icon="users" title="Lớp không có học sinh vào ngày này." />
-      ) : !data.published ? (
+      ) : classNotMarked(data) ? (
         <div className="hr-panel">
-          <EmptyState icon="clock" title={`Chưa có dữ liệu điểm danh ngày ${formatDate(date)}.`}>
+          <EmptyState icon="clock" title={notMarkedMessage(date, today, formatDate)}>
             {data.schoolDay?.isSchoolDay
-              ? detail.permissions.canImportAttendance
-                ? 'Nhập file điểm danh toàn trường để có dữ liệu cho lớp này.'
-                : 'Giám thị sẽ nhập file điểm danh của trường. Khi có dữ liệu, học sinh vắng sẽ hiện ở đây để bạn phân loại.'
+              ? 'Khi Giám thị lưu điểm danh, học sinh vắng sẽ hiện ở đầu danh sách để bạn đánh dấu vắng không phép.'
               : 'Đây không phải ngày học.'}
           </EmptyState>
-          {detail.permissions.canImportAttendance && data.schoolDay?.isSchoolDay ? (
-            <div className="hr-row hr-row--center">
-              <button type="button" className="primary-button" onClick={() => nav.import(date)}>
-                <Icon name="upload" size={15} /> Nhập điểm danh ngày {formatDate(date)}
-              </button>
-            </div>
-          ) : null}
         </div>
       ) : (
         <section className="hr-panel">
@@ -202,160 +197,103 @@ function AttendanceTab({ classId, detail, initialDate, nav }) {
               <h3>{weekdayLabel(date)}, {formatDate(date)}</h3>
               <AttendanceBar counts={counts} total={rows.length} />
             </div>
-            {canCorrect && pendingRows.length ? (
-              <button
-                type="button"
-                className="hr-button hr-button--pending"
-                onClick={() => setModal({ rows: pendingRows.map(toModalRow), choice: 'excused' })}
-              >
-                <Icon name="inbox" size={15} /> Phân loại {pendingRows.length} buổi vắng
-              </button>
+            {data.classSaved ? (
+              <p className="hr-muted">
+                Giám thị lưu lúc {formatTime(data.classSaved.savedAt)}
+                {data.classSaved.savedByName ? ` · ${data.classSaved.savedByName}` : ''}
+              </p>
             ) : null}
           </header>
-          <div className="hr-filter-chips" role="group" aria-label="Lọc theo trạng thái">
-            {FILTERS.map((key) =>
-              key === 'all' || counts[key] ? (
-                <button
-                  key={key}
-                  type="button"
-                  className={`hr-filter-chip hr-filter-chip--${key}`}
-                  aria-pressed={filter === key}
-                  onClick={() => setFilter(key)}
-                >
-                  {key === 'all' ? 'Tất cả' : STATUS_SHORT[key]} <b>{counts[key]}</b>
-                </button>
-              ) : null,
-            )}
-          </div>
-          <Feedback success={success} />
-          {!canCorrect && !data.archived && pendingRows.length ? (
-            <p className="hr-hint"><Icon name="eye" size={13} /> Chỉ GVCN của lớp (hoặc quản trị viên) mới phân loại được vắng có phép / không phép.</p>
+          <ul className="hr-att-summary" aria-label="Tóm tắt điểm danh">
+            <li><StatusChip status="present" /> <b>{(counts.present || 0) + (counts.late || 0)}</b></li>
+            <li><StatusChip status="absent_excused" /> <b>{counts.absent_excused || 0}</b></li>
+            <li><StatusChip status="absent_unexcused" /> <b>{counts.absent_unexcused || 0}</b></li>
+            {counts.absent_pending ? <li><StatusChip status="absent_pending" /> <b>{counts.absent_pending}</b></li> : null}
+          </ul>
+          <Feedback error={error} success={success} />
+          {!canCorrect && !data.archived && absent.length ? (
+            <p className="hr-hint"><Icon name="eye" size={13} /> Chỉ GVCN của lớp (hoặc quản trị viên) mới đánh dấu được vắng không phép.</p>
           ) : null}
-          <div className="hr-table-wrap">
-            <table className="hr-table">
-              <thead>
-                <tr>
-                  {canCorrect ? <th className="is-check"><span className="hr-sr-only">Chọn</span></th> : null}
-                  <th className="is-num">STT</th>
-                  <th>Học sinh</th>
-                  <th>Camera</th>
-                  <th>Kết quả</th>
-                  <th>Lý do / ghi chú</th>
-                  {canCorrect ? <th className="is-actions"><span className="hr-sr-only">Thao tác</span></th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((row, index) => {
-                  const absent = row.day?.rawObservation === 'absent';
-                  return (
-                    <tr key={row.enrollment._id} className={row.day && selected.has(row.day._id) ? 'is-selected' : ''}>
-                      {canCorrect ? (
-                        <td className="is-check">
-                          {absent ? (
-                            <input
-                              type="checkbox"
-                              checked={selected.has(row.day._id)}
-                              onChange={() => toggle(row.day._id)}
-                              aria-label={`Chọn ${row.student.fullName}`}
-                            />
-                          ) : null}
-                        </td>
-                      ) : null}
-                      <td className="is-num">{row.enrollment.rosterNumber || index + 1}</td>
-                      <td>
-                        <button type="button" className="hr-person" onClick={() => nav.openStudent(row.student._id)}>
-                          <span className="hr-avatar" aria-hidden="true">{studentInitials(row.student.fullName)}</span>
-                          <span>
-                            <strong>{row.student.fullName}</strong>
-                            <span className="hr-sub">{row.student.studentCode}</span>
-                          </span>
-                        </button>
-                      </td>
-                      <td>
-                        {row.day ? (
-                          <span className="hr-raw">
-                            {rawLabel(row.day.rawObservation)}
-                            {row.day.rawObservedAt ? <span className="hr-sub">{formatTime(row.day.rawObservedAt)}</span> : null}
-                          </span>
-                        ) : '—'}
-                      </td>
-                      <td><StatusChip status={row.day?.effectiveStatus} /></td>
-                      <td className="hr-note-cell">
-                        {[row.day?.reasonCode, row.day?.note].filter(Boolean).join(' — ') || <span className="hr-muted">—</span>}
-                      </td>
-                      {canCorrect ? (
-                        <td className="is-actions">
-                          {absent ? (
-                            <button
-                              type="button"
-                              className={`hr-button hr-button--sm ${row.day.effectiveStatus === 'absent_pending' ? 'hr-button--pending' : 'hr-button--ghost'}`}
-                              onClick={() => setModal({ rows: [toModalRow(row)], choice: row.day.disposition === 'unexcused' ? 'unexcused' : 'excused' })}
-                            >
-                              {row.day.effectiveStatus === 'absent_pending' ? 'Phân loại' : 'Sửa'}
-                            </button>
-                          ) : null}
-                        </td>
-                      ) : null}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+
+          <h4 className="hr-att-heading">Vắng ({absent.length})</h4>
+          {absent.length ? (
+            <ul className="hr-att-list">
+              {absent.map((row) => (
+                <AttendanceRow
+                  key={row.enrollment._id}
+                  row={row}
+                  absent
+                  canCorrect={canCorrect}
+                  busy={busyId === row.day?._id}
+                  onOpen={() => nav.openStudent(row.student._id)}
+                  onToggle={(checked) => toggleUnexcused(row, checked)}
+                  onNote={(note) => save(row, { note }, `Đã lưu ghi chú cho ${row.student.fullName}.`)}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="hr-muted">Không có học sinh vắng.</p>
+          )}
+
+          <h4 className="hr-att-heading">Có mặt ({others.length})</h4>
+          <ul className="hr-att-list">
+            {others.map((row) => (
+              <AttendanceRow key={row.enrollment._id} row={row} onOpen={() => nav.openStudent(row.student._id)} />
+            ))}
+          </ul>
         </section>
       )}
-
-      {selectedRows.length ? (
-        <div className="hr-bulk-bar" role="region" aria-label="Thao tác hàng loạt">
-          <strong>Đã chọn {selectedRows.length}</strong>
-          <button type="button" className="hr-button hr-button--excused" onClick={() => setModal({ rows: selectedRows.map(toModalRow), choice: 'excused' })}>Có phép</button>
-          <button type="button" className="hr-button hr-button--unexcused" onClick={() => setModal({ rows: selectedRows.map(toModalRow), choice: 'unexcused' })}>Không phép</button>
-          <button type="button" className="hr-button hr-button--ghost" onClick={() => setSelected(new Set())}>Bỏ chọn</button>
-        </div>
-      ) : null}
-
-      {modal ? (
-        <ClassifyAbsenceModal
-          rows={modal.rows}
-          initialChoice={modal.choice}
-          onClose={() => setModal(null)}
-          onDone={(choice) => {
-            setSelected(new Set());
-            setSuccess(
-              choice === 'pending'
-                ? 'Đã đưa buổi vắng về chờ xử lý.'
-                : `Đã lưu ${modal.rows.length} buổi là ${choice === 'excused' ? 'vắng có phép' : 'vắng không phép'}.`,
-            );
-          }}
-        />
-      ) : null}
     </div>
   );
 }
 
-function OtherPendingDays({ classId, schoolYearId, currentDate, onPick }) {
-  const data = useQuery(anyApi.homeroomReports.pendingAbsences, { schoolYearId, classId });
-  const byDate = useMemo(() => {
-    const map = new Map();
-    for (const row of data?.rows || []) {
-      if (row.attendanceDate === currentDate) continue;
-      map.set(row.attendanceDate, (map.get(row.attendanceDate) || 0) + 1);
-    }
-    return [...map.entries()];
-  }, [data, currentDate]);
-  if (!byDate.length) return null;
-  const total = byDate.reduce((sum, [, count]) => sum + count, 0);
+function AttendanceRow({ row, absent = false, canCorrect = false, busy = false, onOpen, onToggle = undefined, onNote = undefined }) {
+  const status = row.day?.effectiveStatus || 'no_data';
+  const unexcused = isUnexcused(row.day);
+  const [note, setNote] = useState(row.day?.note || '');
+  const checkboxId = `hr-unexcused-${row.enrollment._id}`;
   return (
-    <div className="hr-pending-strip">
-      <span><Icon name="inbox" size={15} /> Còn <strong>{total}</strong> buổi vắng chờ xử lý ở ngày khác:</span>
-      <div className="hr-row hr-row--wrap">
-        {byDate.slice(0, 10).map(([day, count]) => (
-          <button key={day} type="button" className="hr-preset" onClick={() => onPick(day)}>
-            {formatDate(day)} <b>{count}</b>
-          </button>
-        ))}
-      </div>
-    </div>
+    <li className={`hr-att-row${absent ? ' is-absent' : ''}${unexcused ? ' is-unexcused' : ''}`}>
+      <button type="button" className="hr-person" onClick={onOpen}>
+        <span className="hr-avatar" aria-hidden="true">{studentInitials(row.student.fullName)}</span>
+        <span>
+          <strong>{row.enrollment.rosterNumber ? `${row.enrollment.rosterNumber}. ` : ''}{row.student.fullName}</strong>
+          <span className="hr-sub">{row.student.studentCode}</span>
+        </span>
+      </button>
+      <span className="hr-att-status">
+        {absent ? <Icon name="alert" size={15} /> : null}
+        <StatusChip status={status} />
+      </span>
+      {absent && canCorrect ? (
+        <>
+          <label className="hr-att-check" htmlFor={checkboxId}>
+            <input
+              id={checkboxId}
+              type="checkbox"
+              checked={unexcused}
+              disabled={busy}
+              onChange={(event) => onToggle(event.target.checked)}
+            />
+            Vắng không phép
+          </label>
+          <label className="hr-att-note">
+            <span>Ghi chú (không bắt buộc)</span>
+            <input
+              value={note}
+              maxLength={500}
+              disabled={busy}
+              onChange={(event) => setNote(event.target.value)}
+              onBlur={() => {
+                if (note.trim() !== (row.day?.note || '')) onNote(note.trim());
+              }}
+            />
+          </label>
+        </>
+      ) : absent && (row.day?.note || row.day?.reasonCode) ? (
+        <span className="hr-att-note-text">{[row.day.reasonCode, row.day.note].filter(Boolean).join(' — ')}</span>
+      ) : null}
+    </li>
   );
 }
 
@@ -450,10 +388,10 @@ function ReportsTab({ classId, detail }) {
           <div className="hr-kpi-grid">
             <Kpi label="Ngày có dữ liệu" value={dayCount} icon="calendar" hint={`${formatDate(range.from)} – ${formatDate(range.to)}`} />
             <Kpi label="Chuyên cần" value={report.summary.ratedRows ? percent(report.summary.attendanceRate) : '—'} tone="rate" />
-            <Kpi label="Đi trễ" value={counts.late} tone="late" />
+            {counts.late ? <Kpi label="Đi trễ" value={counts.late} tone="late" hint="Dữ liệu camera cũ" /> : null}
             <Kpi label="Vắng có phép" value={counts.absent_excused} tone="excused" />
             <Kpi label="Vắng không phép" value={counts.absent_unexcused} tone="absent" />
-            <Kpi label="Chờ xử lý" value={counts.absent_pending} tone="pending" />
+            {counts.absent_pending ? <Kpi label="Vắng chờ xử lý (cũ)" value={counts.absent_pending} tone="pending" /> : null}
           </div>
           <section className="hr-panel">
             <header className="hr-panel-head">

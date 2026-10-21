@@ -1,0 +1,120 @@
+/* Điểm danh (Giám thị). Reuses .homeroom-view tokens (--hr-*) and components; only tokens here. */
+
+.att-view { max-width: 1080px; }
+.att-head { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.att-head-main { display: grid; gap: 4px; min-width: 0; }
+.att-head-main h1 { font-size: 24px; font-weight: 800; }
+.att-head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.att-date { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.att-grade-tabs button[role="tab"] { min-height: 46px; }
+.att-tab-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--lvt-muted);
+  background: var(--lvt-surface-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.att-class-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.att-class {
+  border: 1px solid var(--lvt-line);
+  border-radius: var(--hr-radius);
+  background: var(--lvt-surface);
+  box-shadow: var(--hr-shadow);
+}
+.att-class.is-open { border-color: var(--lvt-teal); }
+.att-class-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: var(--hr-radius);
+  color: var(--lvt-ink);
+  background: none;
+  text-align: left;
+}
+.att-class-head:hover { background: var(--lvt-surface-muted); }
+.att-class-name { display: grid; gap: 2px; min-width: 0; }
+.att-class-name strong { color: var(--lvt-navy); font-size: 15px; font-weight: 800; }
+.att-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.att-status.is-saved { color: var(--lvt-success-text); background: var(--lvt-success-bg); }
+.att-status.is-pending { color: var(--lvt-warning-text); background: var(--lvt-warning-bg); }
+.att-chevron { display: inline-flex; color: var(--lvt-muted); }
+
+.att-class-body { display: grid; gap: 12px; padding: 0 16px 16px; }
+.att-students { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.att-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 8px;
+  background: var(--lvt-surface);
+  cursor: pointer;
+}
+.att-students li.is-absent .att-student { border-color: var(--hr-unexcused); background: var(--hr-unexcused-bg); }
+.att-student-name { min-width: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.att-student-no { color: var(--lvt-muted); font-variant-numeric: tabular-nums; }
+.att-absent-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--lvt-navy);
+  font-size: 14px;
+  font-weight: 700;
+}
+.att-absent-toggle input { width: 22px; height: 22px; margin: 0; accent-color: var(--hr-unexcused); }
+
+.att-savebar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 12px;
+  background: var(--lvt-surface);
+  box-shadow: var(--hr-shadow);
+}
+.att-savebar-count { font-size: 14px; }
+.att-savebar-count em { color: var(--lvt-warning-text); font-style: normal; font-weight: 700; }
+
+.att-import .att-file { display: grid; gap: 6px; font-size: 13px; font-weight: 700; color: var(--lvt-ink-soft); }
+.att-import .att-file input { min-height: 44px; font: inherit; font-size: 14px; }
+.att-preview { display: grid; gap: 12px; min-width: 0; }
+.att-import-actions { display: flex; justify-content: flex-end; }
+
+@media (max-width: 680px) {
+  .att-head { grid-template-columns: 1fr; }
+  .att-head-actions { justify-content: stretch; }
+  .att-head-actions > * { flex: 1 1 140px; }
+  .att-class-head { grid-template-columns: minmax(0, 1fr) auto; padding: 10px 12px; }
+  .att-class-head .att-status { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+  .att-chevron { grid-column: 2; grid-row: 1; }
+  .att-class-body { padding: 0 12px 12px; }
+  .att-savebar .primary-button { width: 100%; }
+}

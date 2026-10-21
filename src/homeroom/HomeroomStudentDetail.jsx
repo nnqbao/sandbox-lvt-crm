@@ -162,7 +162,7 @@ export default function HomeroomStudentDetail({ studentId, nav }) {
           <div className="hr-table-wrap hr-table-wrap--scroll">
             <table className="hr-table">
               <thead>
-                <tr><th>Ngày</th><th>Lớp</th><th>Camera</th><th>Kết quả</th><th>Lý do / ghi chú</th></tr>
+                <tr><th>Ngày</th><th>Lớp</th><th>Ghi nhận</th><th>Kết quả</th><th>Lý do / ghi chú</th></tr>
               </thead>
               <tbody>
                 {visibleDays.map((day) => (

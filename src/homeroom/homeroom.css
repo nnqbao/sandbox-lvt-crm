@@ -876,3 +876,54 @@
   .hr-modal, .hr-modal--sm, .hr-modal--lg { width: 100%; max-height: 92vh; border-radius: 18px 18px 0 0; }
   .hr-table th, .hr-table td { padding: 10px; }
 }
+
+/* ---------- Điểm danh lớp (GVCN): vắng lên đầu, tick "Vắng không phép" ---------- */
+.hr-att-summary { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; }
+.hr-att-summary li { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.hr-att-heading { margin-top: 4px; font-size: 15px; font-weight: 800; }
+.hr-att-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.hr-att-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 12px;
+  background: var(--lvt-surface);
+}
+.hr-att-row.is-absent { border-left: 4px solid var(--hr-excused); background: var(--hr-excused-bg); }
+.hr-att-row.is-absent.is-unexcused { border-left-color: var(--hr-unexcused); background: var(--hr-unexcused-bg); }
+.hr-att-status { display: inline-flex; align-items: center; gap: 6px; color: var(--hr-unexcused); }
+.hr-att-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 8px;
+  color: var(--lvt-navy);
+  background: var(--lvt-surface);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hr-att-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--hr-unexcused); }
+.hr-att-note { display: grid; gap: 4px; min-width: 0; color: var(--lvt-muted); font-size: 12px; font-weight: 700; }
+.hr-att-note input {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 8px;
+  color: var(--lvt-ink);
+  background: var(--lvt-surface);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+.hr-att-note-text { grid-column: 1 / -1; color: var(--lvt-ink-soft); font-size: 13px; }
+@media (max-width: 680px) {
+  .hr-att-row { grid-template-columns: 1fr; }
+  .hr-att-check { justify-content: flex-start; }
+}

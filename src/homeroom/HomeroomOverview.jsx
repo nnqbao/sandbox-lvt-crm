@@ -1,16 +1,26 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
+import { pathnameForMenu } from '../navigationRoutes';
 import { vietnamTodayYmd } from './homeroomTime';
 import { sortClassesNatural } from './classOrder';
-import { foldSearch, formatDate, formatDateTime, percent, schoolDayLabel } from './homeroomLabels';
+import { foldSearch, formatDate, percent, schoolDayLabel } from './homeroomLabels';
 import { AttendanceBar, DateStepper, EmptyState, Icon, Kpi, Loading, Notice } from './homeroomUi';
 
 export default function HomeroomOverview({ yearId, roles, nav }) {
   const today = vietnamTodayYmd();
   const [date, setDate] = useState(today);
-  if (roles.isSupervisor) return <SupervisorOverview yearId={yearId} date={date} setDate={setDate} today={today} nav={nav} />;
   return <ClassesOverview yearId={yearId} date={date} setDate={setDate} today={today} roles={roles} nav={nav} />;
+}
+
+/** Điểm danh là menu riêng (Giám thị); admin/mod mở được từ cảnh báo. */
+function openAttendanceMenu() {
+  window.history.pushState({}, '', pathnameForMenu('attendance'));
+  window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+function absentTotal(counts) {
+  return counts.absent_pending + counts.absent_excused + counts.absent_unexcused;
 }
 
 function DayStrip({ date, setDate, today, schoolDay, max }) {
@@ -42,8 +52,7 @@ function ClassesOverview({ yearId, date, setDate, today, roles, nav }) {
   const visible = useMemo(() => {
     const needle = foldSearch(search);
     return classes.filter((row) => {
-      if (filter === 'missing' && row.published) return false;
-      if (filter === 'pending' && !row.pendingTotal) return false;
+      if (filter === 'missing' && row.saved) return false;
       if (!needle) return true;
       return foldSearch(`${row.code} ${row.name} ${row.teacherName}`).includes(needle);
     });
@@ -59,8 +68,8 @@ function ClassesOverview({ yearId, date, setDate, today, roles, nav }) {
   }
 
   const counts = overview.summary.counts;
-  const absentToday = counts.absent_pending + counts.absent_excused + counts.absent_unexcused;
-  const publishedCount = classes.filter((row) => row.published).length;
+  const absentToday = absentTotal(counts);
+  const savedCount = classes.filter((row) => row.saved).length;
   const schoolMode = overview.mode === 'school';
 
   return (
@@ -79,39 +88,32 @@ function ClassesOverview({ yearId, date, setDate, today, roles, nav }) {
         <Notice
           tone="danger"
           icon="clock"
-          title={`Đã quá ${overview.missingUpload.cutoffTime} nhưng ${overview.missingUpload.missingClasses.length} lớp chưa có dữ liệu điểm danh.`}
+          title={`Đã quá ${overview.missingUpload.cutoffTime} nhưng ${overview.missingUpload.missingClasses.length} lớp chưa được Giám thị điểm danh.`}
           action={
-            overview.permissions.canImport ? (
-              <button type="button" className="primary-button" onClick={() => nav.import(date)}>
-                <Icon name="upload" size={15} /> Nhập điểm danh
+            overview.permissions.canMarkAttendance ? (
+              <button type="button" className="primary-button" onClick={openAttendanceMenu}>
+                <Icon name="check" size={15} /> Mở Điểm danh
               </button>
             ) : null
           }
         >
-          {overview.missingUpload.missingClasses.slice(0, 12).map((row) => row.code).join(', ')}
+          {overview.missingUpload.missingClasses.slice(0, 12).map((row) => row.name).join(', ')}
           {overview.missingUpload.missingClasses.length > 12 ? '…' : ''}
-          {!overview.permissions.canImport ? ' — Giám thị sẽ nhập file điểm danh của trường.' : ''}
+          {!overview.permissions.canMarkAttendance ? ' — Giám thị điểm danh tại menu Điểm danh.' : ''}
         </Notice>
       ) : null}
 
       <div className="hr-kpi-grid">
         <Kpi label={schoolMode ? 'Học sinh toàn trường' : 'Sĩ số lớp'} value={overview.studentCount} icon="users" hint={`${classes.length} lớp`} />
         <Kpi label="Có mặt" value={counts.present} tone="present" />
-        <Kpi label="Đi trễ" value={counts.late} tone="late" />
+        {counts.late ? <Kpi label="Đi trễ" value={counts.late} tone="late" hint="Dữ liệu camera cũ" /> : null}
         <Kpi label="Vắng" value={absentToday} tone="absent" hint={`${counts.absent_excused} có phép · ${counts.absent_unexcused} không phép`} />
-        <Kpi
-          label="Vắng chờ xử lý"
-          value={overview.pendingTotal}
-          tone="pending"
-          icon="inbox"
-          hint="Tất cả các ngày — bấm để xử lý"
-          onClick={nav.pending}
-        />
+        <Kpi label="Đã điểm danh" value={`${savedCount}/${classes.length}`} icon="check" hint="Số lớp Giám thị đã lưu" />
         <Kpi
           label="Chuyên cần"
           value={overview.summary.ratedRows ? percent(overview.summary.attendanceRate) : '—'}
           tone="rate"
-          hint={schoolMode ? `${publishedCount}/${classes.length} lớp đã có dữ liệu` : 'Có mặt + trễ / tổng buổi'}
+          hint="Có mặt / tổng buổi"
         />
       </div>
 
@@ -126,8 +128,7 @@ function ClassesOverview({ yearId, date, setDate, today, roles, nav }) {
               <div className="hr-segment" role="group" aria-label="Lọc lớp">
                 {[
                   ['all', `Tất cả (${classes.length})`],
-                  ['missing', `Chưa có dữ liệu (${classes.length - publishedCount})`],
-                  ['pending', `Còn vắng chờ xử lý (${classes.filter((row) => row.pendingTotal).length})`],
+                  ['missing', `Chưa điểm danh (${classes.length - savedCount})`],
                 ].map(([key, label]) => (
                   <button key={key} type="button" aria-pressed={filter === key} onClick={() => setFilter(key)}>
                     {label}
@@ -184,9 +185,8 @@ function SchoolBoard({ classes, onOpen }) {
             <th scope="col" className="is-num">Sĩ số</th>
             <th scope="col" className="hr-board-bar-col">Tình hình</th>
             <th scope="col" className="is-num">Có mặt</th>
-            <th scope="col" className="is-num">Trễ</th>
             <th scope="col" className="is-num">Vắng</th>
-            <th scope="col" className="is-num">Chờ xử lý</th>
+            <th scope="col" className="is-num">Không phép</th>
           </tr>
         </thead>
         {grades.map((grade) => {
@@ -194,36 +194,32 @@ function SchoolBoard({ classes, onOpen }) {
           return (
             <tbody key={grade}>
               <tr className="hr-board-group">
-                <th colSpan={8} scope="rowgroup">Khối {grade} · {rows.length} lớp</th>
+                <th colSpan={7} scope="rowgroup">Khối {grade} · {rows.length} lớp</th>
               </tr>
-              {rows.map((row) => {
-                const absent = row.counts.absent_pending + row.counts.absent_excused + row.counts.absent_unexcused;
-                return (
-                  <tr key={row._id} className="is-clickable" onClick={() => onOpen(row._id)}>
-                    <th scope="row">
-                      <button type="button" className="hr-link" onClick={(event) => { event.stopPropagation(); onOpen(row._id); }}>
-                        {row.code}
-                      </button>
-                      {row.name !== row.code ? <span className="hr-sub">{row.name}</span> : null}
-                    </th>
-                    <td>{row.teacherName || <span className="hr-muted">Chưa phân công</span>}</td>
-                    <td className="is-num">{row.rosterCount}</td>
-                    <td className="hr-board-bar-col">
-                      {row.published ? (
-                        <AttendanceBar counts={row.counts} total={row.rosterCount} compact />
-                      ) : (
-                        <span className="hr-tag hr-tag--muted">Chưa có dữ liệu</span>
-                      )}
-                    </td>
-                    <td className="is-num">{row.published ? row.counts.present : '—'}</td>
-                    <td className="is-num">{row.published ? row.counts.late : '—'}</td>
-                    <td className="is-num">{row.published ? absent : '—'}</td>
-                    <td className="is-num">
-                      {row.pendingTotal ? <span className="hr-count hr-count--pending">{row.pendingTotal}</span> : <span className="hr-muted">0</span>}
-                    </td>
-                  </tr>
-                );
-              })}
+              {rows.map((row) => (
+                <tr key={row._id} className="is-clickable" onClick={() => onOpen(row._id)}>
+                  <th scope="row">
+                    <button type="button" className="hr-link" onClick={(event) => { event.stopPropagation(); onOpen(row._id); }}>
+                      {row.code}
+                    </button>
+                    {row.name !== row.code ? <span className="hr-sub">{row.name}</span> : null}
+                  </th>
+                  <td>{row.teacherName || <span className="hr-muted">Chưa phân công</span>}</td>
+                  <td className="is-num">{row.rosterCount}</td>
+                  <td className="hr-board-bar-col">
+                    {row.published ? (
+                      <AttendanceBar counts={row.counts} total={row.rosterCount} compact />
+                    ) : (
+                      <span className="hr-tag hr-tag--muted">Chưa điểm danh</span>
+                    )}
+                  </td>
+                  <td className="is-num">{row.published ? row.counts.present : '—'}</td>
+                  <td className="is-num">{row.published ? absentTotal(row.counts) : '—'}</td>
+                  <td className="is-num">
+                    {row.counts.absent_unexcused ? <span className="hr-count hr-count--error">{row.counts.absent_unexcused}</span> : <span className="hr-muted">{row.published ? 0 : '—'}</span>}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           );
         })}
@@ -233,7 +229,7 @@ function SchoolBoard({ classes, onOpen }) {
 }
 
 function TeacherClassCard({ row, date, nav }) {
-  const absent = row.counts.absent_pending + row.counts.absent_excused + row.counts.absent_unexcused;
+  const absent = absentTotal(row.counts);
   return (
     <li className="hr-class-card">
       <div className="hr-class-card-head">
@@ -248,76 +244,23 @@ function TeacherClassCard({ row, date, nav }) {
           <AttendanceBar counts={row.counts} total={row.rosterCount} />
           <dl className="hr-mini-stats">
             <div><dt>Có mặt</dt><dd>{row.counts.present}</dd></div>
-            <div><dt>Trễ</dt><dd>{row.counts.late}</dd></div>
             <div><dt>Vắng</dt><dd>{absent}</dd></div>
+            <div><dt>Không phép</dt><dd>{row.counts.absent_unexcused}</dd></div>
           </dl>
         </>
       ) : (
-        <p className="hr-class-card-empty"><Icon name="clock" size={15} /> Chưa có dữ liệu điểm danh ngày {formatDate(date)}.</p>
+        <p className="hr-class-card-empty"><Icon name="clock" size={15} /> Giám thị chưa điểm danh lớp này ngày {formatDate(date)}.</p>
       )}
       <div className="hr-class-card-actions">
-        {row.pendingTotal ? (
-          <button type="button" className="hr-button hr-button--pending" onClick={() => nav.openClass(row._id, 'diem-danh', date)}>
-            <Icon name="inbox" size={15} /> {row.pendingTotal} buổi vắng chờ xử lý
+        {absent ? (
+          <button type="button" className="hr-button" onClick={() => nav.openClass(row._id, 'diem-danh', date)}>
+            <Icon name="calendar" size={15} /> Xem {absent} học sinh vắng
           </button>
-        ) : (
-          <span className="hr-tag hr-tag--ok"><Icon name="check" size={13} /> Không còn vắng chờ xử lý</span>
-        )}
+        ) : null}
         <button type="button" className="primary-button" onClick={() => nav.openClass(row._id)}>
           Mở lớp <Icon name="arrowRight" size={15} />
         </button>
       </div>
     </li>
-  );
-}
-
-function SupervisorOverview({ yearId, date, setDate, today, nav }) {
-  const status = useQuery(anyApi.attendanceImport.uploadsForDate, { schoolYearId: yearId, attendanceDate: date });
-  return (
-    <div className="hr-stack">
-      <DayStrip date={date} setDate={setDate} today={today} schoolDay={null} max={today} />
-      <section className="hr-panel hr-hero-card">
-        <div>
-          <span className="hr-eyebrow">Giám thị</span>
-          <h2>Nhập file điểm danh toàn trường</h2>
-          <p className="hr-muted">
-            Mỗi ngày nhập <strong>một file</strong> cho cả trường theo mẫu cố định. Hệ thống tự tách theo Mã lớp, cho xem trước từng lớp rồi mới công bố.
-            Giáo viên chủ nhiệm sẽ tự phân loại vắng có phép / không phép.
-          </p>
-        </div>
-        <button type="button" className="primary-button hr-button--lg" onClick={() => nav.import(date)}>
-          <Icon name="upload" size={17} /> Nhập điểm danh ngày {formatDate(date)}
-        </button>
-      </section>
-      <section className="hr-panel">
-        <header className="hr-panel-head">
-          <h2>Tình trạng ngày {formatDate(date)}</h2>
-        </header>
-        {status === undefined ? (
-          <Loading />
-        ) : !status.uploads.length ? (
-          <EmptyState icon="file" title="Chưa công bố file nào cho ngày này." />
-        ) : (
-          <>
-            <p className="hr-lead">
-              Đã có dữ liệu cho <strong>{status.publishedClassCount}</strong> lớp.
-            </p>
-            <ul className="hr-upload-list">
-              {status.uploads.map((row) => (
-                <li key={row._id}>
-                  <Icon name="file" size={16} />
-                  <div>
-                    <strong>{row.fileName}</strong>
-                    <span className="hr-sub">
-                      {row.matchedCount}/{row.rowCount} dòng khớp · {row.uploadedByName || 'Không rõ người nhập'} · {formatDateTime(row.publishedAt)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-    </div>
   );
 }
