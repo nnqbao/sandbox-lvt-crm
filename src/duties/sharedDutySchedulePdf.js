@@ -109,7 +109,7 @@ function rowHeight(lineCount) {
  * @param {{ range: { title: string, startIso: string, endIso: string }, rows: Array<{
  *   dayLabel: string, time: string, content: string, location: string, participants: string,
  *   showDay: boolean, rowSpan: number
- * }> }} payload
+ * }>, draft?: boolean }} payload
  */
 export function buildSharedDutySchedulePdf(payload) {
   const doc = new jsPDF({ unit: PAGE.unit, format: PAGE.format });
