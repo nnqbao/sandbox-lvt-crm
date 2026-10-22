@@ -11,6 +11,7 @@ Tạo lớp của năm học, giao GVCN và nhập học sinh bằng file Excel.
 2. Bấm **+ Tạo lớp** [[2]] để thêm lớp mới (mã lớp chỉ gồm chữ, số, `-`, ví dụ `7-2`).
 3. Lớp chưa có GVCN hiện **Chưa phân công**: bấm **Gán GVCN** [[3]].
 4. Đổi giáo viên giữa năm: bấm **Thay GVCN** [[4]]; lịch sử phân công vẫn được giữ.
+5. GVCN thôi chủ nhiệm mà chưa có người thay: mở lớp → tab **Quản lý lớp** → **Kết thúc phân công**, chọn ngày lớp không còn GVCN. Lớp hiện **Chưa có GVCN** từ ngày đó; lịch sử phân công và điểm danh vẫn giữ nguyên.
 
 ![Quản lý lớp: 1 tab Quản lý lớp, 2 Tạo lớp, 3 Gán GVCN, 4 Thay GVCN](cn-quan-ly-lop)
 
