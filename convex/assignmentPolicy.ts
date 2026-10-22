@@ -90,13 +90,19 @@ export const WORK_ASSIGNEE_OPS_FORBIDDEN = "WORK_ASSIGNEE_OPS_FORBIDDEN";
  * the department, not by BGH individually. (Lịch công tác is unaffected: văn
  * thư may still add BGH as duty participants.) Moderator department scope is
  * checked separately. Returns the error code, or `null` when allowed.
+ *
+ * `allowOpsAnyDepartment`: an `admin` editing an existing document may keep or
+ * assign admin/moderator accounts of any department (the same-department rule
+ * does not block the save). The BGH rule still applies.
  */
 export function opsWorkAssigneeError(
   actor: { _id: string; departmentId?: string | null },
   target: { _id: string; role?: string | null; level: number; departmentId?: string | null },
+  options: { allowOpsAnyDepartment?: boolean } = {},
 ): string | null {
   if (String(actor._id) === String(target._id)) return null;
   if (isOperationalManagerRole(String(target.role || ""))) {
+    if (options.allowOpsAnyDepartment) return null;
     const actorDepartment = String(actor.departmentId || "").trim();
     const targetDepartment = String(target.departmentId || "").trim();
     return actorDepartment && actorDepartment === targetDepartment
@@ -109,8 +115,9 @@ export function opsWorkAssigneeError(
 export function opsCanAssignWorkToUser(
   actor: { _id: string; departmentId?: string | null },
   target: { _id: string; role?: string | null; level: number; departmentId?: string | null },
+  options: { allowOpsAnyDepartment?: boolean } = {},
 ) {
-  return opsWorkAssigneeError(actor, target) === null;
+  return opsWorkAssigneeError(actor, target, options) === null;
 }
 
 export function normalizeWorkVisibilityMode(value: string | null | undefined): WorkVisibilityMode {

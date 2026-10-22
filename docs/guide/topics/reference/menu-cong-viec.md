@@ -26,6 +26,12 @@ Sau khi giao, người nhận làm và nộp bằng chứng, người tạo duy�
 | Ban Giám hiệu (4–5 sao) | **Chờ tôi duyệt**: Duyệt / Trả lại công việc Văn thư gửi; giao ngay cho cấp dưới mọi tổ hoặc cả phòng ban | [Duyệt công việc](#cv-bgh-duyet-cong-viec), [Giao việc](#cv-tao-cong-viec) |
 | Văn thư (Moderator), Admin | **+ Tạo công việc** → chọn **Người duyệt** → **Gửi duyệt**; theo dõi Chờ duyệt / Bị trả lại; duyệt hoàn thành | [Gửi duyệt](#cv-van-thu-gui-duyet), [Duyệt hoàn thành](#cv-duyet-hoan-thanh) |
 
+::: note Sửa, xóa công việc
+- Đã có người nộp kết quả: công việc **chỉ xem** với mọi người.
+- Đã có người duyệt: Văn thư không sửa, xóa được; Administrator sửa được nhưng công việc phải gửi Ban Giám hiệu duyệt lại. Không ai xóa được.
+- Công việc đã sửa có dòng “Đã chỉnh sửa bởi … lúc …”.
+:::
+
 ::: note
 Giáo viên, nhân viên 1 sao không tạo công việc. Nếu nhóm quyền đặt menu Công việc là **Ẩn**, thầy cô vẫn có tab **Việc của tôi**.
 :::

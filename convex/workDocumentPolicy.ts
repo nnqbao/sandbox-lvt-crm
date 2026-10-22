@@ -12,6 +12,11 @@
  *   no approvers).
  * - The first approval permanently locks edit/delete, even while other
  *   approvers are still pending or the aggregate status is still `pending`.
+ *   Exception: an `admin` (never a moderator) may still edit; that edit sends
+ *   the document back to Ban giám hiệu approval (see `workDocumentEditPolicy`).
+ *   Delete stays locked for everyone.
+ * - Once any assignee has submitted (nộp) or been marked complete, the
+ *   document is read-only for everyone (`WORK_HAS_SUBMISSIONS`).
  * - Reject is only allowed while nobody has approved; a rejected document can
  *   be edited and resubmitted (editing resets every decision).
  */
@@ -137,6 +142,153 @@ export function canMutateWorkDocument(
   if (document.active === false) return false;
   if (isWorkApprovalLocked(document)) return false;
   return !items.some((item) => hasBlockingSubmission(item.completions));
+}
+
+export const WORK_HAS_SUBMISSIONS = "WORK_HAS_SUBMISSIONS";
+export const WORK_DOCUMENT_IMMUTABLE = "WORK_DOCUMENT_IMMUTABLE";
+
+type SubmissionRow = {
+  completions?: Array<{ status?: string }> | null;
+  completedUserIds?: unknown[] | null;
+};
+
+/**
+ * Any assignee of the document's active work items / personal tasks has
+ * submitted (`pending_approval`) or been marked complete (`approved`, or a
+ * legacy `completedUserIds` entry). Returned (`rejected`) completions do not count.
+ */
+export function workHasSubmissions(rows: SubmissionRow[] | null | undefined) {
+  return (rows || []).some(
+    (row) => hasBlockingSubmission(row.completions) || ids(row.completedUserIds).length > 0,
+  );
+}
+
+export type WorkEditPolicy = {
+  canEdit: boolean;
+  canDelete: boolean;
+  /** An admin edit of an approved/released or partially approved document resubmits it to BGH. */
+  editRequiresReapproval: boolean;
+  editError: string | null;
+  deleteError: string | null;
+};
+
+/**
+ * Edit/delete decision for an actor who already manages the document (its
+ * creator, an in-scope admin/moderator; authority is checked by the caller):
+ * - inactive → nothing;
+ * - any submission → read-only for everyone (`WORK_HAS_SUBMISSIONS`);
+ * - first approval → locked (`WORK_DOCUMENT_IMMUTABLE`), except that `admin`
+ *   may still edit — the edit puts the document back into BGH approval;
+ * - delete of an approval-locked document stays forbidden for everyone.
+ * An admin editing an `approved` document that was released without approval
+ * (BGH/superior creator) also goes back through approval.
+ */
+export function workDocumentEditPolicy(args: {
+  document: WorkDocumentDecisionState;
+  actorRole: string | null | undefined;
+  canManage: boolean;
+  hasSubmissions: boolean;
+}): WorkEditPolicy {
+  const deny = (error: string): WorkEditPolicy => ({
+    canEdit: false,
+    canDelete: false,
+    editRequiresReapproval: false,
+    editError: error,
+    deleteError: error,
+  });
+  if (args.document.active === false) return deny("WORK_DOCUMENT_NOT_FOUND");
+  if (!args.canManage) return deny("WORK_UPDATE_FORBIDDEN");
+  if (args.hasSubmissions) return deny(WORK_HAS_SUBMISSIONS);
+  const locked = isWorkApprovalLocked(args.document);
+  const isAdmin = args.actorRole === "admin";
+  const editError = locked && !isAdmin ? WORK_DOCUMENT_IMMUTABLE : null;
+  const deleteError = locked ? WORK_DOCUMENT_IMMUTABLE : null;
+  return {
+    canEdit: !editError,
+    canDelete: !deleteError,
+    editRequiresReapproval: isAdmin && (locked || args.document.status === "approved"),
+    editError,
+    deleteError,
+  };
+}
+
+/**
+ * Approval decision for an edit. On the admin re-approval path the document
+ * needs BGH approval again unless the editing admin assigned it only to
+ * themselves; otherwise the creator-based rule (`workDocumentNeedsApproval`) applies.
+ */
+export function workEditNeedsApproval(args: {
+  editRequiresReapproval: boolean;
+  followsApprovalFlow: boolean;
+  assignments: SelfOnlyAssignment[] | null | undefined;
+  creatorId: unknown;
+  editorId: unknown;
+}) {
+  if (args.editRequiresReapproval) return !isSelfOnlyWorkAssignment(args.assignments, args.editorId);
+  return workDocumentNeedsApproval({
+    followsApprovalFlow: args.followsApprovalFlow,
+    assignments: args.assignments,
+    creatorId: args.creatorId,
+  });
+}
+
+type ComparableWorkItem = {
+  assignmentType?: string | null;
+  departmentId?: string | null;
+  assigneeUserIds?: unknown[] | null;
+  content?: string | null;
+  deadline?: string | null;
+};
+
+type ComparableAssignment = {
+  type?: string | null;
+  departmentId?: string | null;
+  userIds?: unknown[] | null;
+  content?: string | null;
+  deadline?: string | null;
+};
+
+function assignmentKey(type: string, departmentId: unknown, userIds: unknown[], content: unknown, deadline: unknown) {
+  const individual = type === "individual";
+  return JSON.stringify([
+    individual ? "individual" : "department",
+    individual ? "" : String(departmentId || ""),
+    individual ? [...new Set(ids(userIds))].sort() : [],
+    String(content || ""),
+    String(deadline || ""),
+  ]);
+}
+
+/**
+ * True when the edit keeps exactly the same assignments as the document's
+ * active work items (same type, department / assignees, content and deadline),
+ * so the existing work items and personal tasks can be kept as they are.
+ */
+export function workAssignmentsUnchanged(
+  activeItems: ComparableWorkItem[] | null | undefined,
+  assignments: ComparableAssignment[] | null | undefined,
+) {
+  const current = (activeItems || []).map((item) =>
+    assignmentKey(
+      item.assignmentType === "individual" ? "individual" : "department",
+      item.departmentId,
+      item.assigneeUserIds || [],
+      item.content,
+      item.deadline,
+    ),
+  ).sort();
+  const next = (assignments || []).map((row) =>
+    assignmentKey(
+      row.type === "individual" ? "individual" : "department",
+      row.departmentId,
+      row.userIds || [],
+      row.content,
+      row.deadline,
+    ),
+  ).sort();
+  return current.length > 0
+    && current.length === next.length
+    && current.every((key, index) => key === next[index]);
 }
 
 /**

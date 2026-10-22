@@ -3,7 +3,7 @@ id: cv-van-thu-gui-duyet
 title: Văn thư tạo công việc và gửi Ban Giám hiệu duyệt
 menu: Công việc → Việc tôi tạo
 roles: Văn thư (Moderator), Administrator
-keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van, tu giao, giao cho minh, cung phong ban
+keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van, tu giao, giao cho minh, cung phong ban, quan tri vien sua, sua cong viec da duyet, duyet lai, da chinh sua boi
 ---
 Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám hiệu duyệt rồi mới đến tay người nhận. Riêng việc chỉ giao cho chính mình thì giao ngay, không cần duyệt.
 
@@ -31,7 +31,7 @@ Danh sách **Người duyệt** gồm những người đang hoạt động có 
 
 ::: note Ai có trong danh sách người nhận
 - Không giao riêng cho Hiệu trưởng, Phó Hiệu trưởng (4–5 sao); vẫn giao được cho **cả phòng ban** (kể cả Cấp Uỷ - Ban Giám Hiệu) và những người dưới 4 sao trong phòng đó.
-- Chỉ giao cho tài khoản Văn thư/Administrator khác khi **cùng phòng ban** với bạn (cả hai đều phải có phòng ban). Khác phòng thì hệ thống báo “Chỉ giao việc cho tài khoản quản trị cùng phòng ban.”
+- Chỉ giao cho tài khoản Văn thư/Administrator khác khi **cùng phòng ban** với bạn (cả hai đều phải có phòng ban). Khác phòng thì hệ thống báo “Chỉ giao việc cho tài khoản quản trị cùng phòng ban.” Riêng Administrator khi **sửa** một công việc có sẵn thì giữ hoặc chọn được tài khoản quản trị ở mọi phòng ban.
 :::
 
 #### Theo dõi công việc đang chờ duyệt
@@ -56,7 +56,22 @@ Khi **mọi** người duyệt đã bấm **Duyệt**, công việc tự giao ch
 ![Công việc bị trả lại: 1 nhãn Bị trả lại, 2 Lý do trả lại, 3 Sửa rồi gửi duyệt lại](cv-van-thu-bi-tra-lai)
 
 ::: warn
-Lần duyệt **đầu tiên** khóa sửa và xóa vĩnh viễn, kể cả với Văn thư và Administrator. Cần thay đổi sau đó thì trao đổi với Ban Giám hiệu và tạo công việc mới.
+Lần duyệt **đầu tiên** khóa sửa và xóa vĩnh viễn với Văn thư. Riêng **Administrator** vẫn sửa được (không xóa được), xem mục dưới.
+:::
+
+#### Administrator sửa công việc đã duyệt
+Administrator sửa được mọi công việc đang hoạt động, của bất kỳ ai, ở bất kỳ phòng ban nào, kể cả việc đã được duyệt hoặc việc Ban Giám hiệu, tổ trưởng giao ngay.
+
+1. Bấm **Sửa** trên thẻ công việc đã duyệt. Biểu mẫu báo: “Công việc đã được duyệt. Sau khi lưu, công việc sẽ phải gửi Ban giám hiệu duyệt lại và tạm ẩn với người được giao.”
+2. Chỉnh nội dung, chọn lại **Người duyệt (Ban giám hiệu)** (bắt buộc), rồi bấm **Lưu và gửi duyệt lại**.
+3. Công việc về **Chờ duyệt**, người nhận tạm không thấy. Khi mọi người duyệt đã bấm **Duyệt**, người nhận thấy lại việc và nhận thông báo.
+
+Nếu người nhận duy nhất là chính Administrator đang sửa thì công việc vẫn giao ngay, không cần duyệt lại. Xóa công việc đã có người duyệt vẫn không được, kể cả Administrator.
+
+Mỗi lần sửa, thẻ công việc ghi dòng nhỏ “Đã chỉnh sửa bởi {Họ tên} lúc giờ:phút ngày/tháng/năm” để mọi người liên quan đều biết.
+
+::: warn Đã có người nộp kết quả
+Khi đã có người nộp kết quả, công việc **chỉ xem** với mọi người, kể cả Administrator và người tạo. Thẻ ghi “Đã có người nộp kết quả — công việc chỉ xem.” Người tạo vẫn duyệt kết quả nộp như bình thường.
 :::
 
 #### Sau khi công việc đã giao
@@ -69,4 +84,4 @@ Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›
 Đúng quy trình: người nhận chỉ thấy việc khi **mọi** người duyệt đã duyệt. Xem khung **Ban giám hiệu duyệt x/y** để biết còn chờ ai.
 
 ??? Gửi nhầm, muốn rút lại?
-Nếu chưa ai duyệt, bấm **Xóa** (hoặc **Sửa** rồi gửi duyệt lại). Đã có người duyệt thì không sửa, xóa được nữa.
+Nếu chưa ai duyệt, bấm **Xóa** (hoặc **Sửa** rồi gửi duyệt lại). Đã có người duyệt thì Văn thư không sửa, xóa được nữa; chỉ Administrator sửa được và việc phải gửi duyệt lại.

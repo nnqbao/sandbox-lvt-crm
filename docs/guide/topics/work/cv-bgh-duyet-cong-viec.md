@@ -3,7 +3,7 @@ id: cv-bgh-duyet-cong-viec
 title: Ban Giám hiệu duyệt hoặc trả lại công việc Văn thư gửi
 menu: Công việc → Chờ tôi duyệt
 roles: Phó Hiệu trưởng, Hiệu trưởng (4–5 sao)
-keywords: duyet cong viec, cho toi duyet, tra lai, ly do, ban giam hieu, van thu, gui duyet
+keywords: duyet cong viec, cho toi duyet, tra lai, ly do, ban giam hieu, van thu, gui duyet, duyet lai, quan tri vien sua
 ---
 Công việc Văn thư tạo chỉ được giao sau khi mọi người duyệt được chọn bấm **Duyệt**.
 
@@ -31,7 +31,7 @@ Khi Văn thư gửi (hoặc gửi lại) công việc, chuông hiện **Công vi
 ![Trên điện thoại: 1 Trả lại, 2 Duyệt](cv-cho-toi-duyet-mobile)
 
 ::: warn
-**Trả lại** chỉ dùng được khi **chưa ai duyệt**. Lần duyệt đầu tiên khóa công việc: Văn thư không sửa, xóa được nữa, kể cả khi người duyệt khác chưa quyết định.
+**Trả lại** chỉ dùng được khi **chưa ai duyệt**. Lần duyệt đầu tiên khóa công việc: Văn thư không sửa, xóa được nữa, kể cả khi người duyệt khác chưa quyết định. Chỉ Administrator còn sửa được, và khi đó công việc quay lại **Chờ tôi duyệt** để duyệt lại.
 :::
 
 ::: note
@@ -44,3 +44,6 @@ Mục này chỉ hiện với người được Văn thư chọn làm người d
 
 ??? Văn thư sửa công việc tôi đã trả lại thì sao?
 Công việc quay lại **Chờ tôi duyệt** như một yêu cầu mới; mọi người duyệt quyết định lại từ đầu.
+
+??? Công việc tôi đã duyệt lại hiện trong Chờ tôi duyệt?
+Administrator đã sửa công việc sau khi duyệt. Mọi quyết định cũ được xóa, người nhận tạm không thấy việc cho đến khi đủ người duyệt lại. Thẻ ghi “Đã chỉnh sửa bởi … lúc …” để biết ai sửa.

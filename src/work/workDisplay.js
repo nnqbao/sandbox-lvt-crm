@@ -126,6 +126,35 @@ export function workFormRequiresApproval({ followsApprovalFlow, assignments, cre
   return Boolean(followsApprovalFlow) && !isSelfOnlyWorkAssignment(assignments, creatorId);
 }
 
+/**
+ * Client mirror of `workEditNeedsApproval` (convex/workDocumentPolicy.ts).
+ * An admin edit of an approved/released document (`editRequiresReapproval`)
+ * goes back to Ban giám hiệu unless the editing admin is the only assignee;
+ * other edits follow the creator-based rule. The server re-decides on save.
+ */
+export function workEditFormRequiresApproval({ document, assignments, editorId }) {
+  if (document?.editRequiresReapproval) return !isSelfOnlyWorkAssignment(assignments, editorId);
+  return workFormRequiresApproval({
+    followsApprovalFlow: document?.approvalFlow ?? document?.requiresApproval,
+    assignments,
+    creatorId: document?.createdBy,
+  });
+}
+
+/** "Đã chỉnh sửa bởi {Họ tên} lúc HH:mm dd/MM/yyyy" (Vietnam time); empty when never edited. */
+export function workLastEditedLabel(item) {
+  const name = String(item?.lastEditedByName || '').trim();
+  const at = Number(item?.lastEditedAt);
+  if (!name || !Number.isFinite(at) || at <= 0) return '';
+  const [date, time] = formatWorkDateTime(at).split(' ');
+  return `Đã chỉnh sửa bởi ${name} lúc ${time} ${date}`;
+}
+
+/** Read-only note when an assignee already submitted (server: `hasSubmissions`). */
+export const WORK_HAS_SUBMISSIONS_NOTE = 'Đã có người nộp kết quả — công việc chỉ xem.';
+
+export const WORK_REAPPROVAL_WARNING = 'Công việc đã được duyệt. Sau khi lưu, công việc sẽ phải gửi Ban giám hiệu duyệt lại và tạm ẩn với người được giao.';
+
 export function workAssignmentPayload(assignments) {
   return (assignments || []).map((item) => (
     item.type === 'individual'

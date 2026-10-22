@@ -29,6 +29,10 @@ import {
   isSelfOnlyWorkAssignment,
   workReturnReason,
   WORK_APPROVED_NOTICE_MS,
+  workAssignmentsUnchanged,
+  workDocumentEditPolicy,
+  workEditNeedsApproval,
+  workHasSubmissions,
 } from '../convex/workDocumentPolicy.ts';
 import { canAccessWorkChat } from '../convex/workMessagePolicy.ts';
 import { messageFor } from '../src/lib/appErrorMessage.js';
@@ -94,7 +98,7 @@ test('văn thư tự giao cho chính mình: không cần duyệt; có thêm ngư
   const create = source.slice(source.indexOf('export const createDocument'), source.indexOf('export const updateDocument'));
   assert.match(create, /workDocumentNeedsApproval\(\{[\s\S]*assignments: args\.assignments,[\s\S]*creatorId: actor\.user\._id/);
   const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const updateDocument') + 6000);
-  assert.match(update, /workDocumentNeedsApproval\(\{[\s\S]*assignments: args\.assignments,[\s\S]*creatorId: document\.createdBy/);
+  assert.match(update, /workEditNeedsApproval\(\{[\s\S]*assignments: args\.assignments,[\s\S]*creatorId: document\.createdBy,[\s\S]*editorId: actor\.user\._id/);
 });
 
 test('ai được tạo công việc: admin/mod và mọi user cấp 2 sao trở lên; cấp 1 thì không', () => {
@@ -336,6 +340,7 @@ test('mã lỗi duyệt công việc có thông báo tiếng Việt', () => {
     'WORK_ASSIGNEE_OPS_FORBIDDEN',
     'WORK_DEPARTMENT_FORBIDDEN',
     'WORK_DOCUMENT_IMMUTABLE',
+    'WORK_HAS_SUBMISSIONS',
     'ADMIN_USE_MANAGEMENT',
   ]) {
     const message = messageFor(new Error(code));
@@ -382,4 +387,215 @@ test('công việc chờ BGH duyệt: phân công hiện "Chờ duyệt (chưa g
   const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
   assert.match(views, /unreleased: 'Chờ duyệt \(chưa giao\)'/);
   assert.match(views, /workAssignmentDisplayStatus\(document, assignment\)/);
+});
+
+// ---------------------------------------------------------------- admin edit / re-approval / submissions
+
+const editDoc = (overrides = {}) => ({ active: true, ...workApprovalSubmission(true, ['ht', 'pht']), ...overrides });
+const approvedByBgh = () => {
+  const doc = editDoc();
+  const first = { ...doc, ...applyWorkApproval(doc, 'ht', 1000) };
+  return { ...first, ...applyWorkApproval(first, 'pht', 2000) };
+};
+const releasedImmediately = () => ({ active: true, createdBy: 'bgh', ...workApprovalSubmission(false, []) });
+const policy = (document, actorRole, extra = {}) => workDocumentEditPolicy({
+  document, actorRole, canManage: true, hasSubmissions: false, ...extra,
+});
+
+test('admin sửa mọi công việc: đã duyệt / giao ngay → phải gửi BGH duyệt lại; xóa vẫn khóa', () => {
+  const approved = approvedByBgh();
+  assert.equal(approved.status, 'approved');
+  const admin = policy(approved, 'admin');
+  assert.equal(admin.canEdit, true);
+  assert.equal(admin.editRequiresReapproval, true);
+  assert.equal(admin.canDelete, false, 'delete stays locked for admin too');
+  assert.equal(admin.deleteError, 'WORK_DOCUMENT_IMMUTABLE');
+
+  // Partially approved (still pending) is locked for everyone else, editable by admin.
+  const partial = { ...editDoc(), ...applyWorkApproval(editDoc(), 'ht', 1000) };
+  assert.equal(policy(partial, 'admin').canEdit, true);
+  assert.equal(policy(partial, 'admin').editRequiresReapproval, true);
+  assert.equal(policy(partial, 'admin').canDelete, false);
+
+  // Released immediately (created by BGH/a superior) → admin edit also goes through approval.
+  const direct = releasedImmediately();
+  assert.equal(policy(direct, 'admin').canEdit, true);
+  assert.equal(policy(direct, 'admin').editRequiresReapproval, true);
+  assert.equal(policy(direct, 'admin').canDelete, true, 'not approval-locked: delete unchanged');
+
+  // Pending / returned without approvals: ordinary edit (decisions reset, no special path).
+  assert.equal(policy(editDoc(), 'admin').editRequiresReapproval, false);
+  const returned = { ...editDoc(), ...applyWorkRejection(editDoc(), 'ht', 'Sai hạn', 3000) };
+  assert.equal(policy(returned, 'admin').editRequiresReapproval, false);
+  assert.equal(policy(returned, 'admin').canEdit, true);
+
+  // Admin power is not tied to creator/department: the caller passes canManage for admins always.
+  assert.equal(policy({ ...approved, createdBy: 'tt-toan' }, 'admin').canEdit, true);
+  // Inactive documents are never editable.
+  assert.equal(policy({ ...approved, active: false }, 'admin').canEdit, false);
+});
+
+test('văn thư (moderator) và người khác: lần duyệt đầu vẫn khóa sửa/xóa vĩnh viễn', () => {
+  const approved = approvedByBgh();
+  for (const role of ['moderator', 'user']) {
+    const result = policy(approved, role);
+    assert.equal(result.canEdit, false, role);
+    assert.equal(result.canDelete, false, role);
+    assert.equal(result.editError, 'WORK_DOCUMENT_IMMUTABLE', role);
+    assert.equal(result.editRequiresReapproval, false, role);
+  }
+  // Released immediately and nothing submitted: creator/moderator keep today's rule (editable, no re-approval).
+  assert.equal(policy(releasedImmediately(), 'moderator').canEdit, true);
+  assert.equal(policy(releasedImmediately(), 'moderator').editRequiresReapproval, false);
+  assert.equal(policy(releasedImmediately(), 'user').canEdit, true);
+  assert.equal(policy(releasedImmediately(), 'user', { canManage: false }).canEdit, false);
+  assert.equal(policy(releasedImmediately(), 'user', { canManage: false }).editError, 'WORK_UPDATE_FORBIDDEN');
+});
+
+test('admin sửa việc đã duyệt: chờ duyệt lại, bắt buộc người duyệt, ẩn với người nhận; tự giao cho mình thì giao ngay', () => {
+  const approved = approvedByBgh();
+  const others = [{ type: 'individual', userIds: ['gv'], content: 'x', deadline: '2026-10-30' }];
+  const selfOnly = [{ type: 'individual', userIds: ['admin'], content: 'x', deadline: '2026-10-30' }];
+  const args = (assignments) => ({
+    editRequiresReapproval: policy(approved, 'admin').editRequiresReapproval,
+    followsApprovalFlow: false,
+    assignments,
+    creatorId: 'bgh',
+    editorId: 'admin',
+  });
+  assert.equal(workEditNeedsApproval(args(others)), true);
+  assert.throws(() => workApprovalSubmission(true, []), /WORK_APPROVER_REQUIRED/);
+  const resubmitted = { ...approved, ...workApprovalSubmission(true, ['ht']) };
+  assert.equal(resubmitted.status, 'pending');
+  assert.deepEqual(resubmitted.approvedByUserIds, []);
+  assert.deepEqual(resubmitted.approvalDecisions, []);
+  assert.equal(isWorkReleased(resubmitted), false, 'hidden from assignees until approved again');
+  assert.equal(isWorkApprovalLocked(resubmitted), false);
+  assert.equal(canSeeLiveWork({
+    actorUserId: 'gv', actorRole: 'user', actorLevel: 1, createdBy: 'bgh', isAssignee: true,
+    visibilityMode: 'school', released: isWorkReleased(resubmitted),
+  }), false);
+  assert.equal(canApproveWorkDocument(resubmitted, 'ht'), true);
+  const releasedAgain = { ...resubmitted, ...applyWorkApproval(resubmitted, 'ht', 5000) };
+  assert.equal(isWorkReleased(releasedAgain), true);
+
+  // Self-only for the editing admin → released without approval.
+  assert.equal(workEditNeedsApproval(args(selfOnly)), false);
+  // Self-only for someone else (e.g. the creator) still needs approval on the admin path.
+  assert.equal(workEditNeedsApproval({ ...args(selfOnly), editorId: 'other-admin' }), true);
+  // Non-admin edits keep the creator-based rule.
+  assert.equal(workEditNeedsApproval({ ...args(others), editRequiresReapproval: false, followsApprovalFlow: false }), false);
+  assert.equal(workEditNeedsApproval({ ...args(selfOnly), editRequiresReapproval: false, followsApprovalFlow: true, creatorId: 'admin' }), false);
+
+  // Server wiring: the edit gate and approval decision use the shared policy.
+  const source = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const deleteDocument'));
+  assert.match(update, /workDocumentEditPolicy\(\{[\s\S]*actorRole: actor\.user\.role/);
+  assert.match(update, /if \(editPolicy\.editError\) throw new Error\(editPolicy\.editError\)/);
+  assert.match(update, /editRequiresReapproval: editPolicy\.editRequiresReapproval/);
+  assert.match(update, /allowOpsAnyDepartment: actor\.user\.role === "admin"/);
+  assert.match(update, /resubmitted: true/);
+  const create = source.slice(source.indexOf('export const createDocument'), source.indexOf('export const updateDocument'));
+  assert.doesNotMatch(create, /allowOpsAnyDepartment/, 'create keeps the same-department rule');
+});
+
+test('đã có người nộp: công việc chỉ xem với mọi người (kể cả việc giao ngay, kể cả admin)', () => {
+  const pending = [{ completions: [{ status: 'pending_approval' }] }];
+  const completed = [{ completions: [{ status: 'approved' }] }];
+  const legacyCompleted = [{ completedUserIds: ['gv'] }];
+  const returnedOnly = [{ completions: [{ status: 'rejected' }] }];
+  assert.equal(workHasSubmissions(pending), true);
+  assert.equal(workHasSubmissions(completed), true);
+  assert.equal(workHasSubmissions(legacyCompleted), true);
+  assert.equal(workHasSubmissions(returnedOnly), false, 'a returned completion does not lock');
+  assert.equal(workHasSubmissions([]), false);
+  // Personal task rows count too.
+  assert.equal(workHasSubmissions([{ completions: [] }, { completions: [{ status: 'pending_approval' }], workItemId: 'wi' }]), true);
+
+  for (const document of [releasedImmediately(), approvedByBgh(), editDoc()]) {
+    for (const role of ['admin', 'moderator', 'user']) {
+      const result = policy(document, role, { hasSubmissions: true });
+      assert.equal(result.canEdit, false, `${role} edit`);
+      assert.equal(result.canDelete, false, `${role} delete`);
+      assert.equal(result.editError, 'WORK_HAS_SUBMISSIONS');
+      assert.equal(result.deleteError, 'WORK_HAS_SUBMISSIONS');
+      assert.equal(result.editRequiresReapproval, false);
+    }
+  }
+  // Server: update and delete both enforce it; reviews of submissions are not edit-gated.
+  const source = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const deleteDocument'));
+  const remove = source.slice(source.indexOf('export const deleteDocument'), source.indexOf('export const finalizeDriveMigration'));
+  assert.match(update, /hasSubmissions: workHasSubmissions\(activeSubmissionRows\(relatedBefore\)\)/);
+  assert.match(remove, /hasSubmissions: workHasSubmissions\(activeSubmissionRows\(related\)\)/);
+  assert.match(remove, /if \(deletePolicy\.deleteError\) throw new Error\(deletePolicy\.deleteError\)/);
+  for (const name of ['reviewWorkCompletion', 'reviewPersonalCompletion']) {
+    const start = source.indexOf(`export const ${name}`);
+    const body = source.slice(start, source.indexOf('export const', start + 10));
+    assert.doesNotMatch(body, /workDocumentEditPolicy|WORK_HAS_SUBMISSIONS|isWorkApprovalLocked/, name);
+    assert.match(body, /isWorkReleased\(/, `${name} still requires a released document`);
+  }
+  assert.match(messageFor(new Error('WORK_HAS_SUBMISSIONS')), /Đã có người nộp kết quả nên không thể sửa công việc này\./);
+});
+
+test('sửa giữ nguyên phân công thì giữ công việc con; đổi phân công thì thay mới', () => {
+  const items = [
+    { assignmentType: 'department', departmentId: 'toan', assigneeUserIds: [], content: 'A', deadline: '2026-10-30' },
+    { assignmentType: 'individual', departmentId: 'van', assigneeUserIds: ['b', 'a'], content: 'B', deadline: '2026-10-31' },
+  ];
+  const same = [
+    { type: 'individual', departmentId: 'other', userIds: ['a', 'b'], content: 'B', deadline: '2026-10-31' },
+    { type: 'department', departmentId: 'toan', userIds: [], content: 'A', deadline: '2026-10-30' },
+  ];
+  assert.equal(workAssignmentsUnchanged(items, same), true);
+  assert.equal(workAssignmentsUnchanged(items, [same[0]]), false);
+  assert.equal(workAssignmentsUnchanged(items, [same[0], { ...same[1], deadline: '2026-11-01' }]), false);
+  assert.equal(workAssignmentsUnchanged(items, [same[0], { ...same[1], content: 'A2' }]), false);
+  assert.equal(workAssignmentsUnchanged(items, [{ ...same[0], userIds: ['a'] }, same[1]]), false);
+  assert.equal(workAssignmentsUnchanged([], []), false);
+  const source = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const deleteDocument'));
+  assert.match(update, /const deactivated = keepWorkItems\s*\? \{ workItemCount: 0, personalTaskCount: 0 \}/);
+});
+
+test('ghi "Đã chỉnh sửa bởi": chỉ khi sửa (không khi tạo/duyệt/trả lại), tên lấy từ máy chủ', async () => {
+  const source = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const section = (name, next) => source.slice(source.indexOf(`export const ${name}`), source.indexOf(`export const ${next}`));
+  assert.match(section('updateDocument', 'deleteDocument'), /lastEditedBy: String\(actor\.user\._id\),\s*lastEditedAt: now,/);
+  for (const [name, next] of [['createDocument', 'updateDocument'], ['approveDocument', 'rejectDocument'], ['rejectDocument', 'createPersonalTask'], ['deleteDocument', 'finalizeDriveMigration']]) {
+    assert.doesNotMatch(section(name, next), /lastEdited/, name);
+  }
+  // Payload resolves the name server-side and never falls back to an email.
+  const view = source.slice(source.indexOf('function lastEditedView'), source.indexOf('type DocumentViewer'));
+  assert.doesNotMatch(view, /email/);
+  for (const flag of ['canEdit', 'canDelete', 'editRequiresReapproval', 'hasSubmissions']) {
+    assert.match(source.slice(source.indexOf('function documentEditFlags'), source.indexOf('async function documentView')), new RegExp(`${flag}`));
+  }
+  const schema = readFileSync(new URL('../convex/schema.ts', import.meta.url), 'utf8');
+  assert.match(schema, /lastEditedBy: v\.optional\(v\.string\(\)\),\s*lastEditedAt: v\.optional\(v\.number\(\)\),/);
+
+  const { workLastEditedLabel, workEditFormRequiresApproval, WORK_HAS_SUBMISSIONS_NOTE } = await import('../src/work/workDisplay.js');
+  // 2026-10-22 07:05 UTC = 14:05 Vietnam time.
+  assert.equal(
+    workLastEditedLabel({ lastEditedByName: 'Nguyễn Văn A', lastEditedAt: Date.UTC(2026, 9, 22, 7, 5) }),
+    'Đã chỉnh sửa bởi Nguyễn Văn A lúc 14:05 22/10/2026',
+  );
+  assert.equal(workLastEditedLabel({ lastEditedByName: null, lastEditedAt: null }), '');
+  assert.equal(workLastEditedLabel({}), '');
+  assert.equal(WORK_HAS_SUBMISSIONS_NOTE, 'Đã có người nộp kết quả — công việc chỉ xem.');
+  // Client mirror of the edit approval decision.
+  const others = [{ type: 'individual', userIds: ['gv'] }];
+  const self = [{ type: 'individual', userIds: ['admin'] }];
+  const reapproval = { editRequiresReapproval: true, approvalFlow: false, createdBy: 'bgh' };
+  assert.equal(workEditFormRequiresApproval({ document: reapproval, assignments: others, editorId: 'admin' }), true);
+  assert.equal(workEditFormRequiresApproval({ document: reapproval, assignments: self, editorId: 'admin' }), false);
+  assert.equal(workEditFormRequiresApproval({ document: { approvalFlow: false, createdBy: 'bgh' }, assignments: others, editorId: 'admin' }), false);
+  assert.equal(workEditFormRequiresApproval({ document: { approvalFlow: true, createdBy: 'vt' }, assignments: others, editorId: 'admin' }), true);
+
+  const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
+  assert.match(views, /WORK_REAPPROVAL_WARNING/);
+  assert.match(views, /'Lưu và gửi duyệt lại'/);
+  assert.match(views, /document\.hasSubmissions\s*\? WORK_HAS_SUBMISSIONS_NOTE/);
+  const summary = readFileSync(new URL('../src/work/WorkListSummary.jsx', import.meta.url), 'utf8');
+  assert.match(summary, /workLastEditedLabel\(item\)/);
 });

@@ -32,5 +32,7 @@ Tổ trưởng, tổ phó, Ban Giám hiệu không giao được cho chính mìn
 Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
 
 ::: warn
-Chỉ sửa hoặc xóa được khi **chưa có ai nộp**. Khi đã có người nộp, thẻ ghi “Đã có người nộp · Không thể sửa hoặc xóa”.
+Chỉ sửa hoặc xóa được khi **chưa có ai nộp**. Khi đã có người nộp, công việc chỉ xem với mọi người (kể cả Administrator); thẻ ghi “Đã có người nộp kết quả — công việc chỉ xem.” Bạn vẫn duyệt kết quả nộp như bình thường.
+
+Administrator có thể sửa công việc bạn đã giao khi chưa ai nộp; khi đó công việc phải gửi Ban Giám hiệu duyệt rồi mới giao lại. Thẻ ghi “Đã chỉnh sửa bởi … lúc …”.
 :::
