@@ -135,7 +135,7 @@ test('Điểm danh page: 4 grade tabs, unsaved guard, sticky save, import previe
   assert.match(page, /Xác nhận lưu/);
   assert.match(page, /window\.confirm\(UNSAVED_PROMPT\)/);
   assert.match(page, /beforeunload/);
-  assert.match(page, /Lưu lớp \$\{klass\.name\}/);
+  assert.match(page, /Lưu \$\{classLabel\(klass\.name, \{ lower: true \}\)\}/);
   assert.match(page, /roster\?\.canChooseDate/);
   assert.match(page, /supervisorAttendance\.saveClass/);
   assert.match(page, /supervisorAttendance\.commit/);
@@ -161,4 +161,18 @@ test('Điểm danh error codes have Vietnamese messages', () => {
     assert.doesNotMatch(message, /Không thể hoàn tất thao tác/, code);
     assert.doesNotMatch(message, new RegExp(code), code);
   }
+});
+
+test('tên lớp không bị lặp "Lớp Lớp"; tab khối chia đều trên điện thoại', async () => {
+  const { classLabel } = await import('../src/homeroom/homeroomLabels.js');
+  assert.equal(classLabel('6-1'), 'Lớp 6-1');
+  assert.equal(classLabel('Lớp 6-1'), 'Lớp 6-1');
+  assert.equal(classLabel('lớp 6/3'), 'Lớp 6/3');
+  assert.equal(classLabel('Lớp 6-1', { lower: true }), 'lớp 6-1');
+  assert.equal(classLabel('6/3', { lower: true }), 'lớp 6/3');
+  const { readFileSync } = await import('node:fs');
+  const page = readFileSync(new URL('../src/attendance/AttendancePage.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(page, /Lớp \{klass\.name\}|lớp \$\{klass\.name\}/);
+  const css = readFileSync(new URL('../src/attendance/attendance.css', import.meta.url), 'utf8');
+  assert.match(css, /\.att-grade-tabs \{ display: grid; grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
 });

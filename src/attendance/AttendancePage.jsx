@@ -4,7 +4,7 @@ import { anyApi } from 'convex/server';
 import { messageFor } from '../lib/appErrorMessage';
 import { downloadSupervisorTemplate } from '../lib/supervisorAttendanceExcel';
 import { vietnamTodayYmd } from '../homeroom/homeroomTime';
-import { formatDate, formatDateLong, schoolDayLabel } from '../homeroom/homeroomLabels';
+import { classLabel, formatDate, formatDateLong, schoolDayLabel } from '../homeroom/homeroomLabels';
 import { DateStepper, EmptyState, Feedback, Icon, Loading, Notice } from '../homeroom/homeroomUi';
 import {
   absentIdsOf,
@@ -214,7 +214,7 @@ function ClassRow({ klass, date, open, onToggle, onDirtyChange }) {
     <li className={`att-class${open ? ' is-open' : ''}`}>
       <button type="button" className="att-class-head" aria-expanded={open} aria-controls={panelId} onClick={onToggle}>
         <span className="att-class-name">
-          <strong>Lớp {klass.name}</strong>
+          <strong>{classLabel(klass.name)}</strong>
           <span className="hr-sub">Sĩ số {klass.rosterCount}</span>
         </span>
         <span className={`att-status ${saved ? 'is-saved' : 'is-pending'}`}>
@@ -233,7 +233,7 @@ function ClassRow({ klass, date, open, onToggle, onDirtyChange }) {
             onEdited={() => setNotice(null)}
             onSaved={(result) => {
               setLocalSaved({ date, savedAt: result.savedAt, absentCount: result.absentCount, presentCount: result.presentCount });
-              setNotice({ date, text: `Đã lưu lớp ${klass.name}: ${result.absentCount} vắng, ${result.presentCount} có mặt.` });
+              setNotice({ date, text: `Đã lưu ${classLabel(klass.name, { lower: true })}: ${result.absentCount} vắng, ${result.presentCount} có mặt.` });
             }}
           />
         </div>
@@ -333,7 +333,7 @@ function ClassEditorForm({ klass, students, date, onDirtyChange, notice, onEdite
           {dirty ? <em> · chưa lưu</em> : null}
         </span>
         <button type="button" className="primary-button" disabled={busy} onClick={() => void save()}>
-          {busy ? 'Đang lưu…' : `Lưu lớp ${klass.name} (${absent.size} vắng)`}
+          {busy ? 'Đang lưu…' : `Lưu ${classLabel(klass.name, { lower: true })} (${absent.size} vắng)`}
         </button>
       </div>
     </>

@@ -182,3 +182,13 @@ export function genderLabel(value) {
   if (key === 'nu' || key === 'nữ') return 'Nữ';
   return GENDER_OPTIONS.find(([option]) => option === key)?.[1] || '—';
 }
+
+/**
+ * "Lớp 6-1" for a class named "6-1" or already "Lớp 6-1" (never "Lớp Lớp 6-1").
+ * `lower` gives the in-sentence form: "lớp 6-1".
+ */
+export function classLabel(name, { lower = false } = {}) {
+  const text = String(name ?? '').trim();
+  const bare = text.replace(/^lớp\s+/iu, '');
+  return `${lower ? 'lớp' : 'Lớp'} ${bare || text}`.trim();
+}
