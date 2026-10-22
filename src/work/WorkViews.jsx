@@ -33,7 +33,11 @@ import {
   workAssignmentDisplayStatus,
   workAssignmentPayload,
   workCreatorLabel,
+  workEditFormRequiresApproval,
   workFormRequiresApproval,
+  workLastEditedLabel,
+  WORK_HAS_SUBMISSIONS_NOTE,
+  WORK_REAPPROVAL_WARNING,
 } from './workDisplay';
 import {
   canPreviewWorkFile,
@@ -786,13 +790,22 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
   const pendingCompletionReviews = listData?.pendingCompletionReviews || [];
   // Creator-based rule (server enforces): admin/mod documents go to Ban giám hiệu
   // first, unless the only assignee is the creator (self-only work is released now).
-  const formRequiresApproval = workFormRequiresApproval({
-    followsApprovalFlow: editingDocument
-      ? (editingDocument.approvalFlow ?? editingDocument.requiresApproval)
-      : options?.requiresApproval,
-    assignments,
-    creatorId: editingDocument ? editingDocument.createdBy : options?.selfUserId,
-  });
+  // An admin edit of an approved/released document goes back to Ban giám hiệu
+  // unless the admin is the only assignee (`editRequiresReapproval`).
+  const formRequiresApproval = editingDocument
+    ? workEditFormRequiresApproval({ document: editingDocument, assignments, editorId: options?.selfUserId })
+    : workFormRequiresApproval({
+        followsApprovalFlow: options?.requiresApproval,
+        assignments,
+        creatorId: options?.selfUserId,
+      });
+  // Only admin/mod pick approvers. A non-ops creator editing a document an admin
+  // sent back to approval keeps its current approvers (the server falls back to them).
+  const canPickApprovers = options?.isOps !== false;
+  const needsApproverPick = formRequiresApproval && canPickApprovers;
+  const showReapprovalWarning = Boolean(editingDocument?.editRequiresReapproval) && formRequiresApproval;
+  // Admin/mod of other departments (`editOnly`) are selectable only while an admin edits.
+  const assignableUsers = (options?.users || []).filter((user) => editingDocument || !user.editOnly);
 
   useEffect(() => {
     if (focusTarget?.sourceType !== 'work_chat' || !focusTarget?.sourceId) return;
@@ -893,7 +906,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
     if (file && !documentTypeId) {
       return setFeedback({ type: 'error', text: 'Vui lòng chọn loại văn bản.' });
     }
-    if (formRequiresApproval && !approverIds.length) {
+    if (needsApproverPick && !approverIds.length) {
       setApproverError('Vui lòng chọn ít nhất một người duyệt.');
       return setFeedback({ type: 'error', text: 'Vui lòng chọn người duyệt thuộc Ban giám hiệu.' });
     }
@@ -925,7 +938,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
         title: title.trim(),
         assignments: workAssignmentPayload(assignments),
         ...(documentTypeId ? { documentTypeId } : {}),
-        ...(formRequiresApproval ? { approverUserIds: approverIds } : {}),
+        ...(needsApproverPick ? { approverUserIds: approverIds } : {}),
       };
       const fileArgs = uploaded ? {
         driveFileId: uploaded.driveFileId,
@@ -1007,7 +1020,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
       setFeedback({ type: 'error', text: 'Vui lòng thêm ít nhất một phân công.' });
       return;
     }
-    if (formRequiresApproval && !approverIds.length) {
+    if (needsApproverPick && !approverIds.length) {
       setApproverError('Vui lòng chọn ít nhất một người duyệt.');
       setFeedback({ type: 'error', text: 'Vui lòng chọn người duyệt thuộc Ban giám hiệu.' });
       return;
@@ -1033,8 +1046,8 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
     } catch (error) {
       setFeedback({
         type: 'error',
-        text: String(error?.message || '').includes('WORK_DOCUMENT_IMMUTABLE')
-          ? 'Công việc đã có người duyệt hoặc người nộp nên không thể sửa hoặc xóa.'
+        text: /WORK_DOCUMENT_IMMUTABLE|WORK_HAS_SUBMISSIONS/.test(String(error?.message || ''))
+          ? messageFor(error)
           : 'Không thể xóa công việc lúc này.',
       });
     } finally {
@@ -1128,10 +1141,15 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
             assignments={assignments}
             onChange={setAssignments}
             departments={options.departments}
-            users={options.users || []}
+            users={assignableUsers}
             showDepartments={options.canAssignDepartments ?? options.isOps !== false}
           />
-          {formRequiresApproval ? (
+          {showReapprovalWarning ? (
+            <p className="work-reapproval-warning" role="note">{WORK_REAPPROVAL_WARNING}</p>
+          ) : null}
+          {formRequiresApproval && !canPickApprovers ? (
+            <p className="work-muted">Sau khi lưu, công việc được gửi lại cho người duyệt hiện tại.</p>
+          ) : formRequiresApproval ? (
             <WorkApproverPicker
               approvers={options.approvers || []}
               value={approverIds}
@@ -1166,7 +1184,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
           fileName={file?.name || ''}
           assignments={assignments}
           catalogs={options}
-          approverNames={formRequiresApproval
+          approverNames={needsApproverPick
             ? (options?.approvers || [])
                 .filter((person) => approverIds.includes(String(person._id)))
                 .map((person) => person.name)
@@ -1283,11 +1301,11 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
                       </WorkIconButton>
                     ) : null}
                   </div>
-                  {document.canEdit || document.canDelete ? null : (
+                  {document.canEdit || document.canDelete || !(document.hasSubmissions || document.approvalLocked) ? null : (
                     <p className="work-document-locked">
-                      {document.approvalLocked
-                        ? 'Ban giám hiệu đã duyệt · Không thể sửa hoặc xóa'
-                        : 'Đã có người nộp · Không thể sửa hoặc xóa'}
+                      {document.hasSubmissions
+                        ? WORK_HAS_SUBMISSIONS_NOTE
+                        : 'Ban giám hiệu đã duyệt · Không thể sửa hoặc xóa'}
                     </p>
                   )}
                   {document.approvalTotal > 0 && (document.status !== 'approved' || cardOpen) ? (
@@ -1582,6 +1600,9 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
         <WorkStatus status={document.status} />
       </div>
       <h3>{document.title || document.fileName}</h3>
+      {workLastEditedLabel(document) ? (
+        <p className="work-edited-note">{workLastEditedLabel(document)}</p>
+      ) : null}
       {document.privateFile && document.fileName ? (
         <PrivateFileLink
           className="work-file-link"

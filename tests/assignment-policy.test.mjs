@@ -299,4 +299,9 @@ test('Văn thư tự giao cho mình; tài khoản quản trị khác chỉ khi c
   assert.equal(opsWorkAssigneeError(mod, { _id: 'ht', role: 'user', level: 5, departmentId: 'bgh' }), WORK_ASSIGNEE_BGH_FORBIDDEN);
   assert.equal(opsWorkAssigneeError(mod, { _id: 'hp', role: 'user', level: 4, departmentId: 'vp' }), WORK_ASSIGNEE_BGH_FORBIDDEN);
   assert.equal(opsWorkAssigneeError(mod, { _id: 'cu', role: 'user', level: 3, departmentId: 'bgh' }), null);
+  // An admin editing an existing document may keep/assign admin/mod of any department; BGH rule stays.
+  const editing = { allowOpsAnyDepartment: true };
+  assert.equal(opsWorkAssigneeError({ _id: 'adm' }, { _id: 'mod', role: 'moderator', level: 0, departmentId: 'vp' }, editing), null);
+  assert.equal(opsWorkAssigneeError({ _id: 'adm', departmentId: '' }, { _id: 'mod5', role: 'moderator', level: 0, departmentId: '' }, editing), null);
+  assert.equal(opsWorkAssigneeError({ _id: 'adm' }, { _id: 'ht', role: 'user', level: 5, departmentId: 'bgh' }, editing), WORK_ASSIGNEE_BGH_FORBIDDEN);
 });

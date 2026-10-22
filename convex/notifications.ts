@@ -480,8 +480,12 @@ async function notificationItems(ctx: any, requestedNow?: number) {
         .map((item: any) => {
           const document = documentsById.get(String(item.documentId)) as any;
           const type = item.assignmentType === "individual" ? "individual" : "department";
+          // An admin edit can send a released document back to approval while keeping
+          // its work items; the re-release is a new "Công việc mới" for the assignee.
+          const resubmittedAt = Number(document?.submittedAt) || 0;
+          const releaseSuffix = resubmittedAt > (Number(item.createdAt) || 0) ? `:${resubmittedAt}` : "";
           return {
-            key: `work:work_assigned:${String(item._id)}:new`,
+            key: `work:work_assigned:${String(item._id)}:new${releaseSuffix}`,
             kind: "work" as const,
             sourceType: "work_assigned" as const,
             sourceId: String(item._id),

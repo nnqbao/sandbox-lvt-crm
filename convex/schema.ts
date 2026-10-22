@@ -445,6 +445,9 @@ export default defineSchema({
         }),
       ),
     ),
+    /** Last successful edit ("Đã chỉnh sửa bởi …"); not set on create/approve/reject. */
+    lastEditedBy: v.optional(v.string()),
+    lastEditedAt: v.optional(v.number()),
     active: v.boolean(),
     createdBy: v.string(),
     updatedBy: v.optional(v.string()),

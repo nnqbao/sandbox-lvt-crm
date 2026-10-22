@@ -1,4 +1,11 @@
-import { formatWorkDate, workContentSummary, workDeadlineKey, workListTitle, workRecipientSummary } from './workDisplay';
+import {
+  formatWorkDate,
+  workContentSummary,
+  workDeadlineKey,
+  workLastEditedLabel,
+  workListTitle,
+  workRecipientSummary,
+} from './workDisplay';
 
 function WorkIcon({ kind }) {
   if (kind === 'file') {
@@ -33,6 +40,8 @@ function Ellipsis({ text, strong = false }) {
 
 export default function WorkListSummary({ item, status = null }) {
   const deadline = formatWorkDate(workDeadlineKey(item) || item?.deadline);
+  // Shown to everyone who sees the work (creator, approvers, assignees, managers).
+  const editedLabel = workLastEditedLabel(item);
   return (
     <div className="duty-card-body">
       <div className="duty-time-cell">
@@ -60,6 +69,7 @@ export default function WorkListSummary({ item, status = null }) {
               <Ellipsis text={item.fileName} />
             </div>
           ) : null}
+          {editedLabel ? <span className="work-edited-note">{editedLabel}</span> : null}
         </div>
       </div>
     </div>

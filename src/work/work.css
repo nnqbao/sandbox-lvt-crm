@@ -812,6 +812,26 @@
   border: 0;
 }
 
+/* "Đã chỉnh sửa bởi … lúc …" — small muted line on work cards. */
+.work-edited-note {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--lvt-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.work-reapproval-warning {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: var(--lvt-warning-text);
+  background: var(--lvt-warning-bg);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
 .work-document-card::before,
 .work-user-card::before {
   position: absolute;
