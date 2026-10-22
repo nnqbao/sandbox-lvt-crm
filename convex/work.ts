@@ -23,6 +23,8 @@ import {
   isWorkItemArchived,
   isWorkReleased,
   isWorkStatusCompleted,
+  opsCanAssignWorkToUser,
+  WORK_ASSIGNEE_BGH_FORBIDDEN,
   workMenuBadgeCount,
   shouldBypassWorkCompletionReview,
   workAssignmentPushUserIds,
@@ -435,6 +437,19 @@ async function assertWorkAssignmentsForActor(
     const users = await ctx.db.query("users").collect();
     if (!isWorkDocumentInModeratorScope(actor.departmentScope, assignments, usersByIdMap(users))) {
       throw new Error(MODERATOR_DEPARTMENT_SCOPE_ERROR);
+    }
+  }
+  if (actor.isOps) {
+    // Văn thư/admin: no individual assignment to Ban giám hiệu (level ≥ 4).
+    // Department assignments are still allowed (handled by the department).
+    for (const assignment of assignments) {
+      if (assignment.type !== "individual") continue;
+      for (const userId of assignment.userIds) {
+        const target = await ctx.db.get(userId);
+        if (target && !opsCanAssignWorkToUser({ level: activePositionLevel(target, actor.positions) })) {
+          throw new Error(WORK_ASSIGNEE_BGH_FORBIDDEN);
+        }
+      }
     }
   }
   if (!actor.isOps) {
@@ -1077,7 +1092,10 @@ export const formOptions = query({
     const visibilityMode = await getWorkVisibilityMode(ctx);
     const { activeUsers, departments, positions } = await catalog(ctx);
     const users = activeUsers.filter((user: any) => {
-      if (actor.isOps) return isUserInModeratorScope(actor.departmentScope, user);
+      if (actor.isOps) {
+        return isUserInModeratorScope(actor.departmentScope, user)
+          && opsCanAssignWorkToUser({ level: activePositionLevel(user, positions) });
+      }
       return actorCanAssignUser(actor, user);
     });
     const canAssignDepartments = canAssignWorkDepartment(actor.user.role, actor.level);

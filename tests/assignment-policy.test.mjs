@@ -244,3 +244,25 @@ test('người tham gia công tác nhận push, kể cả khi tự thêm mình',
   assert.equal(ids.includes('user-2'), true);
   assert.equal(ids.includes('user-1'), false);
 });
+
+test('Văn thư/admin không giao công việc cá nhân cho Ban giám hiệu (cấp ≥ 4); lịch công tác không đổi', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { opsCanAssignWorkToUser, WORK_ASSIGNEE_BGH_FORBIDDEN } = await import('../convex/assignmentPolicy.ts');
+  assert.equal(WORK_ASSIGNEE_BGH_FORBIDDEN, 'WORK_ASSIGNEE_BGH_FORBIDDEN');
+  for (const level of [0, 1, 2, 3]) assert.equal(opsCanAssignWorkToUser({ level }), true, `level ${level}`);
+  for (const level of [4, 5]) assert.equal(opsCanAssignWorkToUser({ level }), false, `level ${level}`);
+
+  const work = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const assert_ = work.slice(work.indexOf('async function assertWorkAssignmentsForActor'), work.indexOf('async function requireWorkAccess'));
+  assert.match(assert_, /if \(actor\.isOps\) \{[\s\S]*assignment\.type !== "individual"\) continue;[\s\S]*throw new Error\(WORK_ASSIGNEE_BGH_FORBIDDEN\)/);
+  // Moderator department scope still applies before the BGH rule.
+  assert.match(assert_, /MODERATOR_DEPARTMENT_SCOPE_ERROR/);
+  const options = work.slice(work.indexOf('export const formOptions'), work.indexOf('export const formOptions') + 2500);
+  assert.match(options, /isUserInModeratorScope\(actor\.departmentScope, user\)\s*&& opsCanAssignWorkToUser/);
+  // Approvers remain Ban giám hiệu.
+  assert.match(options, /isEligibleWorkApprover/);
+  const duties = readFileSync(new URL('../convex/duties.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(duties, /opsCanAssignWorkToUser|WORK_ASSIGNEE_BGH_FORBIDDEN/);
+  const messages = readFileSync(new URL('../src/lib/appErrorMessage.js', import.meta.url), 'utf8');
+  assert.match(messages, /WORK_ASSIGNEE_BGH_FORBIDDEN: 'Văn thư không thể giao công việc cho Ban giám hiệu\.'/);
+});

@@ -74,6 +74,7 @@
 - Reject ("Trả lại") is allowed only while `approvedByUserIds` is empty (`canRejectWorkDocument`) and requires a reason (`WORK_RETURN_REASON_INVALID`). A later reject would leave the document both rejected and immutable. A returned document stays unreleased; the creator edits and resubmits it.
 - Do not implement the lock using only `status === "approved"`. Use the shared policy in `convex/workDocumentPolicy.ts`.
 - Approvers must be active **non-admin, non-moderator** users at position level 4 or above. Operational managers manage documents; they cannot be designated approvers (`ADMIN_USE_MANAGEMENT`).
+- Admin/mod (Văn thư) may not assign work individually to Ban giám hiệu (position level ≥ 4) — `WORK_ASSIGNEE_BGH_FORBIDDEN`, hidden from the ops assignee picker; BGH stay approvers, department assignments stay allowed, Lịch công tác participants are unaffected.
 - Completing or reviewing work/personal tasks requires the parent document to still be `active` and `status === "approved"`.
 - Editing a mutable document resets prior approval/rejection decisions and sends the revised document through approval again.
 - Replacing assignments deactivates superseded work items/personal tasks and creates the new active work graph atomically with the document update.

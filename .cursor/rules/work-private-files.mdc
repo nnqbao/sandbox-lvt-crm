@@ -16,6 +16,7 @@ Full text: `CLAUDE.md` sections **Work-document** / **Private file and cache** /
 - First approval locks edit/delete forever, admin/mod included — do **not** lock only on `status === "approved"`; use `convex/workDocumentPolicy.ts`
 - Reject (Trả lại, reason required) only while nobody has approved (`canRejectWorkDocument`); edit resets decisions and resubmits
 - Approvers = active level 4+ **users**, never admin/moderator
+- Admin/mod never assign work individually to Ban giám hiệu (level 4+): `WORK_ASSIGNEE_BGH_FORBIDDEN`; department assignments and duty participants unaffected
 - Otherwise creator may edit/delete until an assignee has submitted (nộp); in-scope admin/mod may still edit
 - Completions: assignee **Nộp** (web requires evidence file); only the **creator** marks complete / returns
 - Soft-delete first; inactive docs must deny access even if Drive cleanup lags

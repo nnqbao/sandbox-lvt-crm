@@ -253,8 +253,8 @@ function formOptions(_args, { persona }) {
   const ops = isOps(persona);
   const lv = level(persona);
   const bgh = !ops && lv >= 4;
-  // canAssignWorkToUser: ops → everyone; BGH → lower level in any department; others → lower level, same department.
-  const users = USERS.filter((u) => u.role === 'user' && (ops || (level(u) < lv && (bgh || u.departmentId === persona.departmentId))));
+  // ops → everyone except Ban giám hiệu (level ≥ 4); BGH → lower level in any department; others → lower level, same department.
+  const users = USERS.filter((u) => u.role === 'user' && (ops ? level(u) < 4 : (level(u) < lv && (bgh || u.departmentId === persona.departmentId))));
   const option = (u) => ({
     _id: u._id, name: u.name, email: u.email, role: u.role, departmentId: u.departmentId,
     departmentName: departmentById(u.departmentId)?.name || '', positionName: positionById(u.positionId)?.name || '', level: level(u),

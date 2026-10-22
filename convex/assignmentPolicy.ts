@@ -75,6 +75,20 @@ export function canAssignWorkToUser(
   );
 }
 
+export const WORK_ASSIGNEE_BGH_FORBIDDEN = "WORK_ASSIGNEE_BGH_FORBIDDEN";
+
+/**
+ * Admin/mod ("Văn thư") never assign work to Ban giám hiệu individually —
+ * position level 4+ (Hiệu trưởng, Hiệu phó) — even though BGH sit in Tổ Văn
+ * phòng. BGH stay selectable as approvers. Department assignments remain
+ * allowed: a department assignment is handled by the department, not by BGH
+ * individually. (Lịch công tác is unaffected: văn thư may still add BGH as
+ * duty participants.)
+ */
+export function opsCanAssignWorkToUser(target: { level: number }) {
+  return !(Number(target.level) >= WORK_BGH_MIN_LEVEL);
+}
+
 export function normalizeWorkVisibilityMode(value: string | null | undefined): WorkVisibilityMode {
   return value === WORK_VISIBILITY_CREATOR ? WORK_VISIBILITY_CREATOR : WORK_VISIBILITY_SCHOOL;
 }
