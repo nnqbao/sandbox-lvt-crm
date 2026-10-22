@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -290,4 +291,22 @@ test('máy chủ không còn tự động phát hành công việc chờ duyệt
   assert.doesNotMatch(source, /releasePendingWorkDocuments/);
   assert.doesNotMatch(source, /WORK_APPROVAL_DISABLED/);
   assert.match(source, /isWorkApprovalLocked\(document\)\) throw new Error\("WORK_DOCUMENT_IMMUTABLE"\)/);
+});
+
+test('nhãn người tạo trung lập vai trò: không còn "Văn thư <tên>" cho admin, không lặp "VĂN THƯ VĂN THƯ"', async () => {
+  const { workCreatorLabel, workCreatorRoleLabel } = await import('../src/work/workDisplay.js');
+  assert.equal(workCreatorLabel({ creatorName: 'Nguyễn Tuấn', creatorRole: 'admin' }), 'Người tạo: Nguyễn Tuấn (Quản trị viên)');
+  assert.equal(workCreatorLabel({ creatorName: 'Văn thư', creatorRole: 'moderator' }), 'Người tạo: Văn thư (Văn thư)');
+  assert.equal(workCreatorLabel({ creatorName: 'Lê Thị C', creatorRole: 'user' }), 'Người tạo: Lê Thị C');
+  assert.equal(workCreatorLabel({}), 'Người tạo: —');
+  assert.equal(workCreatorRoleLabel('moderator'), 'Văn thư');
+  const parts = readFileSync(new URL('../src/work/WorkApprovalParts.jsx', import.meta.url), 'utf8');
+  const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
+  for (const source of [parts, views]) {
+    assert.doesNotMatch(source, /Văn thư \{document\.creatorName/);
+    assert.match(source, /workCreatorLabel\(document\)/);
+  }
+  assert.match(parts, /Công việc do Văn thư\/Quản trị tạo cần Ban giám hiệu duyệt trước khi giao\./);
+  const work = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  assert.match(work, /creatorRole: creator\?\.role === "admin" \|\| creator\?\.role === "moderator" \? creator\.role : "user"/);
 });

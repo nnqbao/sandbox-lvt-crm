@@ -165,7 +165,7 @@ export function messageFor(error) {
     WORK_DEPARTMENT_DUPLICATE: 'Mỗi phòng ban chỉ được nhận một đầu việc trong cùng công văn.',
     WORK_APPROVERS_REQUIRED: 'Vui lòng chọn ít nhất một người duyệt.',
     INVALID_WORK_APPROVER: 'Người duyệt phải là thành viên Ban giám hiệu (cấp 4 hoặc 5 sao) đang hoạt động, không phải Administrator/Moderator.',
-    WORK_APPROVER_REQUIRED: 'Công việc do Văn thư tạo cần chọn ít nhất một người duyệt thuộc Ban giám hiệu.',
+    WORK_APPROVER_REQUIRED: 'Công việc do Văn thư/Quản trị tạo cần chọn ít nhất một người duyệt thuộc Ban giám hiệu.',
     WORK_APPROVER_FORBIDDEN: 'Bạn không nằm trong danh sách duyệt công việc này.',
     WORK_DOCUMENT_ALREADY_DECIDED: 'Công việc này đã được duyệt hoặc trả lại, không thể đổi quyết định.',
     WORK_RETURN_REASON_INVALID: 'Vui lòng nhập lý do trả lại (tối đa 500 ký tự).',

@@ -30,6 +30,7 @@ import {
   WORK_LIST_TAB_TODO,
   WORK_COMPLETION_NOTE_MAX_LENGTH,
   workAssignmentPayload,
+  workCreatorLabel,
 } from './workDisplay';
 import {
   canPreviewWorkFile,
@@ -1541,7 +1542,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
         setFeedback({ type: 'success', text: 'Bạn đã duyệt công việc.' });
       } else {
         await rejectDocument({ documentId, reason });
-        setFeedback({ type: 'success', text: 'Đã trả lại công việc cho Văn thư.' });
+        setFeedback({ type: 'success', text: 'Đã trả lại công việc cho người tạo.' });
       }
       setDeciding(null);
     } catch (error) {
@@ -1559,7 +1560,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
     <article className="work-user-card approval-card" key={document._id} data-focus-id={document._id}>
       <div className="work-user-card-top">
         <span className="work-card-eyebrow">
-          Văn thư {document.creatorName || '—'}
+          {workCreatorLabel(document)}
           {document.submittedAt ? ` · gửi ${formatWorkDateTime(document.submittedAt)}` : ''}
         </span>
         <WorkStatus status={document.status} />
@@ -1744,7 +1745,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
           ) : (
             <div className="work-empty">
               <h3>Không có công việc chờ bạn duyệt</h3>
-              <p>Khi Văn thư gửi công việc cần Ban giám hiệu duyệt, công việc sẽ xuất hiện tại đây.</p>
+              <p>Khi Văn thư/Quản trị gửi công việc cần Ban giám hiệu duyệt, công việc sẽ xuất hiện tại đây.</p>
             </div>
           )}
           {decidedApprovals.length ? (

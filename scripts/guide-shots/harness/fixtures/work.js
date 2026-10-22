@@ -93,6 +93,7 @@ function approvalFields(approvers, { status, submittedHoursAgo, returnReason = '
     decidedAt: status === 'pending' || !decided.length ? null : Math.max(...decided),
     returnReason,
     creatorName: 'Đỗ Thị G',
+    creatorRole: 'moderator',
   };
 }
 
@@ -185,7 +186,7 @@ function directDocument(id, title, createdBy, assignments, createdHoursAgo) {
     deadline: assignments[0].deadline, status: 'approved', workStatus: 'pending_task', departmentId: assignments[0].departmentId || '',
     departmentName: assignments[0].departmentName, assignmentCount: assignments.length, createdAt: T0 - createdHoursAgo * HOUR, createdBy,
     requiresApproval: false, approvers: [], approvalCount: 0, approvalTotal: 0, approvalLocked: false, submittedAt: T0 - createdHoursAgo * HOUR,
-    decidedAt: null, returnReason: '', creatorName: userById(createdBy).name, archived: false, canEdit: true, canDelete: true,
+    decidedAt: null, returnReason: '', creatorName: userById(createdBy).name, creatorRole: ['admin', 'moderator'].includes(userById(createdBy).role) ? userById(createdBy).role : 'user', archived: false, canEdit: true, canDelete: true,
     taskCount: assignments.reduce((n, row) => n + row.taskCount, 0), assignments,
   };
 }

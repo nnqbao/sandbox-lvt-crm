@@ -781,6 +781,8 @@ async function documentView(ctx: any, document: any, catalogData: any, items: an
     createdAt: document.createdAt,
     createdBy: document.createdBy,
     creatorName: creator ? creator.name || creator.email || "—" : "—",
+    // Only the role kind, for the "Người tạo: … (Quản trị viên|Văn thư)" label.
+    creatorRole: creator?.role === "admin" || creator?.role === "moderator" ? creator.role : "user",
     archived: false,
     canEdit: canMutateWorkDocument(document, items),
     canDelete: canMutateWorkDocument(document, items),

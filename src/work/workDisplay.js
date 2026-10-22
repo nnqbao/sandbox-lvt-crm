@@ -39,6 +39,19 @@ export function workApproverDecisionLabel(approver) {
   return 'Chờ duyệt';
 }
 
+/** Role-neutral creator label: admin is "Quản trị viên", moderator "Văn thư". */
+export function workCreatorRoleLabel(role) {
+  if (role === 'admin') return 'Quản trị viên';
+  if (role === 'moderator') return 'Văn thư';
+  return '';
+}
+
+export function workCreatorLabel(document) {
+  const name = document?.creatorName || '—';
+  const role = workCreatorRoleLabel(document?.creatorRole);
+  return `Người tạo: ${name}${role ? ` (${role})` : ''}`;
+}
+
 export function formatWorkDate(value) {
   if (!value) return '—';
   const [year, month, day] = String(value).split('-');
