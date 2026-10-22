@@ -19,7 +19,18 @@ import {
   canOperateMenu,
   WORK_ASSIGNER_MODE_ADMIN_MOD,
 } from "./lib";
-import { dutyListTitle, isDutyParticipant, isWorkNotificationAssignee, workListTitle } from "./assignmentPolicy";
+import {
+  dutyListTitle,
+  isDutyParticipant,
+  isWorkNotificationAssignee,
+  isWorkReleased,
+  workListTitle,
+} from "./assignmentPolicy";
+import {
+  canApproveWorkDocument,
+  workApprovalDecidedAt,
+  workCreatorApprovalNotice,
+} from "./workDocumentPolicy";
 import {
   buildChatNotificationItem,
   CHAT_NOTIFICATION_TTL_MS,
@@ -39,7 +50,7 @@ const VN_OFFSET_MS = 7 * HOUR_MS;
 
 type NotificationSource = {
   kind: "duty" | "work";
-  sourceType: "duty" | "duty_assigned" | "approval" | "department_work" | "personal_task" | "completion_rejected" | "work_assigned" | "work_chat" | "duty_chat";
+  sourceType: "duty" | "duty_assigned" | "approval" | "department_work" | "personal_task" | "completion_rejected" | "work_assigned" | "work_chat" | "duty_chat" | "work_approved" | "work_returned";
   sourceId: string;
   title: string;
   description: string;
@@ -250,24 +261,20 @@ async function notificationItems(ctx: any, requestedNow?: number) {
 
   const assignerMode = await getWorkAssignerMode(ctx);
   const workSources: NotificationSource[] = [];
-  if (canUseWork && level >= 4) {
+  const submittedAtByDocument = new Map<string, number>();
+  if (canSeeWorkModule && level >= 4 && !isOperationalManagerRole(user.role)) {
+    // Ban giám hiệu: documents waiting for my approval decision (workflow, not a reminder switch).
     for (const document of activeDocuments) {
-      const isApprover = document.approverUserIds.some(
-        (id: string) => String(id) === String(user._id),
-      );
-      const hasActed =
-        document.approvedByUserIds.some((id: string) => String(id) === String(user._id)) ||
-        (document.rejectedByUserIds || []).some((id: string) => String(id) === String(user._id));
-      if (document.status === "pending" && isApprover && !hasActed) {
-        workSources.push({
-          kind: "work",
-          sourceType: "approval",
-          sourceId: String(document._id),
-          title: `Công văn cần duyệt: ${document.fileName}`,
-          description: "Bạn được chỉ định duyệt công văn này.",
-          dueAt: workDueAt(document.deadline),
-        });
-      }
+      if (!canApproveWorkDocument(document, String(user._id))) continue;
+      submittedAtByDocument.set(String(document._id), Number(document.submittedAt || document.createdAt) || now);
+      workSources.push({
+        kind: "work",
+        sourceType: "approval",
+        sourceId: String(document._id),
+        title: `Công việc chờ duyệt: ${workListTitle(document)}`,
+        description: "Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.",
+        dueAt: workDueAt(document.deadline),
+      });
     }
   }
 
@@ -445,7 +452,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
     ? activeWorkItems
         .filter((item: any) => {
           const document = documentsById.get(String(item.documentId)) as any;
-          if (!document || document.status === "rejected" || !item.createdAt) return false;
+          if (!isWorkReleased(document) || !item.createdAt) return false;
           if (workDueAt(item.deadline) < now) return false;
           const completed = (item.completedUserIds || []).some(
             (id: string) => String(id) === String(user._id),
@@ -486,7 +493,8 @@ async function notificationItems(ctx: any, requestedNow?: number) {
             dueAt: workDueAt(item.deadline),
             milestoneHours: 0,
             milestoneLabel: "Mới phân công",
-            availableAt: item.createdAt,
+            // Approval-required work becomes visible when Ban giám hiệu releases it.
+            availableAt: Math.max(Number(item.createdAt) || 0, workApprovalDecidedAt(document) || 0),
           };
         })
     : [];
@@ -515,13 +523,42 @@ async function notificationItems(ctx: any, requestedNow?: number) {
         source.sourceType === "approval" &&
         !approvalIdsWithMilestone.has(source.sourceId),
     )
-    .map((source) => ({
-      key: `work:approval:${source.sourceId}`,
-      ...source,
-      milestoneHours: 0,
-      milestoneLabel: "Cần duyệt",
-      availableAt: now,
-    }));
+    .map((source) => {
+      const submittedAt = submittedAtByDocument.get(source.sourceId) || now;
+      return {
+        // A resubmission is a new request: the key changes so it shows as unread again.
+        key: `work:approval:${source.sourceId}:${submittedAt}`,
+        ...source,
+        milestoneHours: 0,
+        milestoneLabel: "Cần duyệt",
+        availableAt: submittedAt,
+      };
+    });
+  // Creator (văn thư): approval outcome of documents they sent to Ban giám hiệu.
+  const creatorApprovalItems = canSeeWorkModule
+    ? activeDocuments.flatMap((document: any) => {
+        const notice = workCreatorApprovalNotice(document, String(user._id), now);
+        if (!notice) return [];
+        const returned = notice.decision === "rejected";
+        return [{
+          key: `work:${returned ? "work_returned" : "work_approved"}:${String(document._id)}:${notice.at}`,
+          kind: "work" as const,
+          sourceType: returned ? ("work_returned" as const) : ("work_approved" as const),
+          sourceId: String(document._id),
+          title: returned
+            ? `Công việc bị trả lại: ${workListTitle(document)}`
+            : `Công việc đã được duyệt: ${workListTitle(document)}`,
+          description: returned
+            ? notice.reason || "Ban giám hiệu đã trả lại, hãy sửa và gửi duyệt lại."
+            : "Ban giám hiệu đã duyệt, công việc đã được giao.",
+          dueAt: notice.at,
+          milestoneHours: 0,
+          milestoneLabel: returned ? "Bị trả lại" : "Đã duyệt",
+          availableAt: notice.at,
+          ...(returned ? { priority: "high" as const } : {}),
+        }];
+      })
+    : [];
   // Approval steps are workflow, not deadline reminders: they ignore the duty reminder switch.
   const dutyWeekItems = canSeeDutiesModule
     ? await dutyWeekNotificationItems(ctx, user, level, now)
@@ -580,7 +617,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
               if (!workChatAccess.has(documentId)) {
                 const document = documentsById.get(documentId);
                 const items = workItemsByDocument.get(documentId) || [];
-                const assigned = items.some((item: any) =>
+                const assigned = isWorkReleased(document as any) && items.some((item: any) =>
                   isWorkNotificationAssignee({
                     user,
                     item,
@@ -684,7 +721,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
   const todoItems = todoRows
     .map((row: any) => todoReminderNotificationItem(row))
     .filter((item: any): item is NonNullable<ReturnType<typeof todoReminderNotificationItem>> => item !== null);
-  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones, ...todoItems]
+  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...creatorApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones, ...todoItems]
     .sort((a, b) => b.availableAt - a.availableAt || a.title.localeCompare(b.title, "vi"));
   const [reads, dismissals] = await Promise.all([
     ctx.db

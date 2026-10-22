@@ -229,13 +229,20 @@ export async function getWorkVisibilityMode(ctx: DbCtx) {
   return normalizeWorkVisibilityMode(value);
 }
 
-export async function assignmentCreatorOrThrow(ctx: DbCtx) {
+/**
+ * Active creator gate. Công tác uses `canCreateAssignments` (default); Công việc
+ * passes `canCreateWorkDocuments` (any non-ops level 2+).
+ */
+export async function assignmentCreatorOrThrow(
+  ctx: DbCtx,
+  canCreate: (role: string, level: number) => boolean = canCreateAssignments,
+) {
   const user = await currentUserOrThrow(ctx);
   if (user.status !== "active") throw new Error("USER_NOT_ACTIVE");
   if (user.mustChangePassword) throw new Error("PASSWORD_CHANGE_REQUIRED");
   const positions = await ctx.db.query("positions").collect();
   const level = activePositionLevel(user, positions);
-  if (!canCreateAssignments(user.role, level)) throw new Error("ASSIGNMENT_CREATE_FORBIDDEN");
+  if (!canCreate(user.role, level)) throw new Error("ASSIGNMENT_CREATE_FORBIDDEN");
   return {
     user,
     level,

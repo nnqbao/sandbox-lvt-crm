@@ -24,10 +24,55 @@ export function isOperationalManagerRole(role: string) {
   return role === "admin" || role === "moderator";
 }
 
-/** Admin/mod or tổ trưởng/tổ phó (2/3★). Level 4/5 cannot create. */
+/** Công tác creators: admin/mod or tổ trưởng/tổ phó (2/3★). Level 4/5 cannot create duties. */
 export function canCreateAssignments(role: string, level: number) {
   if (isOperationalManagerRole(role)) return true;
   return isTeamLeadLevel(level);
+}
+
+/** Ban giám hiệu = non-ops position level 4 or 5. */
+export const WORK_BGH_MIN_LEVEL = 4;
+
+function isValidLevel(level: number) {
+  return Number.isInteger(level) && level >= 1 && level <= 5;
+}
+
+/**
+ * Công việc creators: admin/mod, or any non-ops user at level 2 or above
+ * (tổ trưởng/tổ phó, Ban giám hiệu). Level 1 and users without a position cannot.
+ */
+export function canCreateWorkDocuments(role: string, level: number) {
+  if (isOperationalManagerRole(role)) return true;
+  return isValidLevel(level) && level >= 2;
+}
+
+/** Department-wide work assignments: admin/mod and Ban giám hiệu only. */
+export function canAssignWorkDepartment(role: string, level: number) {
+  if (isOperationalManagerRole(role)) return true;
+  return isValidLevel(level) && level >= WORK_BGH_MIN_LEVEL;
+}
+
+/**
+ * Individual work assignment target rule for non-ops creators:
+ * - strictly lower position level than the creator (never self, never a peer);
+ * - Ban giám hiệu (level 4+) may assign across every department;
+ * - other creators (level 2/3+) only inside their own department.
+ * Admin/mod are checked separately (moderator department scope).
+ */
+export function canAssignWorkToUser(
+  actor: { _id: string; role: string; level: number; departmentId?: string | null },
+  target: { _id: string; level: number; departmentId?: string | null },
+) {
+  if (isOperationalManagerRole(actor.role)) return true;
+  if (String(actor._id) === String(target._id)) return false;
+  if (!canCreateWorkDocuments(actor.role, actor.level)) return false;
+  if (!isValidLevel(target.level) || target.level >= actor.level) return false;
+  if (actor.level >= WORK_BGH_MIN_LEVEL) return true;
+  return Boolean(
+    actor.departmentId &&
+    target.departmentId &&
+    String(actor.departmentId) === String(target.departmentId),
+  );
 }
 
 export function normalizeWorkVisibilityMode(value: string | null | undefined): WorkVisibilityMode {
@@ -140,10 +185,11 @@ export function workListTitle(document: { title?: string; fileName?: string; con
   return String(document.content || "").trim() || "Công việc";
 }
 
+/** Released = active and fully approved. Pending/rejected documents stay hidden from assignees. */
 export function isWorkReleased<T extends { active?: boolean; status?: string }>(
   document: T | null | undefined,
 ): document is T & { active: true } {
-  return Boolean(document?.active) && document?.status !== "rejected";
+  return Boolean(document?.active) && document?.status === "approved";
 }
 
 export function userIsActive(user: { status?: string } | null | undefined) {
@@ -189,9 +235,11 @@ export function canCreatorMutateWork(items: Array<{ completions?: Array<{ status
 
 /**
  * Who may see a live (non-archived) work document.
- * Assignees always see their own assignment. Mode `creator` limits the
+ * Assignees always see their own released assignment. Mode `creator` limits the
  * management/overview list to the creator; mode `school` also includes
  * admin/mod and level 4/5.
+ * While a document is not released (pending approval or returned), only the
+ * creator, its designated approvers and in-scope admin/mod (mode `school`) see it.
  */
 export function canSeeLiveWork(args: {
   actorUserId: string;
@@ -202,8 +250,17 @@ export function canSeeLiveWork(args: {
   visibilityMode: WorkVisibilityMode;
   /** False when a department-scoped moderator looks at an out-of-scope document. */
   inModeratorScope?: boolean;
+  /** False while the document is pending approval or returned. Defaults to released. */
+  released?: boolean;
+  /** Actor is one of the document's designated approvers. */
+  isApprover?: boolean;
 }) {
   if (String(args.actorUserId) === String(args.createdBy)) return true;
+  if (args.released === false) {
+    if (args.isApprover) return true;
+    if (args.visibilityMode === WORK_VISIBILITY_CREATOR) return false;
+    return isOperationalManagerRole(args.actorRole) && args.inModeratorScope !== false;
+  }
   if (args.isAssignee) return true;
   if (args.visibilityMode === WORK_VISIBILITY_CREATOR) return false;
   if (isOperationalManagerRole(args.actorRole)) return args.inModeratorScope !== false;

@@ -14,10 +14,29 @@ export function workReminderSourceType(item) {
 }
 
 const COMPLETED_STATUSES = new Set(['completed', 'completed_late']);
-const PENDING_REVIEW_STATUSES = new Set(['pending_completion', 'pending_approval']);
+/** `awaiting_approval` = document waiting for Ban giám hiệu (Việc tôi tạo of văn thư). */
+const PENDING_REVIEW_STATUSES = new Set(['pending_completion', 'pending_approval', 'awaiting_approval']);
 
 export function vietnamToday(now = Date.now()) {
   return new Date(now + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/** dd/mm/yyyy HH:mm in Vietnam time (approval decisions, submissions). */
+export function formatWorkDateTime(ms) {
+  const value = Number(ms);
+  if (!Number.isFinite(value) || value <= 0) return '';
+  const shifted = new Date(value + 7 * 60 * 60 * 1000).toISOString();
+  const [date, time] = shifted.split('T');
+  const [year, month, day] = date.split('-');
+  return `${day}/${month}/${year} ${time.slice(0, 5)}`;
+}
+
+/** Approver chip label: "Đã duyệt 22/10/2026 14:05", "Trả lại …", or "Chờ duyệt". */
+export function workApproverDecisionLabel(approver) {
+  const when = formatWorkDateTime(approver?.decidedAt);
+  if (approver?.approved) return when ? `Đã duyệt ${when}` : 'Đã duyệt';
+  if (approver?.rejected) return when ? `Trả lại ${when}` : 'Trả lại';
+  return 'Chờ duyệt';
 }
 
 export function formatWorkDate(value) {
