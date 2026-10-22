@@ -16,3 +16,7 @@ keywords: tra ve, chua duyet, tu choi hoan thanh, nop lai, ly do
 ::: tip
 Mỗi khi bài nộp bị trả về, chuông thông báo hiện mục **Từ chối hoàn thành** — bấm vào để mở đúng việc đó.
 :::
+
+::: note
+Đây là **bài nộp** bị người giao trả về. Nhãn **Bị trả lại** trong **Việc tôi tạo** là chuyện khác: Ban Giám hiệu trả lại công việc Văn thư gửi duyệt, xem [Văn thư gửi duyệt](#cv-van-thu-gui-duyet).
+:::

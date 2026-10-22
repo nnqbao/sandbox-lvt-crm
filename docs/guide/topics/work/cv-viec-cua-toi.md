@@ -23,7 +23,7 @@ Dùng **Việc của tôi** cho những việc nhỏ hằng ngày: gọi phụ h
 :::
 
 ::: note
-Mọi tài khoản đều có tab này, kể cả khi menu Công việc của nhà trường bị ẩn với thầy cô.
+Mọi tài khoản đều có tab này, kể cả khi menu Công việc của nhà trường bị ẩn với thầy cô. Giáo viên, nhân viên 1 sao không tạo được công việc giao cho người khác; tab này là nơi ghi việc của chính mình.
 :::
 
 ### Câu hỏi thường gặp

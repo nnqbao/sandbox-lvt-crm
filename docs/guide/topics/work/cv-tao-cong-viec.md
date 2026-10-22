@@ -1,30 +1,36 @@
 ---
 id: cv-tao-cong-viec
-title: Tạo công việc và giao cho phòng ban, cá nhân
+title: Tổ trưởng, tổ phó, Ban Giám hiệu giao việc cho cấp dưới
 menu: Công việc → Việc tôi tạo
-roles: Văn thư, Tổ trưởng, Tổ phó, Administrator
-keywords: tao cong viec, giao viec, cong van, phan cong, phong ban, ca nhan
+roles: Tổ phó, Tổ trưởng (2–3 sao), Phó Hiệu trưởng, Hiệu trưởng (4–5 sao)
+keywords: tao cong viec, giao viec, phan cong, phong ban, ca nhan, cap duoi, giao ngay
 ---
-Giao một việc (kèm công văn nếu có) cho cả tổ hoặc từng người, mỗi người nhận có nội dung và hạn riêng.
+Giao việc cho người cấp thấp hơn; công việc đến tay người nhận **ngay**, không cần duyệt.
 
 1. Trong **Công việc**, kéo xuống mục **Việc tôi tạo**, bấm **+ Tạo công việc**.
-2. Nhập **Tên công việc** [[1]].
-3. Đính kèm công văn [[2]] nếu có (không bắt buộc), rồi chọn **Loại văn bản**.
-4. Bấm **+ Phòng ban** hoặc **+ Cá nhân** [[3]] để thêm dòng người nhận.
-5. Ở mỗi dòng [[4]]: chọn phòng ban/người, ghi **Nội dung công việc**, chọn **Hạn chót**. Bấm **×** để bỏ dòng.
-6. Bấm **Tạo** [[5]], kiểm tra bảng xem trước rồi xác nhận.
+2. Nhập **Tên công việc**, đính kèm tệp nếu cần (không bắt buộc) rồi chọn **Loại văn bản**.
+3. Bấm **+ Cá nhân** [[1]] (Ban Giám hiệu có thêm **+ Phòng ban**) để thêm dòng người nhận.
+4. Ở mỗi dòng [[2]]: gõ tên để tìm người, ghi **Nội dung công việc**, chọn **Hạn chót**. Bấm **×** để bỏ dòng.
+5. Bấm **Tạo** [[3]], kiểm tra bảng xem trước rồi bấm **Xác nhận tạo**.
 
-![Tạo công việc: 1 tên, 2 tệp đính kèm, 3 thêm người nhận, 4 dòng phân công, 5 Tạo](cv-tao-cong-viec)
+![Tổ trưởng giao việc: 1 thêm người nhận, 2 dòng phân công, 3 Tạo](cv-tao-cong-viec-to-truong)
+
+| Người tạo | Giao được cho | Duyệt trước khi giao |
+|---|---|---|
+| Tổ phó, tổ trưởng (2–3 sao) | Từng người **cấp thấp hơn** trong **tổ mình** | Không, giao ngay |
+| Phó Hiệu trưởng, Hiệu trưởng (4–5 sao) | Người **cấp thấp hơn** ở **mọi tổ**, hoặc **cả phòng ban** | Không, giao ngay |
+| Văn thư, Administrator | Phòng ban, cá nhân | **Có**, Ban Giám hiệu duyệt, xem [Văn thư gửi duyệt](#cv-van-thu-gui-duyet) |
+| Giáo viên, nhân viên (1 sao) | Không tạo được công việc | Dùng [Việc của tôi](#cv-viec-cua-toi) |
+
+![Luồng giao việc: Văn thư gửi Ban Giám hiệu duyệt; Ban Giám hiệu, tổ trưởng, tổ phó giao ngay](luong-duyet-cong-viec)
 
 ::: note
-Công việc đến tay người nhận **ngay khi tạo**. Tổ trưởng/tổ phó chỉ giao được cho người cấp dưới trong tổ mình (nút **+ Cá nhân**).
+Không giao được cho chính mình hay người cùng cấp. Danh sách người nhận chỉ hiện những người mình được phép giao.
 :::
 
 #### Theo dõi việc đã giao
-Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ [[2]] để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**.
-
-![Việc tôi tạo: 1 Tạo công việc, 2 tiến độ từng người, 3 đã khóa sửa/xóa, 4 nút Sửa](cv-viec-toi-tao)
+Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
 
 ::: warn
-Chỉ sửa hoặc xóa được khi **chưa có ai nộp** [[4]]. Khi đã có người nộp, thẻ ghi “Đã có người nộp · Không thể sửa hoặc xóa” [[3]].
+Chỉ sửa hoặc xóa được khi **chưa có ai nộp**. Khi đã có người nộp, thẻ ghi “Đã có người nộp · Không thể sửa hoặc xóa”.
 :::

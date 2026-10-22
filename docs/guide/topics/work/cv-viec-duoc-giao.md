@@ -27,9 +27,19 @@ Nhận việc nhà trường giao, làm xong thì nộp file bằng chứng đ�
 Việc chỉ được tính **hoàn thành** khi người giao duyệt. Nộp sau hạn chót sẽ được ghi là **hoàn thành trễ**.
 :::
 
+::: tip Việc từ Văn thư
+Việc do Văn thư giao chỉ xuất hiện **sau khi Ban Giám hiệu duyệt**; lúc đó thầy cô mới nhận thông báo. Việc tổ trưởng, tổ phó hoặc Ban Giám hiệu giao thì hiện ngay. Xem [luồng giao việc](#menu-cong-viec).
+:::
+
 ### Câu hỏi thường gặp
 ??? Tôi nộp nhầm file thì sao?
 Nhắn người giao việc qua nút trao đổi trên thẻ. Họ có thể bấm **Chưa duyệt** để trả về, khi đó thầy cô nộp lại file đúng.
 
+??? Văn thư báo đã giao việc nhưng tôi chưa thấy?
+Công việc đó đang chờ Ban Giám hiệu duyệt. Khi được duyệt đủ, việc tự hiện trong tab **Việc cần làm** và chuông báo **Mới phân công**.
+
+??? Tôi muốn giao việc cho đồng nghiệp?
+Giáo viên, nhân viên 1 sao không tạo được công việc; hãy nhờ tổ trưởng hoặc dùng [Việc của tôi](#cv-viec-cua-toi) để ghi việc riêng.
+
 ??? Số đỏ cạnh menu Công việc là gì?
-Là tổng của: việc được giao mà thầy cô chưa xong, bài nộp đang chờ thầy cô duyệt và việc thầy cô tạo mà chưa hoàn thành.
+Là tổng của: việc được giao mà thầy cô chưa xong, bài nộp đang chờ thầy cô duyệt và việc thầy cô tạo mà chưa hoàn thành. Với Ban Giám hiệu, cộng thêm công việc đang chờ mình duyệt.
