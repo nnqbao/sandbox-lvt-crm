@@ -596,8 +596,9 @@ function isWorkManagementListVisible(args: {
     isAssignee,
     visibilityMode: args.visibilityMode,
     inModeratorScope,
+    // Approvers review pending documents in their own "Chờ tôi duyệt" list (listMine),
+    // so the management list keeps pending work to the creator and in-scope admin/mod.
     released: isWorkReleased(args.document),
-    isApprover: isDesignatedWorkApprover(args.document, args.actorUserId),
   });
 }
 
@@ -1575,12 +1576,15 @@ export const listAdmin = query({
         const view = await documentView(ctx, document, catalogData, items);
         // UX only (server re-checks): a scoped moderator cannot manage out-of-scope
         // documents they did not create, even when they see them as an assignee.
+        const isCreator = String(document.createdBy) === String(actor.user._id);
         const outOfScopeForMod = Boolean(actor.departmentScope)
-          && String(document.createdBy) !== String(actor.user._id)
+          && !isCreator
           && !isDocumentInScope(actor.departmentScope, document, usersById);
+        // Non-ops viewers (e.g. Ban giám hiệu in school mode) only manage their own documents.
+        const readOnly = outOfScopeForMod || (!actor.isOps && !isCreator);
         return {
           ...view,
-          ...(outOfScopeForMod ? { canEdit: false, canDelete: false } : {}),
+          ...(readOnly ? { canEdit: false, canDelete: false } : {}),
           assignments: assignmentViews,
           workStatus: documentListStatus(document, items, catalogData),
           taskCount: assignmentViews.reduce(
