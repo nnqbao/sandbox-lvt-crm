@@ -108,7 +108,8 @@ function clerkDocuments() {
       fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp kế hoạch dạy học môn học kỳ I', deadline: '2026-10-25', workStatus: 'in_progress',
       departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, createdAt: T0 - 5 * DAY, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh', 'approved', 100), approverRow('u_pht', 'approved', 98)], { status: 'approved', submittedHoursAgo: 120 }),
-      archived: false, canEdit: false, canDelete: false, taskCount: 6,
+      // Members already submitted / completed → read-only for everyone.
+      archived: false, canEdit: false, canDelete: false, hasSubmissions: true, taskCount: 6,
       assignments: [
         { _id: 'wi1', type: 'department', departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', content: 'Nộp kế hoạch dạy học môn Toán học kỳ I', deadline: '2026-10-25', status: 'in_progress', taskCount: 3, taskCompletedCount: 1,
           members: [member('u_teacher', 'pending_task'), member('u_leader', 'pending_completion'), member('u_t5', 'completed', 90)] },
@@ -170,7 +171,7 @@ function clerkDocuments() {
       content: 'Báo cáo sơ kết', deadline: '2026-10-05', workStatus: 'completed', departmentId: '', departmentName: 'Cá nhân',
       assignmentCount: 1, createdAt: T0 - 25 * DAY, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh', 'approved', 24 * 24)], { status: 'approved', submittedHoursAgo: 25 * 24 }),
-      archived: false, canEdit: false, canDelete: false, taskCount: 2,
+      archived: false, canEdit: false, canDelete: false, hasSubmissions: true, taskCount: 2,
       assignments: [
         { _id: 'wi9', type: 'individual', departmentName: 'Cá nhân', userNames: ['Lê Thị D', 'Đặng Văn M'], content: 'Gửi báo cáo sơ kết tháng 9 của tổ', deadline: '2026-10-05', status: 'completed', taskCount: 2, taskCompletedCount: 2,
           members: [member('u_leader', 'completed', 100), member('u_t6', 'completed', 90)] },

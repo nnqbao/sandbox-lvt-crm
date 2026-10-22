@@ -77,7 +77,7 @@ Khi đã có người nộp kết quả, công việc **chỉ xem** với mọi 
 #### Sau khi công việc đã giao
 Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ [[2]] để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
 
-![Việc tôi tạo: 1 Tạo công việc, 2 tiến độ từng người, 3 đã khóa sửa/xóa](cv-viec-toi-tao)
+![Việc tôi tạo: 1 Tạo công việc, 2 tiến độ từng người, 3 đã có người nộp, chỉ xem](cv-viec-toi-tao)
 
 ### Câu hỏi thường gặp
 ??? Đã gửi duyệt mà giáo viên báo chưa thấy việc?
