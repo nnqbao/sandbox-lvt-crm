@@ -58,13 +58,20 @@
 
 ## Work-document business invariants
 
+- Approval is **creator-based** (`workDocumentRequiresApproval`, stored as `officeDocuments.requiresApproval`; legacy rows without the flag fall back to the creator's current role):
+  - Created by **admin/moderator** (văn thư): requires Ban giám hiệu approval. At least one approver is mandatory (`WORK_APPROVER_REQUIRED`). Status stays `pending` until **every** designated approver approves, then becomes `approved` (released).
+  - Created by anyone else: released immediately (`status: "approved"`, no approvers).
+- Who may create work (`canCreateWorkDocuments`): admin/mod and any non-ops user at level ≥ 2. Level 1 and users without a position cannot (`ASSIGNMENT_CREATE_FORBIDDEN`). Công tác keeps its own rule (`canCreateAssignments`: admin/mod + 2/3★).
+- Non-ops assignment targets (`canAssignWorkToUser`): strictly lower position level, never self or a peer. Ban giám hiệu (level ≥ 4) may assign individuals in any department and whole departments (`canAssignWorkDepartment`); other creators assign only individuals in their own department (`WORK_ASSIGNEE_NOT_SUBORDINATE`, `WORK_DEPARTMENT_FORBIDDEN`). Admin/mod keep moderator department scope for assignments; approvers are school-wide.
+- Released = `active && status === "approved"` (`isWorkReleased`). Until release, assignees do not see the document, its chat, its file, or bell/push items. While `pending`/`rejected` it is visible only to the creator, its designated approvers, and in-scope admin/mod (school visibility mode).
+- Approvers get the bell item "Công việc chờ duyệt" + push on submit and resubmit; the creator gets bell + push on final approval and on return; assignees get push only when the document is released.
 - Admin/mod may edit or delete a work document only while `approvedByUserIds` is empty.
 - `pending`, `rejected`, and overdue documents remain editable/deletable only when nobody has approved.
 - The first approval permanently locks editing and deletion, even when:
   - another approver is still pending;
   - aggregate `status` remains `pending`;
   - the deadline later passes.
-- Reject is allowed only while `approvedByUserIds` is empty (`canRejectWorkDocument`). A later reject would leave the document both rejected and immutable.
+- Reject ("Trả lại") is allowed only while `approvedByUserIds` is empty (`canRejectWorkDocument`) and requires a reason (`WORK_RETURN_REASON_INVALID`). A later reject would leave the document both rejected and immutable. A returned document stays unreleased; the creator edits and resubmits it.
 - Do not implement the lock using only `status === "approved"`. Use the shared policy in `convex/workDocumentPolicy.ts`.
 - Approvers must be active **non-admin, non-moderator** users at position level 4 or above. Operational managers manage documents; they cannot be designated approvers (`ADMIN_USE_MANAGEMENT`).
 - Completing or reviewing work/personal tasks requires the parent document to still be `active` and `status === "approved"`.
