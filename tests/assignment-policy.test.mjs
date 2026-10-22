@@ -247,22 +247,56 @@ test('người tham gia công tác nhận push, kể cả khi tự thêm mình',
 
 test('Văn thư/admin không giao công việc cá nhân cho Ban giám hiệu (cấp ≥ 4); lịch công tác không đổi', async () => {
   const { readFileSync } = await import('node:fs');
-  const { opsCanAssignWorkToUser, WORK_ASSIGNEE_BGH_FORBIDDEN } = await import('../convex/assignmentPolicy.ts');
+  const {
+    opsCanAssignWorkToUser,
+    opsWorkAssigneeError,
+    WORK_ASSIGNEE_BGH_FORBIDDEN,
+    WORK_ASSIGNEE_OPS_FORBIDDEN,
+  } = await import('../convex/assignmentPolicy.ts');
   assert.equal(WORK_ASSIGNEE_BGH_FORBIDDEN, 'WORK_ASSIGNEE_BGH_FORBIDDEN');
-  for (const level of [0, 1, 2, 3]) assert.equal(opsCanAssignWorkToUser({ level }), true, `level ${level}`);
-  for (const level of [4, 5]) assert.equal(opsCanAssignWorkToUser({ level }), false, `level ${level}`);
+  assert.equal(WORK_ASSIGNEE_OPS_FORBIDDEN, 'WORK_ASSIGNEE_OPS_FORBIDDEN');
+  const vanThu = { _id: 'vt', departmentId: 'vp' };
+  for (const level of [0, 1, 2, 3]) {
+    assert.equal(opsCanAssignWorkToUser(vanThu, { _id: `u${level}`, role: 'user', level, departmentId: 'vp' }), true, `level ${level}`);
+  }
+  for (const level of [4, 5]) {
+    const target = { _id: `bgh${level}`, role: 'user', level, departmentId: 'vp' };
+    assert.equal(opsCanAssignWorkToUser(vanThu, target), false, `level ${level}`);
+    assert.equal(opsWorkAssigneeError(vanThu, target), WORK_ASSIGNEE_BGH_FORBIDDEN);
+  }
 
   const work = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
   const assert_ = work.slice(work.indexOf('async function assertWorkAssignmentsForActor'), work.indexOf('async function requireWorkAccess'));
-  assert.match(assert_, /if \(actor\.isOps\) \{[\s\S]*assignment\.type !== "individual"\) continue;[\s\S]*throw new Error\(WORK_ASSIGNEE_BGH_FORBIDDEN\)/);
-  // Moderator department scope still applies before the BGH rule.
+  assert.match(assert_, /if \(actor\.isOps\) \{[\s\S]*assignment\.type !== "individual"\) continue;[\s\S]*opsWorkAssigneeError\([\s\S]*if \(error\) throw new Error\(error\)/);
+  // Moderator department scope still applies before the BGH/ops rule.
   assert.match(assert_, /MODERATOR_DEPARTMENT_SCOPE_ERROR/);
-  const options = work.slice(work.indexOf('export const formOptions'), work.indexOf('export const formOptions') + 2500);
-  assert.match(options, /isUserInModeratorScope\(actor\.departmentScope, user\)\s*&& opsCanAssignWorkToUser/);
+  const options = work.slice(work.indexOf('export const formOptions'), work.indexOf('export const formOptions') + 4000);
+  assert.match(options, /isUserInModeratorScope\(actor\.departmentScope, user\)\s*&& opsCanAssignWorkToUser\(/);
   // Approvers remain Ban giám hiệu.
   assert.match(options, /isEligibleWorkApprover/);
   const duties = readFileSync(new URL('../convex/duties.ts', import.meta.url), 'utf8');
-  assert.doesNotMatch(duties, /opsCanAssignWorkToUser|WORK_ASSIGNEE_BGH_FORBIDDEN/);
+  assert.doesNotMatch(duties, /opsCanAssignWorkToUser|WORK_ASSIGNEE_BGH_FORBIDDEN|WORK_ASSIGNEE_OPS_FORBIDDEN/);
   const messages = readFileSync(new URL('../src/lib/appErrorMessage.js', import.meta.url), 'utf8');
   assert.match(messages, /WORK_ASSIGNEE_BGH_FORBIDDEN: 'Văn thư không thể giao công việc cho Ban giám hiệu\.'/);
+  assert.match(messages, /WORK_ASSIGNEE_OPS_FORBIDDEN: 'Chỉ giao việc cho tài khoản quản trị cùng phòng ban\.'/);
+});
+
+test('Văn thư tự giao cho mình; tài khoản quản trị khác chỉ khi cùng phòng ban (có phòng ban)', async () => {
+  const { opsWorkAssigneeError, WORK_ASSIGNEE_OPS_FORBIDDEN, WORK_ASSIGNEE_BGH_FORBIDDEN } = await import('../convex/assignmentPolicy.ts');
+  const mod = { _id: 'mod', departmentId: 'vp' };
+  // Self: always allowed, even for an ops account without department or with a 4+ position.
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'mod', role: 'moderator', level: 0, departmentId: 'vp' }), null);
+  assert.equal(opsWorkAssigneeError({ _id: 'adm' }, { _id: 'adm', role: 'admin', level: 5 }), null);
+  // Other admin/mod in the same department: allowed.
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'mod2', role: 'moderator', level: 0, departmentId: 'vp' }), null);
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'adm', role: 'admin', level: 5, departmentId: 'vp' }), null);
+  // Different department, or either side without a department: forbidden.
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'mod3', role: 'moderator', level: 0, departmentId: 'toan' }), WORK_ASSIGNEE_OPS_FORBIDDEN);
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'mod4', role: 'moderator', level: 0, departmentId: '' }), WORK_ASSIGNEE_OPS_FORBIDDEN);
+  assert.equal(opsWorkAssigneeError({ _id: 'adm', departmentId: '' }, { _id: 'mod5', role: 'moderator', level: 0, departmentId: '' }), WORK_ASSIGNEE_OPS_FORBIDDEN);
+  assert.equal(opsWorkAssigneeError({ _id: 'adm' }, { _id: 'mod', role: 'moderator', level: 0, departmentId: 'vp' }), WORK_ASSIGNEE_OPS_FORBIDDEN);
+  // BGH individual still forbidden; lower-level members of the BGH department stay allowed.
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'ht', role: 'user', level: 5, departmentId: 'bgh' }), WORK_ASSIGNEE_BGH_FORBIDDEN);
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'hp', role: 'user', level: 4, departmentId: 'vp' }), WORK_ASSIGNEE_BGH_FORBIDDEN);
+  assert.equal(opsWorkAssigneeError(mod, { _id: 'cu', role: 'user', level: 3, departmentId: 'bgh' }), null);
 });

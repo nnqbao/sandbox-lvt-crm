@@ -24,7 +24,7 @@ import {
   isWorkReleased,
   isWorkStatusCompleted,
   opsCanAssignWorkToUser,
-  WORK_ASSIGNEE_BGH_FORBIDDEN,
+  opsWorkAssigneeError,
   workMenuBadgeCount,
   shouldBypassWorkCompletionReview,
   workAssignmentPushUserIds,
@@ -53,6 +53,8 @@ import {
   isWorkApprovalLocked,
   workApprovalDecidedAt,
   workApprovalSubmission,
+  workDocumentFollowsApprovalFlow,
+  workDocumentNeedsApproval,
   workDocumentRequiresApproval,
   workReturnReason,
 } from "./workDocumentPolicy";
@@ -440,15 +442,24 @@ async function assertWorkAssignmentsForActor(
     }
   }
   if (actor.isOps) {
-    // Văn thư/admin: no individual assignment to Ban giám hiệu (level ≥ 4).
-    // Department assignments are still allowed (handled by the department).
+    // Văn thư/admin individual targets: self always; another admin/mod only in
+    // the same department; never Ban giám hiệu (level ≥ 4). Department
+    // assignments are still allowed (handled by the department).
     for (const assignment of assignments) {
       if (assignment.type !== "individual") continue;
       for (const userId of assignment.userIds) {
         const target = await ctx.db.get(userId);
-        if (target && !opsCanAssignWorkToUser({ level: activePositionLevel(target, actor.positions) })) {
-          throw new Error(WORK_ASSIGNEE_BGH_FORBIDDEN);
-        }
+        if (!target) continue;
+        const error = opsWorkAssigneeError(
+          { _id: String(actor.user._id), departmentId: actor.user.departmentId },
+          {
+            _id: String(target._id),
+            role: target.role,
+            level: activePositionLevel(target, actor.positions),
+            departmentId: target.departmentId,
+          },
+        );
+        if (error) throw new Error(error);
       }
     }
   }
@@ -789,6 +800,12 @@ async function documentView(ctx: any, document: any, catalogData: any, items: an
       requiresApproval: document.requiresApproval,
       creatorRole: creator?.role,
     }),
+    // Văn thư flow regardless of current assignments (an edit that adds anyone
+    // besides the creator needs approval again).
+    approvalFlow: workDocumentFollowsApprovalFlow({
+      requiresApproval: document.requiresApproval,
+      creatorRole: creator?.role,
+    }),
     approvalLocked: isWorkApprovalLocked(document),
     submittedAt: document.submittedAt ?? document.createdAt,
     decidedAt: workApprovalDecidedAt(document),
@@ -1054,10 +1071,13 @@ async function notifyWorkAssignees(
     documentId: string;
     title: string;
     body: string;
+    /** The actor never gets a push for work they assigned to themselves. */
+    skipUserId?: string;
   },
 ) {
   const users = await activeUsersList(ctx);
-  const recipients = workAssignmentPushUserIds({ assignments: args.assignments, users });
+  const recipients = workAssignmentPushUserIds({ assignments: args.assignments, users })
+    .filter((id) => !args.skipUserId || id !== String(args.skipUserId));
   if (!recipients.length) return;
   await ctx.scheduler.runAfter(0, internal.pushActions.sendToUsers, {
     userIds: recipients,
@@ -1094,7 +1114,15 @@ export const formOptions = query({
     const users = activeUsers.filter((user: any) => {
       if (actor.isOps) {
         return isUserInModeratorScope(actor.departmentScope, user)
-          && opsCanAssignWorkToUser({ level: activePositionLevel(user, positions) });
+          && opsCanAssignWorkToUser(
+            { _id: String(actor.user._id), departmentId: actor.user.departmentId },
+            {
+              _id: String(user._id),
+              role: user.role,
+              level: activePositionLevel(user, positions),
+              departmentId: user.departmentId,
+            },
+          );
       }
       return actorCanAssignUser(actor, user);
     });
@@ -1112,12 +1140,17 @@ export const formOptions = query({
         positions.find((position: any) => String(position._id) === String(user.positionId))?.name
         || "",
       level: activePositionLevel(user, positions),
+      isSelf: String(user._id) === String(actor.user._id),
     });
     return {
       canCreate: true,
       isOps: actor.isOps,
-      /** Documents created by admin/mod need Ban giám hiệu approval before release. */
+      /**
+       * Documents created by admin/mod need Ban giám hiệu approval before
+       * release, unless the only assignee is the creator (`selfUserId`).
+       */
       requiresApproval: actor.isOps,
+      selfUserId: actor.user._id,
       canAssignDepartments,
       departmentScope: actor.departmentScope,
       visibilityMode,
@@ -1189,8 +1222,13 @@ export const createDocument = mutation({
       ? validateDocumentFile(args.fileName || "", args.fileSize || 0)
       : { fileName: "", fileType: "" };
     if (args.driveFileId && !args.cleanupToken) throw new Error("UPLOAD_NOT_FOUND");
-    // Creator-based rule: admin/mod (văn thư) documents need Ban giám hiệu approval.
-    const requiresApproval = workDocumentRequiresApproval({ creatorRole: actor.user.role });
+    // Creator-based rule: admin/mod (văn thư) documents need Ban giám hiệu
+    // approval, except when the creator assigned the work only to themselves.
+    const requiresApproval = workDocumentNeedsApproval({
+      followsApprovalFlow: workDocumentFollowsApprovalFlow({ creatorRole: actor.user.role }),
+      assignments: args.assignments,
+      creatorId: actor.user._id,
+    });
     const { assignments, approverUserIds } = await assertWorkAssignmentsForActor(
       ctx,
       args.assignments,
@@ -1261,6 +1299,7 @@ export const createDocument = mutation({
         documentId: String(documentId),
         title: "Công việc mới",
         body: title,
+        skipUserId: String(actor.user._id),
       });
     }
     return documentId;
@@ -1336,9 +1375,13 @@ export const updateDocument = mutation({
     }
 
     const creator = await ctx.db.get(document.createdBy as Id<"users">);
-    const requiresApproval = workDocumentRequiresApproval({
-      requiresApproval: document.requiresApproval,
-      creatorRole: creator?.role,
+    const requiresApproval = workDocumentNeedsApproval({
+      followsApprovalFlow: workDocumentFollowsApprovalFlow({
+        requiresApproval: document.requiresApproval,
+        creatorRole: creator?.role,
+      }),
+      assignments: args.assignments,
+      creatorId: document.createdBy,
     });
     const { assignments, approverUserIds } = await assertWorkAssignmentsForActor(
       ctx,
@@ -1437,6 +1480,7 @@ export const updateDocument = mutation({
         documentId: String(args.documentId),
         title: "Công việc đã cập nhật",
         body: displayTitle,
+        skipUserId: String(actor.user._id),
       });
     }
     return { documentId: args.documentId, cleanupJobId };

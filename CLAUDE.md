@@ -61,6 +61,7 @@
 - Approval is **creator-based** (`workDocumentRequiresApproval`, stored as `officeDocuments.requiresApproval`; legacy rows without the flag fall back to the creator's current role):
   - Created by **admin/moderator** (văn thư): requires Ban giám hiệu approval. At least one approver is mandatory (`WORK_APPROVER_REQUIRED`). Status stays `pending` until **every** designated approver approves, then becomes `approved` (released).
   - Created by anyone else: released immediately (`status: "approved"`, no approvers).
+  - Exception: a văn thư document whose only assignee is the creator (individual assignment(s) holding just the creator, no department) is released immediately with no approvers (`workDocumentNeedsApproval`, re-decided on every edit); creator plus anyone else or any department follows the normal BGH approval.
 - Who may create work (`canCreateWorkDocuments`): admin/mod and any non-ops user at level ≥ 2. Level 1 and users without a position cannot (`ASSIGNMENT_CREATE_FORBIDDEN`). Công tác keeps its own rule (`canCreateAssignments`: admin/mod + 2/3★).
 - Non-ops assignment targets (`canAssignWorkToUser`): strictly lower position level, never self or a peer. Ban giám hiệu (level ≥ 4) may assign individuals in any department and whole departments (`canAssignWorkDepartment`); other creators assign only individuals in their own department (`WORK_ASSIGNEE_NOT_SUBORDINATE`, `WORK_DEPARTMENT_FORBIDDEN`). Admin/mod keep moderator department scope for assignments; approvers are school-wide.
 - Released = `active && status === "approved"` (`isWorkReleased`). Until release, assignees do not see the document, its chat, its file, or bell/push items. While `pending`/`rejected` it is visible only to the creator, its designated approvers, and in-scope admin/mod (school visibility mode).
@@ -75,6 +76,7 @@
 - Do not implement the lock using only `status === "approved"`. Use the shared policy in `convex/workDocumentPolicy.ts`.
 - Approvers must be active **non-admin, non-moderator** users at position level 4 or above. Operational managers manage documents; they cannot be designated approvers (`ADMIN_USE_MANAGEMENT`).
 - Admin/mod (Văn thư) may not assign work individually to Ban giám hiệu (position level ≥ 4) — `WORK_ASSIGNEE_BGH_FORBIDDEN`, hidden from the ops assignee picker; BGH stay approvers, department assignments stay allowed, Lịch công tác participants are unaffected.
+- Admin/mod may assign work to themselves, and to another admin/moderator only when both have the same non-empty `departmentId` — otherwise `WORK_ASSIGNEE_OPS_FORBIDDEN` (`opsWorkAssigneeError`); the ops picker shows self always and other ops only from the same department.
 - Completing or reviewing work/personal tasks requires the parent document to still be `active` and `status === "approved"`.
 - Editing a mutable document resets prior approval/rejection decisions and sends the revised document through approval again.
 - Replacing assignments deactivates superseded work items/personal tasks and creates the new active work graph atomically with the document update.

@@ -5,6 +5,9 @@
  * - A document created by an operational manager (admin / moderator = văn thư)
  *   needs Ban giám hiệu approval before it is released. It stays `pending`
  *   until every designated approver approves, then becomes `approved`.
+ * - Exception: a văn thư document whose only assignee is the creator (only
+ *   individual assignments, each containing just the creator) is released
+ *   immediately with no approvers.
  * - Documents created by anyone else are released immediately (`approved`,
  *   no approvers).
  * - The first approval permanently locks edit/delete, even while other
@@ -58,6 +61,50 @@ export function workDocumentRequiresApproval(args: {
 }) {
   if (typeof args.requiresApproval === "boolean") return args.requiresApproval;
   return isOperationalManagerRole(args.creatorRole);
+}
+
+/**
+ * Whether a document is in the văn thư approval flow regardless of its current
+ * assignments: stored `true`, or created by an admin/moderator. A stored
+ * `false` on an ops-created document only means it was self-only when saved.
+ */
+export function workDocumentFollowsApprovalFlow(args: {
+  requiresApproval?: boolean | null;
+  creatorRole?: string | null;
+}) {
+  return args.requiresApproval === true || isOperationalManagerRole(args.creatorRole);
+}
+
+type SelfOnlyAssignment = {
+  type?: string | null;
+  userIds?: unknown[] | null;
+};
+
+/** Every assignment is individual and contains only the creator (no departments, nobody else). */
+export function isSelfOnlyWorkAssignment(
+  assignments: SelfOnlyAssignment[] | null | undefined,
+  creatorId: unknown,
+) {
+  const creator = String(creatorId || "").trim();
+  const rows = assignments || [];
+  if (!creator || !rows.length) return false;
+  return rows.every((row) => {
+    if (row.type !== "individual") return false;
+    const userIds = ids(row.userIds).map((id) => id.trim()).filter(Boolean);
+    return userIds.length > 0 && userIds.every((id) => id === creator);
+  });
+}
+
+/**
+ * Approval decision for a create/edit: the văn thư flow applies unless the
+ * creator assigned the work only to themselves.
+ */
+export function workDocumentNeedsApproval(args: {
+  followsApprovalFlow: boolean;
+  assignments: SelfOnlyAssignment[] | null | undefined;
+  creatorId: unknown;
+}) {
+  return args.followsApprovalFlow && !isSelfOnlyWorkAssignment(args.assignments, args.creatorId);
 }
 
 /** A valid approver: active, not admin/moderator, position level 4 or above. */

@@ -14,6 +14,7 @@ import {
   isEditedDuty,
   scheduleRange,
   sharedScheduleFilename,
+  weekPeriodHeading,
 } from '../src/duties/sharedDutySchedule.js';
 import { dutiesPathname, parseDutyPath } from '../src/duties/dutyRoutes.js';
 import { buildSharedDutySchedulePdf, SHARED_SCHEDULE_PDF_FONT } from '../src/duties/sharedDutySchedulePdf.js';
@@ -398,4 +399,21 @@ test('Lịch công tác: chi tiết và xem trước import không hiện ngày 
   assert.match(bulk, /formatVnDate\(row\.startDate\)/);
   const css = readFileSync(new URL('../src/duties/sharedDutySchedule.css', import.meta.url), 'utf8');
   assert.match(css, /\.lct-shared-view \{\n  \/\*[^*]*\*\/\n  padding: 0 24px 32px;/);
+});
+
+test('lịch cá nhân: tiêu đề kỳ tuần dùng dd/MM/yyyy và cùng khoảng Thứ 2–Thứ 7 với tiêu đề bảng', () => {
+  // Week across months: Monday 28/09/2026 → Saturday 03/10/2026 (not "28/9–4/10, 2026").
+  assert.equal(weekPeriodHeading('2026-10-01'), '28/09/2026 – 03/10/2026');
+  assert.equal(weekPeriodHeading('2026-10-04'), '28/09/2026 – 03/10/2026');
+  const range = scheduleRange('week', '2026-10-01');
+  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 28/09/2026 ĐẾN 03/10/2026');
+  const personal = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
+  assert.match(personal, /title: weekPeriodHeading\(toSharedIsoDate\(anchor\)\)/);
+  assert.doesNotMatch(personal, /getMonth\(\) \+ 1\}, \$\{end\.getFullYear\(\)\}/);
+});
+
+test('Báo cáo trên điện thoại: thanh công cụ và thẻ Nhân sự dùng hết chiều ngang', () => {
+  const css = readFileSync(new URL('../src/reports/dutyCalendar.css', import.meta.url), 'utf8');
+  assert.match(css, /\.report-calendar-toolbar \{ display: grid; grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(css, /\.report-people-group \{ flex: 0 0 100%;/);
 });

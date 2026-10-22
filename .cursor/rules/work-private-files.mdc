@@ -11,12 +11,14 @@ Full text: `CLAUDE.md` sections **Work-document** / **Private file and cache** /
 ## Work documents
 
 - Creator-based approval: admin/mod-created work needs ≥1 Ban giám hiệu approver (`WORK_APPROVER_REQUIRED`), stays `pending` until all approve; everyone else's work is released on create (`status: "approved"`)
+- Exception: admin/mod work assigned only to the creator (no other person, no department) is released with no approvers (`workDocumentNeedsApproval`)
 - Creators: admin/mod + any non-ops level ≥ 2 (`canCreateWorkDocuments`); BGH (4+) assigns any department / lower level, others same department / lower level
 - Released = `active && status === "approved"` (`isWorkReleased`); pending/returned work is hidden from assignees (list, chat, file, bell, push)
 - First approval locks edit/delete forever, admin/mod included — do **not** lock only on `status === "approved"`; use `convex/workDocumentPolicy.ts`
 - Reject (Trả lại, reason required) only while nobody has approved (`canRejectWorkDocument`); edit resets decisions and resubmits
 - Approvers = active level 4+ **users**, never admin/moderator
 - Admin/mod never assign work individually to Ban giám hiệu (level 4+): `WORK_ASSIGNEE_BGH_FORBIDDEN`; department assignments and duty participants unaffected
+- Admin/mod may assign themselves; other admin/mod only with the same non-empty department, else `WORK_ASSIGNEE_OPS_FORBIDDEN`
 - Otherwise creator may edit/delete until an assignee has submitted (nộp); in-scope admin/mod may still edit
 - Completions: assignee **Nộp** (web requires evidence file); only the **creator** marks complete / returns
 - Soft-delete first; inactive docs must deny access even if Drive cleanup lags

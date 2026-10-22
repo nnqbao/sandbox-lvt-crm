@@ -161,7 +161,7 @@ export default function WorkAssignmentRows({
                       options={userOptions}
                       value={row.userIds?.[0] || ''}
                       onChange={(nextId) => updateRow(index, { userIds: nextId ? [nextId] : [] })}
-                      getLabel={(user) => `${user.name}${user.departmentName ? ` · ${user.departmentName}` : ''}`}
+                      getLabel={(user) => `${user.name}${user.isSelf ? ' (bạn)' : ''}${user.departmentName ? ` · ${user.departmentName}` : ''}`}
                       placeholder="Chọn người nhận"
                       searchPlaceholder="Tìm theo tên, email…"
                     />
