@@ -20,7 +20,23 @@ import UserBulkImport from './settings/UserBulkImport';
 import './settings/userBulkImport.css';
 import NotificationsView from './notifications/NotificationsView';
 import { DUTY_NOTIFICATION_FOCUS_TYPES, menuForNotification, useNotificationFocus } from './notifications/useNotificationFocus';
-import { ACCOUNT_MENU_IDS, isAccountMenu, isSidebarPrimaryMenu, pathnameForMenu, pathnameForReportSection, routeForPathname, dutiesPathname, chatPathname, titleForAccountMenu } from './navigationRoutes';
+import {
+  ACCOUNT_MENU_IDS,
+  PRIMARY_MENUS,
+  SUPREME_SETTINGS,
+  isAccountMenu,
+  isPrimaryMenuVisible,
+  isSidebarPrimaryMenu,
+  pathnameForMenu,
+  pathnameForReportSection,
+  routeForPathname,
+  dutiesPathname,
+  chatPathname,
+  titleForAccountMenu,
+} from './navigationRoutes';
+import PageHelpButton from './help/PageHelpButton.jsx';
+import BoardingPage from './boarding/BoardingPage.jsx';
+import BoardingReportsView from './boarding/BoardingReportsView.jsx';
 import { parseDutyPath } from './duties/dutyRoutes';
 import AccountDeletionPage from './privacy/AccountDeletionPage';
 import PrivacyPolicyPage from './privacy/PrivacyPolicyPage';
@@ -67,28 +83,9 @@ const publicConvexUrl =
   (window.location.hostname === 'lvt.vscgroup.io.vn' ? window.location.origin : null);
 const convex = publicConvexUrl ? new ConvexReactClient(publicConvexUrl) : null;
 
-const PRIMARY_MENUS = [
-  ['reports', 'Báo cáo'],
-  ['notifications', 'Thông báo'],
-  ['chat', 'Trao đổi'],
-  ['duties', 'Lịch công tác'],
-  ['work', 'Công việc'],
-  ['homeroom', 'Lớp chủ nhiệm'],
-  ['attendance', 'Điểm danh'],
-  ['people-review', 'Đánh giá nhân sự'],
-  ['staff-faults', 'Ghi nhận lỗi'],
-];
 const SYSTEM_MANAGEMENT_MENUS = [];
-const SUPREME_SETTINGS = [
-  ['users', 'Thiết lập người dùng'],
-  ['departments', 'Thiết lập phòng ban'],
-  ['roles', 'Thiết lập nhóm quyền'],
-  ['positions', 'Thiết lập chức vụ'],
-  ['document-types', 'Thiết lập loại văn bản'],
-  ['school-years', 'Thiết lập năm học'],
-  ['display-settings', 'Thiết lập hiển thị'],
-  ['design-library', 'Thư viện giao diện'],
-];
+/** Menus stored in permission groups (Trao đổi and Bán trú have no matrix key; the backend list wins once loaded). */
+const MATRIX_MENUS = PRIMARY_MENUS.filter(([id]) => id !== 'chat' && id !== 'boarding');
 const ROLE_LABELS = { admin: 'Administrator', moderator: 'Moderator', user: 'User' };
 const ACCESS_LABELS = {
   hidden: 'Ẩn',
@@ -162,11 +159,10 @@ function AppShell({ session }) {
     anyApi.notifications.feed,
     canUseNotifications ? {} : 'skip',
   );
-  const visiblePrimaryMenus = useMemo(() => {
-    if (canManageOperations) return PRIMARY_MENUS;
-    // Trao đổi and Công việc ("Việc của tôi") are open to every active account.
-    return PRIMARY_MENUS.filter(([id]) => id === 'chat' || id === 'work' || (menuAccess?.[id] && menuAccess[id] !== 'hidden'));
-  }, [canManageOperations, menuAccess]);
+  const visiblePrimaryMenus = useMemo(
+    () => PRIMARY_MENUS.filter(([id]) => isPrimaryMenuVisible(id, { canManageOperations, menuAccess })),
+    [canManageOperations, menuAccess],
+  );
   const canUseChat = visiblePrimaryMenus.some(([id]) => id === 'chat');
   const sidebarPrimaryMenus = useMemo(
     () => visiblePrimaryMenus.filter(([id]) => isSidebarPrimaryMenu(id)),
@@ -480,9 +476,12 @@ function AppShell({ session }) {
           <button className="mobile-menu" onClick={() => setMobileOpen((open) => !open)} aria-label="Mở menu" aria-expanded={mobileOpen}>
             ☰
           </button>
-          <div>
+          <div className="shell-title">
             <p className="eyebrow">CRM Lê Văn Tám</p>
-            <h1>{title}</h1>
+            <div className="shell-title-row">
+              <h1>{title}</h1>
+              <PageHelpButton menuId={active} />
+            </div>
           </div>
           <div className="header-user">
             {canUseChat ? (
@@ -506,8 +505,6 @@ function AppShell({ session }) {
           <UserManagement />
         ) : active === 'departments' && isAdmin ? (
           <DepartmentManagement />
-        ) : active === 'locations' && isAdmin ? (
-          <LocationManagement />
         ) : active === 'roles' && isAdmin ? (
           <PermissionGroupManagement />
         ) : active === 'positions' && isAdmin ? (
@@ -567,7 +564,9 @@ function AppShell({ session }) {
         ) : active === 'staff-faults' ? (
           <StaffFaultsView />
         ) : active === 'reports' ? (
-          <WorkReportsView />
+          reportSection === 'boarding' ? <BoardingReportsView /> : <WorkReportsView />
+        ) : active === 'boarding' ? (
+          <BoardingPage canManage={canManageOperations} />
         ) : active === 'homeroom' ? (
           <HomeroomRouter session={session} />
         ) : active === 'attendance' ? (
@@ -691,6 +690,9 @@ function ReportSubmenu({ active, onChoose }) {
     <div className="report-submenu" aria-label="Loại báo cáo">
       <button type="button" className={active === 'work' ? 'active' : ''} onClick={() => onChoose('work')}>
         <span className="nav-icon">{navIconFor('work')}</span> Công việc
+      </button>
+      <button type="button" className={active === 'boarding' ? 'active' : ''} onClick={() => onChoose('boarding')}>
+        <span className="nav-icon">{navIconFor('boarding')}</span> Bán trú
       </button>
     </div>
   );
@@ -1787,129 +1789,8 @@ function DepartmentManagement() {
   );
 }
 
-function LocationManagement() {
-  const data = useQuery(anyApi.locations.list);
-  const create = useMutation(anyApi.locations.create);
-  const update = useMutation(anyApi.locations.update);
-  const remove = useMutation(anyApi.locations.remove);
-  const [form, setForm] = useState({ name: '', description: '' });
-  const [editing, setEditing] = useState(null);
-  const { pending, feedback, run } = useFeedback();
-
-  const locations = (data?.locations || []).filter((item) => item.active);
-
-  const submit = async (event) => {
-    event.preventDefault();
-    const payload = {
-      name: form.name,
-      description: form.description.trim() ? form.description : undefined,
-    };
-    if (editing) {
-      const ok = await run('save', () => update({ id: editing._id, ...payload }), 'Đã cập nhật địa điểm.');
-      if (ok) {
-        setEditing(null);
-        setForm({ name: '', description: '' });
-      }
-    } else {
-      const ok = await run('save', () => create(payload), 'Đã thêm địa điểm.');
-      if (ok) setForm({ name: '', description: '' });
-    }
-  };
-
-  if (data === undefined) return <LoadingView label="Đang tải địa điểm…" />;
-
-  return (
-    <section className="admin-view modern-management locations-management">
-      <div className="section-intro">
-        <div>
-          <span className="status-pill blue">Địa điểm</span>
-          <h2>Thiết lập địa điểm</h2>
-          <p>Thêm, sửa, xóa địa điểm dùng trong các nghiệp vụ nhà trường.</p>
-        </div>
-      </div>
-      <div className={`feedback ${feedback.type}`} role="status" aria-live="polite">
-        {feedback.text}
-      </div>
-      <form className="admin-form" onSubmit={submit}>
-        <div className="form-heading">
-          <strong>{editing ? `Sửa: ${editing.name}` : 'Thêm địa điểm'}</strong>
-          {editing && (
-            <button
-              type="button"
-              className="text-button"
-              onClick={() => {
-                setEditing(null);
-                setForm({ name: '', description: '' });
-              }}
-            >
-              Hủy
-            </button>
-          )}
-        </div>
-        <label>
-          Tên địa điểm
-          <input required maxLength={120} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-        </label>
-        <label>
-          Mô tả
-          <textarea
-            maxLength={1000}
-            rows={3}
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Mô tả ngắn về địa điểm (tùy chọn)"
-          />
-        </label>
-        <button className="primary-button" disabled={Boolean(pending)}>
-          {editing ? 'Lưu' : '+ Thêm địa điểm'}
-        </button>
-      </form>
-      <div className="card-list">
-        {locations.length === 0 ? (
-          <p className="muted">Chưa có địa điểm nào. Thêm địa điểm đầu tiên ở form trên.</p>
-        ) : (
-          locations.map((item) => (
-            <article className="mgmt-card" key={item._id}>
-              <div className="mgmt-card-head">
-                <div>
-                  <strong>{item.name}</strong>
-                  {item.description ? <span className="muted-block">{item.description}</span> : <span className="muted-block">Không có mô tả</span>}
-                </div>
-                <div className="row-actions">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(item);
-                      setForm({ name: item.name, description: item.description || '' });
-                    }}
-                    disabled={Boolean(pending)}
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    type="button"
-                    className="danger-button"
-                    onClick={() => {
-                      if (window.confirm(`Xóa địa điểm ${item.name}?`)) {
-                        void run(`del-${item._id}`, () => remove({ id: item._id }), 'Đã xóa địa điểm.');
-                      }
-                    }}
-                    disabled={Boolean(pending)}
-                  >
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
 function defaultAccessForm() {
-  return Object.fromEntries(PRIMARY_MENUS.map(([id]) => [id, id === 'notifications' ? 'view' : 'hidden']));
+  return Object.fromEntries(MATRIX_MENUS.map(([id]) => [id, id === 'notifications' ? 'view' : 'hidden']));
 }
 
 function PermissionGroupManagement() {
@@ -1927,7 +1808,7 @@ function PermissionGroupManagement() {
   const { pending, feedback, run } = useFeedback();
 
   const groups = (data?.groups || []).filter((g) => g.active);
-  const menus = data?.menus || PRIMARY_MENUS.map(([id, label]) => ({ id, label }));
+  const menus = data?.menus || MATRIX_MENUS.map(([id, label]) => ({ id, label }));
   const users = data?.users || [];
 
   useEffect(() => {

@@ -15,7 +15,7 @@ import {
 } from '../convex/chatHubPolicy.ts';
 import { chatDayLabel, formatChatListTime } from '../src/chat/chatTime.js';
 import { parseThreadKey as parseClientThreadKey, threadKeyFor as clientThreadKey } from '../src/chat/threadKey.js';
-import { chatPathname, parseChatPath, pathnameForMenu, routeForPathname } from '../src/navigationRoutes.js';
+import { chatPathname, isPrimaryMenuVisible, parseChatPath, pathnameForMenu, routeForPathname } from '../src/navigationRoutes.js';
 import { menuForNotification } from '../src/notifications/useNotificationFocus.js';
 
 const mainSource = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
@@ -70,12 +70,14 @@ test('list times use the Vietnam calendar', () => {
 });
 
 test('Trao đổi menu sits above Công tác and Công việc and is always available', () => {
-  const block = mainSource.slice(mainSource.indexOf('const PRIMARY_MENUS'), mainSource.indexOf('const SYSTEM_MANAGEMENT_MENUS'));
+  const routesSource = readFileSync(new URL('../src/navigationRoutes.js', import.meta.url), 'utf8');
+  const block = routesSource.slice(routesSource.indexOf('const PRIMARY_MENUS'), routesSource.indexOf('const SUPREME_SETTINGS'));
   const chat = block.indexOf("['chat', 'Trao đổi']");
   const duties = block.indexOf("['duties', 'Lịch công tác']");
   const work = block.indexOf("['work', 'Công việc']");
   assert.ok(chat >= 0 && chat < duties && chat < work);
-  assert.match(mainSource, /id === 'chat'/);
+  assert.match(routesSource, /menuId === 'chat'/);
+  assert.equal(isPrimaryMenuVisible('chat', { menuAccess: {} }), true);
   assert.equal(pathnameForMenu('chat'), '/trao-doi');
   assert.equal(menuForNotification({ kind: 'work', sourceType: 'work_chat' }), 'chat');
   assert.equal(menuForNotification({ kind: 'duty', sourceType: 'duty' }), 'duties');

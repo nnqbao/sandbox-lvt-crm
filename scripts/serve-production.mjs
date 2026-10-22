@@ -17,6 +17,7 @@ import { retryDriveDownload } from './lib/drive-download-retry.mjs';
 import { canonicalUploadMime, downloadContentPolicy } from './lib/file-content-policy.mjs';
 import { FileHttpError, classifyFileError } from './lib/file-http-errors.mjs';
 import { matchAvatarFileRoute, matchDriveMutationRoute } from './lib/file-route-policy.mjs';
+import { staticFrameHeaders } from './lib/static-frame-policy.mjs';
 import {
   buildAuthorizedSharedSchedulePdf,
   parseSharedScheduleQuery,
@@ -623,6 +624,8 @@ const server = createServer(async (request, response) => {
     const isHashedAsset = filePath.startsWith(`${path.join(distRoot, 'assets')}${path.sep}`);
 
     response.setHeader('Content-Type', contentTypes.get(extension) || 'application/octet-stream');
+    const servedPath = `/${path.relative(distRoot, filePath).split(path.sep).join('/')}`;
+    for (const header of staticFrameHeaders(servedPath)) response.setHeader(header.name, header.value);
     response.setHeader(
       'Cache-Control',
       isHashedAsset ? 'public, max-age=31536000, immutable' : 'no-cache',
