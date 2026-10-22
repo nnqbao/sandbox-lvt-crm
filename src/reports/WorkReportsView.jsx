@@ -109,21 +109,56 @@ function WeekCalendar({ range, events, onSelect }) {
   })}</div>;
 }
 
+function formatDayHeading(date) {
+  return `${WEEKDAYS[(date.getDay() + 6) % 7]}, ${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+}
+
+/**
+ * Desktop: full month grid with up to 3 events per day.
+ * ≤680px (CSS): all 7 columns as a compact grid with a count per day; tapping a
+ * day lists that day's work below the grid (agenda).
+ */
 function MonthCalendar({ anchor, events, onSelect }) {
   const today = toIsoDate(new Date());
+  const days = monthGridDays(anchor);
+  const [pickedIso, setPickedIso] = useState('');
+  const inMonthIso = new Set(days.filter((date) => date.getMonth() === anchor.getMonth()).map(toIsoDate));
+  const selectedIso = inMonthIso.has(pickedIso) ? pickedIso : inMonthIso.has(today) ? today : '';
+  const selectedDate = days.find((date) => toIsoDate(date) === selectedIso) || null;
+  const selectedEvents = selectedDate ? eventsForDay(events, selectedDate) : [];
   return <div className="report-month-calendar">
     <div className="report-month-weekdays">{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
-    <div className="report-month-grid">{monthGridDays(anchor).map((date) => {
+    <div className="report-month-grid">{days.map((date) => {
       const dailyEvents = eventsForDay(events, date);
       const isoDate = toIsoDate(date);
-      return <section className={`report-month-day ${date.getMonth() !== anchor.getMonth() ? 'is-outside' : ''} ${isoDate === today ? 'is-today' : ''}`} key={isoDate}>
-        <span className="report-month-number">{date.getDate()}</span>
+      const selected = isoDate === selectedIso;
+      return <section className={`report-month-day ${date.getMonth() !== anchor.getMonth() ? 'is-outside' : ''} ${isoDate === today ? 'is-today' : ''} ${selected ? 'is-selected' : ''}`} key={isoDate}>
+        <button
+          type="button"
+          className="report-month-number"
+          aria-pressed={selected}
+          aria-label={`${formatDayHeading(date)}: ${dailyEvents.length} việc`}
+          onClick={() => setPickedIso(isoDate)}
+        >
+          {date.getDate()}
+          {dailyEvents.length ? <i className="report-month-count" aria-hidden="true">{dailyEvents.length}</i> : null}
+        </button>
         <div className="report-month-events">
           {dailyEvents.slice(0, 3).map((event) => <CalendarEvent compact key={event._id} event={event} onSelect={onSelect} />)}
           {dailyEvents.length > 3 ? <span className="report-more-events">+{dailyEvents.length - 3} việc khác</span> : null}
         </div>
       </section>;
     })}</div>
+    <div className="report-month-agenda" aria-live="polite">
+      {selectedDate ? (
+        <>
+          <h4>{formatDayHeading(selectedDate)}</h4>
+          {selectedEvents.length
+            ? <div className="report-day-events">{selectedEvents.map((event) => <CalendarEvent key={event._id} event={event} onSelect={onSelect} />)}</div>
+            : <p className="report-day-empty">Không có công việc trong ngày này.</p>}
+        </>
+      ) : <p className="report-day-empty">Chọn một ngày để xem công việc.</p>}
+    </div>
   </div>;
 }
 

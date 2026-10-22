@@ -28,6 +28,8 @@ export default function DutyScheduleTable({
     >
       <OfficialDutyHeader title={title} />
       {draft ? <p className="lct-draft-mark">{SHARED_SCHEDULE_DRAFT_MARK}</p> : null}
+      {/* On phones the sheet scrolls sideways inside this box; the Ngày column stays pinned. */}
+      <div className="lct-table-scroll">
       <table className="lct-table">
         <colgroup>
           <col className="lct-col-day" />
@@ -61,9 +63,9 @@ export default function DutyScheduleTable({
                 onClick={selectable ? () => onSelectEvent(row) : undefined}
               >
                 {row.showDay ? (
-                  <th scope="row" rowSpan={row.rowSpan}>{row.dayLabel}</th>
+                  <th scope="row" rowSpan={row.rowSpan} className="lct-day-cell">{row.dayLabel}</th>
                 ) : null}
-                <td>{row.time}</td>
+                <td className="lct-time-cell">{row.time}</td>
                 <td className={editable ? 'lct-content-cell is-editable' : 'lct-content-cell'}>
                   <div className="lct-content-with-actions">
                     <div className="lct-content-text">
@@ -127,6 +129,7 @@ export default function DutyScheduleTable({
           })}
         </tbody>
       </table>
+      </div>
     </article>
   );
 }
