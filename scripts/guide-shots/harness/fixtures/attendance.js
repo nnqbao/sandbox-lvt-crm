@@ -75,6 +75,24 @@ function roster(args, { state }) {
   };
 }
 
+function rosterSummary(args, ctx) {
+  const full = roster(args, ctx);
+  return {
+    ...full,
+    grades: full.grades.map((grade) => ({
+      ...grade,
+      classes: grade.classes.map(({ students, ...row }) => ({ ...row, rosterCount: students.length })),
+    })),
+  };
+}
+
+function classRoster(args, ctx) {
+  const full = roster(args, ctx);
+  const klass = full.grades.flatMap((grade) => grade.classes).find((row) => row.classId === args.classId);
+  if (!klass) return null;
+  return { date: full.date, classId: klass.classId, name: klass.name, saved: klass.saved, students: klass.students };
+}
+
 const IMPORT_PREVIEW_OK = {
   ok: true,
   fileName: 'mau_diem_danh_20261021.xlsx',
@@ -139,6 +157,8 @@ const YEAR_META = {
 
 export const queries = {
   'supervisorAttendance:roster': roster,
+  'supervisorAttendance:rosterSummary': rosterSummary,
+  'supervisorAttendance:classRoster': classRoster,
   'supervisorAttendance:templateRows': (args) => ({
     date: args?.date || TODAY,
     schoolYearName: '2026-2027',

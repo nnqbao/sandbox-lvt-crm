@@ -60,6 +60,8 @@ function PageHelpPanel({ anchor, label, onClose }) {
     closeRef.current?.focus();
     const previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
+    // The sheet is anchored at the left edge of the page; bring it into view.
+    if (window.scrollX) window.scrollTo(0, window.scrollY);
 
     const focusables = () => [...(panelRef.current?.querySelectorAll(FOCUSABLE) || [])];
     const onKeyDown = (event) => {

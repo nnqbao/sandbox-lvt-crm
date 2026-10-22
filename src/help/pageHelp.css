@@ -198,8 +198,16 @@
   .shell-title-row { gap: 10px; }
   .page-help-button { width: 32px; height: 32px; font-size: 17px; }
   .page-help-button::before { inset: -6px; }
+  /* Pin to the device viewport (vw/dvh), not the fixed containing block: if a page
+     ever overflows horizontally, the layout viewport grows and right:0/bottom:0
+     would push the sheet off-screen. */
   .page-help-panel {
+    right: auto;
+    bottom: auto;
+    left: 0;
     width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     border-left: 0;
     border-radius: 0;
     animation-name: page-help-up;

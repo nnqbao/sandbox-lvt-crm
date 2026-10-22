@@ -7,13 +7,16 @@ import { foldSearch, formatDate } from './homeroomLabels';
 import {
   ASSIGNMENT_REPLACE_WARNING,
   CURRENT_ASSIGNMENT_TITLE,
+  END_ASSIGNMENT_HINT,
   HISTORICAL_ASSIGNMENT_TITLE,
   UPCOMING_ASSIGNMENT_TITLE,
   buildClassArchivePayload,
   buildClassAssignmentPayload,
   buildClassCreatePayload,
   buildClassUpdatePayload,
+  buildEndAssignmentPayload,
   classStatusLabel,
+  defaultAssignmentEndDate,
   filterHomeroomTeacherClassAssignments,
   groupAssignmentsByEffect,
   schoolYearWindow,
@@ -163,6 +166,48 @@ function AssignTeacherModal({ klass, currentTeacherName = '', onClose }) {
           <input type="date" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} required />
         </label>
         {currentTeacherName ? <p className="hr-hint"><Icon name="alert" size={13} /> {ASSIGNMENT_REPLACE_WARNING}</p> : null}
+        <Feedback error={task.error} />
+      </form>
+    </Modal>
+  );
+}
+
+function EndAssignmentModal({ klass, assignment, onClose }) {
+  const endAssignment = useMutation(anyApi.homeroomClasses.endAssignment);
+  const [date, setDate] = useState(() => defaultAssignmentEndDate(assignment, vietnamTodayYmd()));
+  const task = useAsyncTask();
+  const teacherName = assignment.user?.name || 'GVCN';
+  return (
+    <Modal
+      title="Kết thúc phân công GVCN?"
+      subtitle={`Lớp ${klass.code} — ${klass.name} · ${teacherName}`}
+      onClose={onClose}
+      busy={task.pending}
+      size="sm"
+      footer={
+        <>
+          <button type="button" className="hr-button hr-button--ghost" onClick={onClose} disabled={task.pending}>Hủy</button>
+          <button type="submit" form="hr-end-assignment-form" className="primary-button hr-button--danger" disabled={task.pending || !date}>
+            {task.pending ? 'Đang lưu…' : 'Kết thúc phân công'}
+          </button>
+        </>
+      }
+    >
+      <form
+        id="hr-end-assignment-form"
+        className="hr-form"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const outcome = await task.run(() => endAssignment(buildEndAssignmentPayload({ assignmentId: assignment._id, date })));
+          if (outcome.ok) onClose();
+        }}
+      >
+        <label className="hr-field">
+          <span>Lớp không còn GVCN từ ngày *</span>
+          <input type="date" value={date} min={assignment.effectiveFrom} onChange={(event) => setDate(event.target.value)} required />
+          <small>Phân công bắt đầu {formatDate(assignment.effectiveFrom)}.</small>
+        </label>
+        <p className="hr-hint"><Icon name="alert" size={13} /> {END_ASSIGNMENT_HINT}</p>
         <Feedback error={task.error} />
       </form>
     </Modal>
@@ -409,7 +454,7 @@ export function ClassCatalogPanel({ session, yearId, schoolYears = [], onOpenCla
   );
 }
 
-function AssignmentGroup({ title, empty, rows }) {
+function AssignmentGroup({ title, empty, rows, onEnd = undefined }) {
   return (
     <div className="hr-assignment-group">
       <h4>{title}</h4>
@@ -418,11 +463,20 @@ function AssignmentGroup({ title, empty, rows }) {
       ) : (
         <ul className="hr-assignment-list">
           {rows.map((row) => (
-            <li key={row._id}>
-              <strong>{row.user?.name || 'Người dùng không còn hoạt động'}</strong>
-              <span className="hr-sub">
-                {formatDate(row.effectiveFrom)} – {row.effectiveTo ? formatDate(row.effectiveTo) : 'nay'}
-              </span>
+            <li key={row._id} className={onEnd ? 'has-action' : undefined}>
+              <div>
+                <strong>{row.user?.name || 'Người dùng không còn hoạt động'}</strong>
+                <span className="hr-sub">
+                  {row.active === false
+                    ? `${formatDate(row.effectiveFrom)} · đã hủy`
+                    : `${formatDate(row.effectiveFrom)} – ${row.effectiveTo ? formatDate(row.effectiveTo) : 'nay'}`}
+                </span>
+              </div>
+              {onEnd ? (
+                <button type="button" className="hr-button hr-button--sm hr-button--danger-ghost" onClick={() => onEnd(row)}>
+                  Kết thúc phân công
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -507,8 +561,20 @@ export function ClassManagePanel({ classId, detail, session, canManage }) {
           ) : null}
         </header>
         {archived ? <p className="hr-muted">Lớp đã lưu trữ — không thể thêm phân công.</p> : null}
-        <AssignmentGroup title={CURRENT_ASSIGNMENT_TITLE} empty="Chưa có GVCN đang hiệu lực." rows={current} />
-        {upcoming.length ? <AssignmentGroup title={UPCOMING_ASSIGNMENT_TITLE} empty="" rows={upcoming} /> : null}
+        <AssignmentGroup
+          title={CURRENT_ASSIGNMENT_TITLE}
+          empty="Chưa có GVCN đang hiệu lực."
+          rows={current}
+          onEnd={archived ? undefined : (row) => setModal({ kind: 'end', assignment: row })}
+        />
+        {upcoming.length ? (
+          <AssignmentGroup
+            title={UPCOMING_ASSIGNMENT_TITLE}
+            empty=""
+            rows={upcoming}
+            onEnd={archived ? undefined : (row) => setModal({ kind: 'end', assignment: row })}
+          />
+        ) : null}
         {historical.length ? <AssignmentGroup title={HISTORICAL_ASSIGNMENT_TITLE} empty="" rows={historical} /> : null}
       </section>
 
@@ -524,6 +590,7 @@ export function ClassManagePanel({ classId, detail, session, canManage }) {
       {modal?.kind === 'assign' ? (
         <AssignTeacherModal klass={klass} currentTeacherName={detail.currentTeacherName} onClose={() => setModal(null)} />
       ) : null}
+      {modal?.kind === 'end' ? <EndAssignmentModal klass={klass} assignment={modal.assignment} onClose={() => setModal(null)} /> : null}
       {modal?.kind === 'archive' ? <ArchiveModal klass={klass} onClose={() => setModal(null)} /> : null}
     </div>
   );

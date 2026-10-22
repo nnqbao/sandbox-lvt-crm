@@ -342,3 +342,42 @@ export function validateSupervisorImportRows(rows: SupervisorImportRow[], contex
     });
   return { ok: errors.length === 0 && rows.length > 0, errors, classes, totalRows: rows.length };
 }
+
+/* ----------------------- Roster shaping (pure, tested) ----------------------- */
+
+/** Bucket enrollments once by class (avoids a per-class scan of the whole year). */
+export function groupEnrollmentsByClass<T extends { classId: string }>(enrollments: T[]): Map<string, T[]> {
+  const byClass = new Map<string, T[]>();
+  for (const row of enrollments) {
+    const list = byClass.get(row.classId);
+    if (list) list.push(row);
+    else byClass.set(row.classId, [row]);
+  }
+  return byClass;
+}
+
+export type RosterStudent = { studentId: string; fullName: string; rosterNumber?: number | null };
+
+/** Roster number first (missing numbers last), then Vietnamese name order. */
+export function sortRosterStudents<T extends RosterStudent>(rows: T[]): T[] {
+  return rows
+    .slice()
+    .sort(
+      (a, b) =>
+        (a.rosterNumber || 9999) - (b.rosterNumber || 9999) || a.fullName.localeCompare(b.fullName, "vi"),
+    );
+}
+
+/** One class's students for the editor: absent flag from that class/day's rows only. */
+export function classRosterStudents(
+  students: RosterStudent[],
+  days: Array<{ studentId: string; rawObservation?: string }>,
+) {
+  const absent = new Set(days.filter((row) => row.rawObservation === "absent").map((row) => row.studentId));
+  return sortRosterStudents(students).map((student) => ({
+    studentId: student.studentId,
+    fullName: student.fullName,
+    rosterNumber: student.rosterNumber ?? null,
+    absent: absent.has(student.studentId),
+  }));
+}

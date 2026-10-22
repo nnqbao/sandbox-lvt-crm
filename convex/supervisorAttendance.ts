@@ -36,8 +36,11 @@ import {
   assertSupervisorAttendanceActor,
   assertWritableAttendanceDate,
   canChooseAttendanceDate,
+  classRosterStudents,
+  groupEnrollmentsByClass,
   pickSchoolYearForDate,
   planSupervisorClassSave,
+  sortRosterStudents,
   SUPERVISOR_IMPORT_MAX_BYTES,
   SUPERVISOR_IMPORT_TTL_MS,
   validateSupervisorImportRows,
@@ -72,28 +75,51 @@ async function yearForDate(ctx: DbCtx, date: string) {
   return pickSchoolYearForDate(await ctx.db.query("schoolYears").collect(), date);
 }
 
-/** Active classes of the year (natural order) with the students enrolled on the date. */
-async function loadClassRosters(ctx: DbCtx, schoolYearId: string, date: string) {
+/** Active classes of the year (natural order) with the enrollments covering the date. */
+async function loadClassEnrollments(ctx: DbCtx, schoolYearId: string, date: string) {
   const classes = (await classesForYear(ctx, schoolYearId))
     .filter((row) => row.status === "active")
     .sort(compareClasses);
-  const enrollments = await enrollmentsForYear(ctx, schoolYearId);
-  const covering = new Map(
-    classes.map((klass) => [String(klass._id), enrollmentsCoveringDate(enrollments, { classId: String(klass._id), date })]),
-  );
-  const students = await studentsByIds(ctx, [...covering.values()].flat().map((row) => row.studentId));
+  const byClass = groupEnrollmentsByClass(await enrollmentsForYear(ctx, schoolYearId));
   return classes.map((klass) => {
-    const roster = (covering.get(String(klass._id)) || [])
-      .flatMap((enrollment) => {
+    const classId = String(klass._id);
+    return { klass, enrollments: enrollmentsCoveringDate(byClass.get(classId) || [], { classId, date }) };
+  });
+}
+
+/** Active classes of the year (natural order) with the students enrolled on the date. */
+async function loadClassRosters(ctx: DbCtx, schoolYearId: string, date: string) {
+  const rows = await loadClassEnrollments(ctx, schoolYearId, date);
+  const students = await studentsByIds(ctx, rows.flatMap((row) => row.enrollments.map((enrollment) => enrollment.studentId)));
+  return rows.map(({ klass, enrollments }) => {
+    const roster = sortRosterStudents(
+      enrollments.flatMap((enrollment) => {
         const student = students.get(enrollment.studentId);
         return student ? [{ studentId: String(student._id), fullName: student.fullName, rosterNumber: enrollment.rosterNumber }] : [];
-      })
-      .sort(
-        (a, b) =>
-          (a.rosterNumber || 9999) - (b.rosterNumber || 9999) || a.fullName.localeCompare(b.fullName, "vi"),
-      );
+      }),
+    );
     return { klass, roster };
   });
+}
+
+type ClassDayMarkerRow = {
+  savedAt: number;
+  savedBy: string;
+  source: string;
+  presentCount: number;
+  absentCount: number;
+};
+
+function savedSummary(marker: ClassDayMarkerRow | null | undefined, savers: Map<string, { name: string }>) {
+  return marker
+    ? {
+        savedAt: marker.savedAt,
+        savedByName: savers.get(marker.savedBy)?.name || "",
+        source: marker.source,
+        presentCount: marker.presentCount,
+        absentCount: marker.absentCount,
+      }
+    : null;
 }
 
 /** Lớp 6–9 tabs always exist; other grades (if any) follow. */
@@ -139,15 +165,7 @@ export const roster = query({
         code: klass.code,
         name: klass.name,
         gradeLevel: klass.gradeLevel,
-        saved: marker
-          ? {
-              savedAt: marker.savedAt,
-              savedByName: savers.get(marker.savedBy)?.name || "",
-              source: marker.source,
-              presentCount: marker.presentCount,
-              absentCount: marker.absentCount,
-            }
-          : null,
+        saved: savedSummary(marker, savers),
         students: students.map((student) => ({
           studentId: student.studentId,
           fullName: student.fullName,
@@ -163,6 +181,101 @@ export const roster = query({
       schoolYear: { _id: schoolYearId, name: year.name, startDate: year.startDate, endDate: year.endDate },
       schoolDay: resolveSchoolDay(date, calendarDay, year),
       grades: groupByGrade(classes),
+    };
+  },
+});
+
+/**
+ * Fast class list for the web Điểm danh page: per-class sĩ số + saved marker only.
+ * Reads classes, the year's enrollments and the class/day markers — never the
+ * students or their day rows, so a save re-runs it cheaply. Students load per
+ * class through `classRoster` when a class is opened. Same auth/date rules as `roster`.
+ */
+export const rosterSummary = query({
+  args: { date: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const { actor } = await supervisorActorOrThrow(ctx);
+    const today = todayYmd();
+    const date = args.date ? assertYmd(args.date) : today;
+    assertReadableAttendanceDate(actor, date, today);
+    const canChooseDate = canChooseAttendanceDate(actor);
+    const year = await yearForDate(ctx, date);
+    if (!year) {
+      return {
+        date,
+        today,
+        canChooseDate,
+        schoolYear: null,
+        schoolDay: resolveSchoolDay(date, null, null),
+        grades: groupByGrade([] as Array<{ gradeLevel: number }>),
+      };
+    }
+    const schoolYearId = String(year._id);
+    const [rows, markerRows, calendarDay] = await Promise.all([
+      loadClassEnrollments(ctx, schoolYearId, date),
+      classDayMarkersForYearOnDate(ctx, schoolYearId, date),
+      calendarDayFor(ctx, schoolYearId, date),
+    ]);
+    const markers = new Map(markerRows.map((row) => [row.classId, row]));
+    const savers = await usersByIds(ctx, markerRows.map((row) => row.savedBy));
+    const classes = rows.map(({ klass, enrollments }) => {
+      const id = String(klass._id);
+      return {
+        classId: id,
+        code: klass.code,
+        name: klass.name,
+        gradeLevel: klass.gradeLevel,
+        rosterCount: enrollments.length,
+        saved: savedSummary(markers.get(id), savers),
+      };
+    });
+    return {
+      date,
+      today,
+      canChooseDate,
+      schoolYear: { _id: schoolYearId, name: year.name, startDate: year.startDate, endDate: year.endDate },
+      schoolDay: resolveSchoolDay(date, calendarDay, year),
+      grades: groupByGrade(classes),
+    };
+  },
+});
+
+/** Students of one class on the date (opened from the class list). Same auth/date rules as `roster`. */
+export const classRoster = query({
+  args: { date: v.optional(v.string()), classId: v.string() },
+  handler: async (ctx, args) => {
+    const { actor } = await supervisorActorOrThrow(ctx);
+    const today = todayYmd();
+    const date = args.date ? assertYmd(args.date) : today;
+    assertReadableAttendanceDate(actor, date, today);
+    const year = await yearForDate(ctx, date);
+    const klass = await getClassById(ctx, args.classId);
+    // Only the classes `rosterSummary` lists: active and in the school year of the date.
+    if (!year || !klass || klass.status !== "active" || klass.schoolYearId !== String(year._id)) {
+      throw new Error("CLASS_NOT_FOUND");
+    }
+    const classId = String(klass._id);
+    const [enrollments, days, marker] = await Promise.all([
+      enrollmentsForClassOnDate(ctx, classId, date),
+      daysForClassOnDate(ctx, classId, date),
+      classDayMarker(ctx, classId, date),
+    ]);
+    const students = await studentsByIds(ctx, enrollments.map((row) => row.studentId));
+    const savers = await usersByIds(ctx, marker ? [marker.savedBy] : []);
+    return {
+      date,
+      classId,
+      name: klass.name,
+      saved: savedSummary(marker, savers),
+      students: classRosterStudents(
+        enrollments.flatMap((enrollment) => {
+          const student = students.get(enrollment.studentId);
+          return student
+            ? [{ studentId: String(student._id), fullName: student.fullName, rosterNumber: enrollment.rosterNumber }]
+            : [];
+        }),
+        days.map((row) => ({ studentId: row.studentId, rawObservation: row.rawObservation })),
+      ),
     };
   },
 });

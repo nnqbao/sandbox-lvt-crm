@@ -8,6 +8,19 @@
 .att-date { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 .att-grade-tabs button[role="tab"] { min-height: 46px; }
+
+/* Phones: the four grade tabs share the width (label over count) — none off-screen. */
+@media (max-width: 680px) {
+  .att-grade-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; overflow: visible; }
+  .att-grade-tabs button[role="tab"] {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px 2px;
+    white-space: nowrap;
+  }
+}
 .att-tab-count {
   padding: 2px 8px;
   border-radius: 999px;
@@ -101,6 +114,19 @@
   box-shadow: var(--hr-shadow);
 }
 .att-savebar-count { font-size: 14px; }
+.att-savebar-note {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--lvt-success-text);
+  background: var(--lvt-success-bg);
+  font-size: 14px;
+  font-weight: 700;
+}
 .att-savebar-count em { color: var(--lvt-warning-text); font-style: normal; font-weight: 700; }
 
 .att-import .att-file { display: grid; gap: 6px; font-size: 13px; font-weight: 700; color: var(--lvt-ink-soft); }

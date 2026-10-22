@@ -91,6 +91,8 @@
 
 .todo-field {
   display: grid;
+  /* Pack label/input at the top so "Hạn chót" and "Nhắc lúc" line up even when one has help text. */
+  align-content: start;
   gap: 4px;
   min-width: 0;
 }

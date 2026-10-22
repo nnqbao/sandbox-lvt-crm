@@ -9,6 +9,7 @@ import {
   findOverlappingHomeroomTeacher,
   HOMEROOM_TEACHER_OVERLAP,
   isActiveAssignmentCandidate,
+  planHomeroomTeacherEnd,
   planHomeroomTeacherReplacement,
   planStudentTransfer,
   toAssignmentCandidate,
@@ -382,6 +383,39 @@ export const assignUser = mutation({
       details: JSON.stringify({ id, classId: args.classId, assignmentType, scopeKind }),
     });
     return id;
+  },
+});
+
+/**
+ * "Kết thúc phân công": admin/mod end a GVCN assignment without naming a new
+ * teacher. `date` = first day the class has no GVCN (row ends the day before).
+ * History stays; the class shows "Chưa có GVCN" until a new assignment.
+ */
+export const endAssignment = mutation({
+  args: { assignmentId: v.string(), date: v.string() },
+  handler: async (ctx, args) => {
+    const { user } = await homeroomCatalogWriterOrThrow(ctx);
+    const assignmentId = ctx.db.normalizeId("homeroomAssignments", args.assignmentId);
+    const row = assignmentId ? await ctx.db.get(assignmentId) : null;
+    if (!row || row.scopeKind !== "class") throw new Error("ASSIGNMENT_NOT_FOUND");
+    const klass = await getClassById(ctx, row.classId);
+    if (!klass) throw new Error("CLASS_NOT_FOUND");
+    assertClassNotArchived(klass);
+    const date = assertYmd(args.date);
+    const plan = planHomeroomTeacherEnd({ assignment: row, date });
+    await ctx.db.patch(row._id, { ...plan.patch, endedBy: String(user._id), updatedAt: Date.now() });
+    await writeAudit(ctx, {
+      actorUserId: String(user._id),
+      action: "homeroomAssignment.end",
+      details: JSON.stringify({
+        id: row._id,
+        classId: row.classId,
+        userId: row.userId,
+        noTeacherFrom: date,
+        previousEffectiveTo: row.effectiveTo ?? null,
+        revoked: plan.revoked,
+      }),
+    });
   },
 });
 

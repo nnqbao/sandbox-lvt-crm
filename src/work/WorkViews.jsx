@@ -29,7 +29,10 @@ import {
   workTabAllowsPersonalReminder,
   WORK_LIST_TAB_TODO,
   WORK_COMPLETION_NOTE_MAX_LENGTH,
+  isWorkDocumentUnreleased,
+  workAssignmentDisplayStatus,
   workAssignmentPayload,
+  workCreatorLabel,
 } from './workDisplay';
 import {
   canPreviewWorkFile,
@@ -455,6 +458,7 @@ function workStatusLabel(status) {
     awaiting_approval: 'Chờ duyệt',
     approval_returned: 'Bị trả lại',
     unassigned: 'Chưa giao việc',
+    unreleased: 'Chờ duyệt (chưa giao)',
     in_progress: 'Đang thực hiện',
     completed: 'Đã hoàn thành',
     completed_late: 'Hoàn thành trễ',
@@ -1305,21 +1309,26 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
                             <strong>
                               {assignment.type === 'individual' ? 'Cá nhân' : assignment.departmentName}
                             </strong>
-                            <WorkStatus status={assignment.status || 'unassigned'} />
+                            <WorkStatus status={workAssignmentDisplayStatus(document, assignment)} />
                           </header>
                           <p>{assignment.content}</p>
                           <small>
                             Hạn {formatWorkDate(assignment.deadline)}
-                            {assignment.taskCount != null ? ` · ${assignment.taskCompletedCount || 0}/${assignment.taskCount} hoàn thành` : ''}
+                            {assignment.taskCount != null && !isWorkDocumentUnreleased(document)
+                              ? ` · ${assignment.taskCompletedCount || 0}/${assignment.taskCount} hoàn thành`
+                              : ''}
                           </small>
                           {assignment.members?.length ? (
                             <div className="work-member-progress">
-                              {assignment.members.map((member) => (
+                              {assignment.members.map((member) => (isWorkDocumentUnreleased(document) ? (
+                                // Not handed out yet: list who will receive it, without progress.
+                                <span key={member._id} className="work-member-chip status-unreleased">{member.name}</span>
+                              ) : (
                                 <span key={member._id} className={`work-member-chip status-${member.status}`}>
                                   {member.name} · {workStatusLabel(member.status)}
                                   {member.qualityPercent != null ? ` · ${member.qualityPercent}%` : ''}
                                 </span>
-                              ))}
+                              )))}
                             </div>
                           ) : null}
                         </section>
@@ -1541,7 +1550,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
         setFeedback({ type: 'success', text: 'Bạn đã duyệt công việc.' });
       } else {
         await rejectDocument({ documentId, reason });
-        setFeedback({ type: 'success', text: 'Đã trả lại công việc cho Văn thư.' });
+        setFeedback({ type: 'success', text: 'Đã trả lại công việc cho người tạo.' });
       }
       setDeciding(null);
     } catch (error) {
@@ -1559,7 +1568,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
     <article className="work-user-card approval-card" key={document._id} data-focus-id={document._id}>
       <div className="work-user-card-top">
         <span className="work-card-eyebrow">
-          Văn thư {document.creatorName || '—'}
+          {workCreatorLabel(document)}
           {document.submittedAt ? ` · gửi ${formatWorkDateTime(document.submittedAt)}` : ''}
         </span>
         <WorkStatus status={document.status} />
@@ -1744,7 +1753,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
           ) : (
             <div className="work-empty">
               <h3>Không có công việc chờ bạn duyệt</h3>
-              <p>Khi Văn thư gửi công việc cần Ban giám hiệu duyệt, công việc sẽ xuất hiện tại đây.</p>
+              <p>Khi Văn thư/Quản trị gửi công việc cần Ban giám hiệu duyệt, công việc sẽ xuất hiện tại đây.</p>
             </div>
           )}
           {decidedApprovals.length ? (

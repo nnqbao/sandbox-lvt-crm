@@ -13,6 +13,7 @@ import {
   cleanPermissionGroupMenuAccess,
   menuAccessEntriesEqual,
   migrateSupervisorMenuAccess,
+  planOperatorMenuAccessChange,
 } from "./menuAccess";
 
 const accessValidator = v.union(
@@ -163,6 +164,33 @@ export const migrateSupervisorToAttendance = internalMutation({
       });
     }
     return results;
+  },
+});
+
+/**
+ * Operator tool (CLI only, never callable from a browser): set one menu's access on
+ * one permission group without an admin login. Validated like create/update; no
+ * patch and no audit entry when nothing changes. Example (sandbox):
+ *   ./scripts/lvt-convex-cloud-env.sh dev ./node_modules/.bin/convex run \
+ *     permissionGroups:operatorSetMenuAccess '{"code":"GTH","menu":"notifications","access":"view"}'
+ */
+export const operatorSetMenuAccess = internalMutation({
+  args: { code: v.string(), menu: v.string(), access: v.string() },
+  handler: async (ctx, args) => {
+    const group = await findGroupByCode(ctx, args.code);
+    if (!group || !group.active) throw new Error("PERMISSION_GROUP_NOT_FOUND");
+    const plan = planOperatorMenuAccessChange(group.menuAccess, args.menu, args.access);
+    const result = { code: group.code || "", name: group.name, menu: args.menu, before: plan.before, after: args.access };
+    if (!plan.changed) return { ...result, changed: false };
+    const now = Date.now();
+    await ctx.db.patch(group._id, { menuAccess: plan.menuAccess, updatedAt: now });
+    await ctx.db.insert("auditLogs", {
+      actorUserId: "operator:cli",
+      action: "permissionGroup.operatorSetMenuAccess",
+      details: JSON.stringify({ id: group._id, ...result }),
+      at: now,
+    });
+    return { ...result, changed: true };
   },
 });
 

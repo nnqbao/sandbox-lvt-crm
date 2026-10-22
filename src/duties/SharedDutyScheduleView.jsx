@@ -7,6 +7,7 @@ import DutyScheduleTable from './DutyScheduleTable';
 import DutyWeekApprovalBar from './DutyWeekApprovalBar';
 import { dutyWeekPill, formatWeekRange, shouldShowUnapprovedNotice } from './dutyWeekApproval.js';
 import {
+  buildSharedSchedulePayload,
   buildSharedScheduleRows,
   shiftScheduleAnchor,
   toIsoDate,
@@ -44,8 +45,8 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
   const weeks = data?.weeks || [];
   const currentWeek = mode === 'week' ? weeks.find((week) => week.weekStart === rangePreview.startIso) : null;
   const built = useMemo(
-    () => buildSharedScheduleRows(mode, anchorIso, events),
-    [mode, anchorIso, events],
+    () => buildSharedSchedulePayload(mode, anchorIso, data),
+    [mode, anchorIso, data],
   );
 
   const downloading = async () => {
@@ -146,6 +147,7 @@ export default function SharedDutyScheduleView({ onChooseView, currentUserId = '
         <DutyScheduleTable
           title={built.range.title}
           rows={built.rows}
+          draft={built.draft}
           onEditContent={openEditor}
         />
       )}

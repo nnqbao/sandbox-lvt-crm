@@ -23,6 +23,8 @@ import {
   isWorkItemArchived,
   isWorkReleased,
   isWorkStatusCompleted,
+  opsCanAssignWorkToUser,
+  WORK_ASSIGNEE_BGH_FORBIDDEN,
   workMenuBadgeCount,
   shouldBypassWorkCompletionReview,
   workAssignmentPushUserIds,
@@ -437,6 +439,19 @@ async function assertWorkAssignmentsForActor(
       throw new Error(MODERATOR_DEPARTMENT_SCOPE_ERROR);
     }
   }
+  if (actor.isOps) {
+    // Văn thư/admin: no individual assignment to Ban giám hiệu (level ≥ 4).
+    // Department assignments are still allowed (handled by the department).
+    for (const assignment of assignments) {
+      if (assignment.type !== "individual") continue;
+      for (const userId of assignment.userIds) {
+        const target = await ctx.db.get(userId);
+        if (target && !opsCanAssignWorkToUser({ level: activePositionLevel(target, actor.positions) })) {
+          throw new Error(WORK_ASSIGNEE_BGH_FORBIDDEN);
+        }
+      }
+    }
+  }
   if (!actor.isOps) {
     for (const assignment of assignments) {
       if (assignment.type !== "individual") {
@@ -781,6 +796,8 @@ async function documentView(ctx: any, document: any, catalogData: any, items: an
     createdAt: document.createdAt,
     createdBy: document.createdBy,
     creatorName: creator ? creator.name || creator.email || "—" : "—",
+    // Only the role kind, for the "Người tạo: … (Quản trị viên|Văn thư)" label.
+    creatorRole: creator?.role === "admin" || creator?.role === "moderator" ? creator.role : "user",
     archived: false,
     canEdit: canMutateWorkDocument(document, items),
     canDelete: canMutateWorkDocument(document, items),
@@ -1075,7 +1092,10 @@ export const formOptions = query({
     const visibilityMode = await getWorkVisibilityMode(ctx);
     const { activeUsers, departments, positions } = await catalog(ctx);
     const users = activeUsers.filter((user: any) => {
-      if (actor.isOps) return isUserInModeratorScope(actor.departmentScope, user);
+      if (actor.isOps) {
+        return isUserInModeratorScope(actor.departmentScope, user)
+          && opsCanAssignWorkToUser({ level: activePositionLevel(user, positions) });
+      }
       return actorCanAssignUser(actor, user);
     });
     const canAssignDepartments = canAssignWorkDepartment(actor.user.role, actor.level);

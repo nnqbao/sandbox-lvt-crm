@@ -76,6 +76,8 @@
 }
 
 .lct-shared-view {
+  /* Same side gutters as the sheet, so "Tải PDF" / "Tạo công tác" never sit flush on the edge. */
+  padding: 0 24px 32px;
   /* Shared buttons (.work-primary-button…) read these; without them "Tải PDF" rendered white on white. */
   --work-ink: var(--lvt-ink);
   --work-navy: var(--lvt-navy);
@@ -145,6 +147,9 @@
 }
 
 .lct-sheet {
+  --lct-ink: #1f1f1f;
+  --lct-head-bg: #efefef;
+  --lct-paper: #fff;
   max-width: 980px;
   margin: 0 auto;
   padding: 18px 22px 28px;
@@ -157,6 +162,36 @@
 
 .lct-official-header {
   margin-bottom: 12px;
+}
+
+/* Working copy with unapproved changes: header line + light diagonal watermark. */
+.lct-sheet.is-draft {
+  position: relative;
+  overflow: hidden;
+}
+
+.lct-sheet.is-draft::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  content: attr(data-draft-mark);
+  color: var(--lvt-danger-text);
+  font-size: clamp(32px, 7vw, 72px);
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.08;
+  transform: rotate(-30deg);
+  pointer-events: none;
+}
+
+.lct-draft-mark {
+  margin: -4px 0 12px;
+  color: var(--lvt-danger-text);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
 }
 
 .lct-official-banner {
@@ -224,6 +259,16 @@
   font-weight: 700;
   width: 16%;
   vertical-align: middle;
+}
+
+.lct-table-scroll {
+  max-width: 100%;
+}
+
+/* "14g00" never splits inside a time. */
+.lct-table .lct-time-cell {
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .lct-col-day { width: 16%; }
@@ -617,7 +662,49 @@
   }
 }
 
+/* Phones: keep readable column widths and scroll the sheet sideways in its own box. */
+@media (max-width: 680px) {
+  .lct-shared-view {
+    padding: 0 16px 24px;
+  }
+
+  .lct-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .lct-table {
+    min-width: 640px;
+  }
+
+  .lct-table th,
+  .lct-table td {
+    font-size: 13px;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .lct-table thead th:first-child,
+  .lct-table .lct-day-cell {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--lct-paper);
+    box-shadow: inset -1px 0 0 var(--lct-ink);
+  }
+
+  .lct-table thead th:first-child {
+    z-index: 2;
+    background: var(--lct-head-bg);
+  }
+}
+
 @media print {
+  .lct-table-scroll {
+    overflow: visible;
+  }
+
   .duty-workspace-actions,
   .lct-week-status,
   .lct-month-weeks,

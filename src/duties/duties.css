@@ -546,6 +546,10 @@
   background: #fff;
 }
 
+.duty-edit-modal-footer .duty-edit-delete {
+  margin-right: auto;
+}
+
 .duty-edit-modal-footer .work-primary-button {
   border: 0;
   color: #fff;

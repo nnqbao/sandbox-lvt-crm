@@ -7,6 +7,10 @@
   --work-coral: var(--lvt-coral);
   display: grid;
   gap: 16px;
+  /* Same page gutters as the other admin pages (.admin-view). */
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 28px 34px 50px;
   color: var(--lvt-ink);
   font-size: 14px;
 }
@@ -643,6 +647,11 @@
 }
 
 @media (max-width: 900px) {
+  .ds-page {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
   .ds-layout {
     grid-template-columns: 1fr;
   }
@@ -659,6 +668,10 @@
 }
 
 @media (max-width: 680px) {
+  .ds-page {
+    padding: 20px 16px 35px;
+  }
+
   .ds-section {
     padding: 14px;
   }

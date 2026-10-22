@@ -219,7 +219,7 @@ test('import: every bad row blocks the commit (all-or-nothing)', () => {
 
 test('backend re-checks auth on every Điểm danh function and commit never trusts client rows', () => {
   const source = readFileSync(new URL('../convex/supervisorAttendance.ts', import.meta.url), 'utf8');
-  for (const name of ['roster', 'templateRows', 'saveClass', 'generateUploadUrl', 'registerUpload', 'getUploadInternal', 'importContextInternal', 'claimUploadForCommit', 'commitInternal']) {
+  for (const name of ['roster', 'rosterSummary', 'classRoster', 'templateRows', 'saveClass', 'generateUploadUrl', 'registerUpload', 'getUploadInternal', 'importContextInternal', 'claimUploadForCommit', 'commitInternal']) {
     const start = source.indexOf(`export const ${name} =`);
     assert.ok(start >= 0, name);
     const block = source.slice(start, source.indexOf('\n});', start));
@@ -231,4 +231,65 @@ test('backend re-checks auth on every Điểm danh function and commit never tru
   assert.match(source, /assertStoredImportMetadata\(stored, \{ fileSize: args\.fileSize, maxBytes: SUPERVISOR_IMPORT_MAX_BYTES \}\)/);
   assert.match(source, /studentAttendanceCorrections/);
   assert.match(source, /attendanceClassDays/);
+});
+
+test('Điểm danh tải nhanh: danh sách lớp không đọc học sinh/dòng điểm danh; lớp mở mới tải học sinh', async () => {
+  const { groupEnrollmentsByClass, sortRosterStudents, classRosterStudents } = await import('../convex/supervisorAttendancePolicy.ts');
+  const grouped = groupEnrollmentsByClass([{ classId: 'a', id: 1 }, { classId: 'b', id: 2 }, { classId: 'a', id: 3 }]);
+  assert.deepEqual(grouped.get('a').map((row) => row.id), [1, 3]);
+  assert.deepEqual(grouped.get('b').map((row) => row.id), [2]);
+  assert.deepEqual(
+    sortRosterStudents([
+      { studentId: 's3', fullName: 'Bình', rosterNumber: null },
+      { studentId: 's2', fullName: 'An', rosterNumber: 2 },
+      { studentId: 's1', fullName: 'Ân', rosterNumber: 1 },
+      { studentId: 's4', fullName: 'An', rosterNumber: null },
+    ]).map((row) => row.studentId),
+    ['s1', 's2', 's4', 's3'],
+  );
+  assert.deepEqual(
+    classRosterStudents(
+      [{ studentId: 's2', fullName: 'B', rosterNumber: 2 }, { studentId: 's1', fullName: 'A', rosterNumber: 1 }],
+      [{ studentId: 's2', rawObservation: 'absent' }, { studentId: 's1', rawObservation: 'present' }],
+    ),
+    [
+      { studentId: 's1', fullName: 'A', rosterNumber: 1, absent: false },
+      { studentId: 's2', fullName: 'B', rosterNumber: 2, absent: true },
+    ],
+  );
+
+  const source = readFileSync(new URL('../convex/supervisorAttendance.ts', import.meta.url), 'utf8');
+  const block = (name) => {
+    const start = source.indexOf(`export const ${name} =`);
+    return source.slice(start, source.indexOf('\n});', start));
+  };
+  const summary = block('rosterSummary');
+  assert.match(summary, /assertReadableAttendanceDate\(actor, date, today\)/);
+  assert.doesNotMatch(summary, /daysForYearOnDate|studentsByIds|loadClassRosters/);
+  assert.match(summary, /classDayMarkersForYearOnDate/);
+  const classRoster = block('classRoster');
+  assert.match(classRoster, /assertReadableAttendanceDate\(actor, date, today\)/);
+  assert.match(classRoster, /klass\.status !== "active"/);
+  assert.match(classRoster, /klass\.schoolYearId !== String\(year\._id\)/);
+  assert.match(classRoster, /daysForClassOnDate\(ctx, classId, date\)/);
+  const data = readFileSync(new URL('../convex/homeroomData.ts', import.meta.url), 'utf8');
+  assert.match(data, /Promise\.all\(\[\.\.\.new Set\(ids\)\]\.map\(\(id\) => getStudentById/);
+
+  const page = readFileSync(new URL('../src/attendance/AttendancePage.jsx', import.meta.url), 'utf8');
+  assert.match(page, /anyApi\.supervisorAttendance\.rosterSummary/);
+  assert.match(page, /anyApi\.supervisorAttendance\.classRoster/);
+});
+
+test('Điểm danh: chip trạng thái dùng kết quả lưu vừa trả về cho tới khi danh sách lớp cập nhật', async () => {
+  const { latestSaved } = await import('../src/attendance/attendanceState.js');
+  const server = { savedAt: 100, absentCount: 2, presentCount: 30, savedByName: 'C' };
+  assert.equal(latestSaved(server, null, '2026-10-22'), server);
+  assert.equal(latestSaved(null, null, '2026-10-22'), null);
+  assert.deepEqual(latestSaved(server, { date: '2026-10-22', savedAt: 200, absentCount: 1, presentCount: 31 }, '2026-10-22'), {
+    savedAt: 200, absentCount: 1, presentCount: 31, savedByName: 'C',
+  });
+  // An older local result or another date never overrides the server marker.
+  assert.equal(latestSaved(server, { date: '2026-10-22', savedAt: 50, absentCount: 9, presentCount: 0 }, '2026-10-22'), server);
+  assert.equal(latestSaved(server, { date: '2026-10-21', savedAt: 999, absentCount: 9, presentCount: 0 }, '2026-10-22'), server);
+  assert.equal(latestSaved(null, { date: '2026-10-22', savedAt: 5, absentCount: 0, presentCount: 3 }, '2026-10-22').absentCount, 0);
 });

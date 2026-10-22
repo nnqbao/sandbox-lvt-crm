@@ -4,13 +4,14 @@ import { anyApi } from 'convex/server';
 import { messageFor } from '../lib/appErrorMessage';
 import { downloadSupervisorTemplate } from '../lib/supervisorAttendanceExcel';
 import { vietnamTodayYmd } from '../homeroom/homeroomTime';
-import { formatDate, formatDateLong, schoolDayLabel } from '../homeroom/homeroomLabels';
+import { classLabel, formatDate, formatDateLong, schoolDayLabel } from '../homeroom/homeroomLabels';
 import { DateStepper, EmptyState, Feedback, Icon, Loading, Notice } from '../homeroom/homeroomUi';
 import {
   absentIdsOf,
   classesForGrade,
   classStatusText,
   GRADE_TABS,
+  latestSaved,
   precheckImportFile,
   readStoredGrade,
   sameIdSet,
@@ -39,7 +40,8 @@ export default function AttendancePage() {
     dirtyRef.current = dirty;
   }, []);
   const convex = useConvex();
-  const roster = useQuery(anyApi.supervisorAttendance.roster, { date });
+  // Class list + saved markers only; students load per class when a class is opened.
+  const roster = useQuery(anyApi.supervisorAttendance.rosterSummary, { date });
 
   useEffect(() => {
     const onBeforeUnload = (event) => {
@@ -199,26 +201,40 @@ export default function AttendancePage() {
 
 function ClassRow({ klass, date, open, onToggle, onDirtyChange }) {
   const panelId = `att-class-${klass.classId}`;
+  // Kept here (not in the editor) so it survives the editor reloading after a save.
+  const [localSaved, setLocalSaved] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const saved = latestSaved(klass.saved, localSaved, date);
+
+  useEffect(() => {
+    if (!open) setNotice(null);
+  }, [open]);
+
   return (
     <li className={`att-class${open ? ' is-open' : ''}`}>
       <button type="button" className="att-class-head" aria-expanded={open} aria-controls={panelId} onClick={onToggle}>
         <span className="att-class-name">
-          <strong>Lớp {klass.name}</strong>
-          <span className="hr-sub">Sĩ số {klass.students.length}</span>
+          <strong>{classLabel(klass.name)}</strong>
+          <span className="hr-sub">Sĩ số {klass.rosterCount}</span>
         </span>
-        <span className={`att-status ${klass.saved ? 'is-saved' : 'is-pending'}`}>
-          <Icon name={klass.saved ? 'check' : 'clock'} size={14} />
-          {classStatusText(klass.saved)}
+        <span className={`att-status ${saved ? 'is-saved' : 'is-pending'}`}>
+          <Icon name={saved ? 'check' : 'clock'} size={14} />
+          {classStatusText(saved)}
         </span>
         <span className="att-chevron" aria-hidden="true"><Icon name={open ? 'chevronUp' : 'chevronDown'} size={18} /></span>
       </button>
       {open ? (
         <div id={panelId} className="att-class-body">
           <ClassEditor
-            key={`${klass.classId}|${date}|${klass.saved?.savedAt || 0}`}
             klass={klass}
             date={date}
             onDirtyChange={onDirtyChange}
+            notice={notice && notice.date === date ? notice.text : ''}
+            onEdited={() => setNotice(null)}
+            onSaved={(result) => {
+              setLocalSaved({ date, savedAt: result.savedAt, absentCount: result.absentCount, presentCount: result.presentCount });
+              setNotice({ date, text: `Đã lưu ${classLabel(klass.name, { lower: true })}: ${result.absentCount} vắng, ${result.presentCount} có mặt.` });
+            }}
           />
         </div>
       ) : null}
@@ -226,32 +242,48 @@ function ClassRow({ klass, date, open, onToggle, onDirtyChange }) {
   );
 }
 
-function ClassEditor({ klass, date, onDirtyChange }) {
+function ClassEditor({ klass, date, onDirtyChange, notice, onEdited, onSaved }) {
+  const data = useQuery(anyApi.supervisorAttendance.classRoster, { date, classId: klass.classId });
+  if (data === undefined) return <Loading label="Đang tải danh sách học sinh…" />;
+  if (!data.students.length) return <p className="hr-muted">Lớp chưa có học sinh vào ngày này.</p>;
+  return (
+    <ClassEditorForm
+      key={`${klass.classId}|${date}|${data.saved?.savedAt || 0}`}
+      klass={klass}
+      students={data.students}
+      date={date}
+      onDirtyChange={onDirtyChange}
+      notice={notice}
+      onEdited={onEdited}
+      onSaved={onSaved}
+    />
+  );
+}
+
+function ClassEditorForm({ klass, students, date, onDirtyChange, notice, onEdited, onSaved }) {
   const saveClass = useMutation(anyApi.supervisorAttendance.saveClass);
-  const initial = useMemo(() => absentIdsOf(klass.students), [klass.students]);
+  const initial = useMemo(() => absentIdsOf(students), [students]);
   const [absent, setAbsent] = useState(initial);
+  // After a save the saved set is the baseline until the class roster reloads.
+  const [baseline, setBaseline] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const dirty = !sameIdSet(absent, initial);
+  const dirty = !sameIdSet(absent, baseline);
 
   useEffect(() => {
     onDirtyChange(dirty);
   }, [dirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
-  if (!klass.students.length) {
-    return <p className="hr-muted">Lớp chưa có học sinh vào ngày này.</p>;
-  }
-
   const save = async () => {
     setBusy(true);
     setError('');
-    setSuccess('');
     try {
-      const result = await saveClass({ date, classId: klass.classId, absentStudentIds: [...absent] });
+      const savedSet = new Set(absent);
+      const result = await saveClass({ date, classId: klass.classId, absentStudentIds: [...savedSet] });
+      setBaseline(savedSet);
       onDirtyChange(false);
-      setSuccess(`Đã lưu lớp ${klass.name}: ${result.absentCount} vắng, ${result.presentCount} có mặt.`);
+      onSaved(result);
     } catch (err) {
       setError(messageFor(err));
     } finally {
@@ -262,7 +294,7 @@ function ClassEditor({ klass, date, onDirtyChange }) {
   return (
     <>
       <ol className="att-students">
-        {klass.students.map((student, index) => {
+        {students.map((student, index) => {
           const isAbsent = absent.has(student.studentId);
           const inputId = `att-${klass.classId}-${student.studentId}`;
           return (
@@ -277,7 +309,10 @@ function ClassEditor({ klass, date, onDirtyChange }) {
                     type="checkbox"
                     checked={isAbsent}
                     disabled={busy}
-                    onChange={() => setAbsent((current) => toggleId(current, student.studentId))}
+                    onChange={() => {
+                      onEdited();
+                      setAbsent((current) => toggleId(current, student.studentId));
+                    }}
                   />
                   Vắng
                 </span>
@@ -286,14 +321,19 @@ function ClassEditor({ klass, date, onDirtyChange }) {
           );
         })}
       </ol>
-      <Feedback error={error} success={success} />
+      <Feedback error={error} />
       <div className="att-savebar">
+        {notice && !dirty ? (
+          <p className="att-savebar-note" role="status">
+            <Icon name="check" size={15} /> {notice}
+          </p>
+        ) : null}
         <span className="att-savebar-count">
-          <strong>{absent.size}</strong> vắng · {klass.students.length - absent.size} có mặt
+          <strong>{absent.size}</strong> vắng · {students.length - absent.size} có mặt
           {dirty ? <em> · chưa lưu</em> : null}
         </span>
         <button type="button" className="primary-button" disabled={busy} onClick={() => void save()}>
-          {busy ? 'Đang lưu…' : `Lưu lớp ${klass.name} (${absent.size} vắng)`}
+          {busy ? 'Đang lưu…' : `Lưu ${classLabel(klass.name, { lower: true })} (${absent.size} vắng)`}
         </button>
       </div>
     </>

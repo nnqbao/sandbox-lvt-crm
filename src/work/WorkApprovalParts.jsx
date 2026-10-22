@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { formatWorkDateTime, workApproverDecisionLabel } from './workDisplay';
+import { formatWorkDateTime, workApproverDecisionLabel, workCreatorLabel } from './workDisplay';
 
-export const WORK_APPROVAL_NOTE = 'Công việc do Văn thư tạo cần Ban giám hiệu duyệt trước khi giao.';
+export const WORK_APPROVAL_NOTE = 'Công việc do Văn thư/Quản trị tạo cần Ban giám hiệu duyệt trước khi giao.';
 
 /** Required multi-select of Ban giám hiệu approvers (ops create/edit form only). */
 export function WorkApproverPicker({ approvers = [], value = [], onChange, error = '' }) {
@@ -99,7 +99,7 @@ export function WorkDocumentDecisionModal({ document, mode, onClose, onSubmit, s
         <span className="work-kicker">{returning ? 'Trả lại công việc' : 'Duyệt công việc'}</span>
         <h3 id="work-decision-title">{document.title || document.fileName}</h3>
         <p className="work-modal-context">
-          Văn thư {document.creatorName || '—'}
+          {workCreatorLabel(document)}
           {document.submittedAt ? ` · gửi lúc ${formatWorkDateTime(document.submittedAt)}` : ''}
         </p>
         {returning ? (
@@ -118,7 +118,7 @@ export function WorkDocumentDecisionModal({ document, mode, onClose, onSubmit, s
               aria-invalid={Boolean(error)}
             />
             {error ? <p className="work-field-error" role="alert">{error}</p> : null}
-            <p className="work-muted">Văn thư sẽ sửa và gửi duyệt lại.</p>
+            <p className="work-muted">Người tạo sẽ sửa và gửi duyệt lại.</p>
           </>
         ) : (
           <p className="work-muted">

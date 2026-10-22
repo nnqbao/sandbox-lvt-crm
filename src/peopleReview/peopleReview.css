@@ -11,6 +11,8 @@
   margin: 0 auto;
   padding: 28px 34px 58px;
   display: grid;
+  /* minmax(0, …): long file names / reasons must wrap, never widen the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   color: var(--pr-ink);
   font-family: "Montserrat Variable", "Montserrat", sans-serif;
@@ -222,9 +224,24 @@
 
 .pr-layout {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
+}
+
+.pr-layout > *,
+.pr-person-dashboard,
+.pr-section,
+.pr-fault-card,
+.pr-eval-block,
+.pr-task-row > div {
+  min-width: 0;
+}
+
+.pr-person-dashboard,
+.pr-section,
+.pr-file-link {
+  overflow-wrap: anywhere;
 }
 
 .pr-people-panel,
@@ -342,6 +359,7 @@
 .pr-outline-button,
 .pr-ghost-button,
 .pr-file-link {
+  max-width: 100%;
   padding: 0.6rem 0.95rem;
   border-color: var(--pr-line);
   background: #fff;
@@ -457,6 +475,7 @@
 .pr-modal textarea,
 .pr-modal select,
 .pr-eval-block select {
+  max-width: 100%;
   padding: 0.55rem 0.65rem;
   border: 1px solid var(--pr-line);
   border-radius: 8px;
@@ -484,6 +503,7 @@
 .pr-eval-block header,
 .pr-text-list article header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
   align-items: center;
@@ -649,7 +669,7 @@
 
 @media (max-width: 960px) {
   .pr-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .pr-people-panel {

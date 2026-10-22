@@ -179,18 +179,21 @@ export async function importRowsFor(ctx: DbCtx, importId: string) {
 /** Loads students by id with one point read each (no table scan). */
 export async function studentsByIds(ctx: DbCtx, ids: Iterable<string>) {
   const map = new Map<string, NonNullable<Awaited<ReturnType<typeof getStudentById>>>>();
-  for (const id of new Set(ids)) {
-    const student = await getStudentById(ctx, id);
-    if (student) map.set(String(student._id), student);
-  }
+  // Reads in parallel: a whole-school roster is ~1k students.
+  const students = await Promise.all([...new Set(ids)].map((id) => getStudentById(ctx, id)));
+  for (const student of students) if (student) map.set(String(student._id), student);
   return map;
 }
 
 export async function usersByIds(ctx: DbCtx, ids: Iterable<string>) {
   const map = new Map<string, { _id: string; name: string; role: string }>();
-  for (const id of new Set(ids)) {
-    const normalized = ctx.db.normalizeId("users", id);
-    const user = normalized ? await ctx.db.get(normalized) : null;
+  const users = await Promise.all(
+    [...new Set(ids)].map((id) => {
+      const normalized = ctx.db.normalizeId("users", id);
+      return normalized ? ctx.db.get(normalized) : null;
+    }),
+  );
+  for (const user of users) {
     if (user) map.set(String(user._id), { _id: String(user._id), name: user.name || user.email || "", role: user.role });
   }
   return map;

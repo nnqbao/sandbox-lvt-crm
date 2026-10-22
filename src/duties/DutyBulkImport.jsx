@@ -3,10 +3,11 @@ import { useAction, useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { assertImportFileMeta } from '../lib/userImport.js';
 import { downloadDutyImportTemplate } from '../lib/dutyImportExcel.js';
+import { formatVnDate } from './sharedDutySchedule.js';
 
 function formatPreviewTime(row) {
-  if (row.allDay) return `${row.startDate} · Cả ngày`;
-  return `${row.startDate} ${row.startTime} → ${row.endDate} ${row.endTime}`;
+  if (row.allDay) return `${formatVnDate(row.startDate)} · Cả ngày`;
+  return `${formatVnDate(row.startDate)} ${row.startTime} → ${formatVnDate(row.endDate)} ${row.endTime}`;
 }
 
 export default function DutyBulkImport({ onClose, onImported = null }) {
