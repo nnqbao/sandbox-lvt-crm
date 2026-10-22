@@ -550,6 +550,22 @@ mark { background: #fff3c8; color: inherit; border-radius: 3px; padding: 0 1px; 
   html { scroll-behavior: smooth; }
 }
 
+/* ---------- embed (?embed=1): one topic inside the app's "?" help panel ---------- */
+.is-embed .hero,
+.is-embed .sidebar,
+.is-embed .page-foot,
+.is-embed .back-to-top,
+.is-embed .skip-link,
+.is-embed .search-empty,
+.is-embed .part-head { display: none !important; }
+.is-embed .part.is-embed-part > .part-head { display: block !important; }
+.is-embed { scroll-padding-top: 12px; scroll-behavior: auto; }
+.is-embed .layout { display: block; max-width: none; padding: 12px; }
+.is-embed .part { margin-bottom: 0; }
+.is-embed .topic { margin-bottom: 12px; }
+.embed-back { margin: 0 0 10px; font-size: 14px; font-weight: 700; }
+.embed-back a { display: inline-flex; align-items: center; min-height: 36px; }
+
 /* ---------- print ---------- */
 @media print {
   @page { margin: 14mm 12mm; }

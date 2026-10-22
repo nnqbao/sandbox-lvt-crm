@@ -141,8 +141,8 @@ test('việc của tôi: backend chỉ dùng người dùng hiện tại, không
   const schema = readFileSync(new URL('../convex/schema.ts', import.meta.url), 'utf8');
   assert.match(schema, /personalTodos: defineTable/);
   assert.match(schema, /by_user_active_due/);
-  const main = readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
-  assert.match(main, /id === 'chat' \|\| id === 'work'/);
+  const routes = readFileSync(new URL('../src/navigationRoutes.js', import.meta.url), 'utf8');
+  assert.match(routes, /menuId === 'chat' \|\| menuId === 'work'/);
   const hub = readFileSync(new URL('../src/work/WorkHub.jsx', import.meta.url), 'utf8');
   assert.match(hub, /Việc của tôi/);
   assert.match(hub, /workHidden \? null/);

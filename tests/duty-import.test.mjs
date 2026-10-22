@@ -221,6 +221,26 @@ test('thành phần khác quá 500 ký tự bị chặn', () => {
   assert.equal(result.errors.some((item) => item.message === DUTY_IMPORT_MESSAGES.otherParticipantsInvalid), true);
 });
 
+test('địa điểm là chữ gõ tự do: không tra danh mục, chỉ bắt buộc và tối đa 200 ký tự', () => {
+  const free = validateDutyImportRows(
+    [baseRow({ dia_diem: '  UBND phường 5, số 12 đường A  ' })],
+    { actor: opsActor, departments, users },
+  );
+  assert.equal(free.ok, true);
+  assert.equal(free.preview[0].locationText, 'UBND phường 5, số 12 đường A');
+
+  const longest = validateDutyImportRows([baseRow({ dia_diem: 'x'.repeat(200) })], { actor: opsActor, departments, users });
+  assert.equal(longest.ok, true);
+
+  const tooLong = validateDutyImportRows([baseRow({ dia_diem: 'x'.repeat(201) })], { actor: opsActor, departments, users });
+  assert.equal(tooLong.ok, false);
+  assert.equal(tooLong.errors.some((item) => item.message === DUTY_IMPORT_MESSAGES.locationInvalid), true);
+
+  const empty = validateDutyImportRows([baseRow({ dia_diem: '   ' })], { actor: opsActor, departments, users });
+  assert.equal(empty.ok, false);
+  assert.equal(empty.errors.some((item) => item.message === DUTY_IMPORT_MESSAGES.locationRequired), true);
+});
+
 test('mã phòng ban và email sai bị chặn', () => {
   const result = validateDutyImportRows(
     [

@@ -19,7 +19,7 @@ Mỗi nhóm hiện thành một thẻ tóm tắt quyền từng menu [[1]]. Bấ
 ![Các thẻ nhóm quyền: 1 nhóm Giám thị với Điểm danh: Giám thị, 2 Thêm user](tl-nhom-quyen-the)
 
 ::: note
-**Xem tối cao** cho xem rộng hơn (ví dụ toàn trường) ở menu có hỗ trợ. Mức **Giám thị** chỉ mở menu Điểm danh, không cho xem Lớp chủ nhiệm hay menu khác.
+**Xem tối cao** cho xem rộng hơn (ví dụ toàn trường) ở menu có hỗ trợ. Mức **Giám thị** chỉ mở menu Điểm danh, không cho xem Lớp chủ nhiệm hay menu khác. Menu **Bán trú** đi theo mức của **Báo cáo** (Xem: phòng ban mình; Xem tối cao: toàn trường), nên không có dòng riêng.
 :::
 
 ::: warn

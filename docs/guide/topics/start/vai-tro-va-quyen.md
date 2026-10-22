@@ -30,7 +30,7 @@ Nhà trường có thể giới hạn một Moderator chỉ quản lý **phòng 
 :::
 
 ::: tip
-**Trao đổi** và **Công việc** (ít nhất là tab **Việc của tôi**) luôn có cho mọi tài khoản đang hoạt động.
+**Trao đổi** và **Công việc** (ít nhất là tab **Việc của tôi**) luôn có cho mọi tài khoản đang hoạt động. Menu **Bán trú** không có dòng riêng trong nhóm quyền: ai được xem **Báo cáo** thì thấy Bán trú.
 :::
 
 ### Câu hỏi thường gặp

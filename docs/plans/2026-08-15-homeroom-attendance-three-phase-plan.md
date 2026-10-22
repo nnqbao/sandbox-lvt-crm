@@ -145,7 +145,7 @@ Before implementing homeroom business workflows, extend the permission-group mod
 - Shared helpers must distinguish specialized supervisor operations from ordinary menu visibility. `supervisor` makes the `homeroom` menu visible and grants only the supervisor workflow described below; it must not accidentally satisfy generic `view_all` checks or broaden access in unrelated modules.
 - Explicit class/supervisor assignment remains the data-scope boundary. Selecting **Giám thị** does not by itself grant whole-school data access; whole-school supervisor scope requires a separate explicit configuration approved by the school.
 
-The settings-screen explanatory copy and `README.md` / `userguide.md` must describe four displayed columns while making clear that **Giám thị is available only for Lớp chủ nhiệm**.
+The settings-screen explanatory copy and `README.md` / user guide (now the in-app guide `/huong-dan-su-dung.html`, source `docs/guide/`) must describe four displayed columns while making clear that **Giám thị is available only for Lớp chủ nhiệm**.
 
 | Actor | Default scope | Read | Write |
 |---|---|---|---|
@@ -733,7 +733,7 @@ Follow red → green per behavior. Do not write a large imagined suite before im
 - Modify `convex/lib.ts` and any menu-access consumers that currently assume only three canonical values.
 - Modify `src/main.jsx`: add the **Giám thị** header after **Xem tối cao**, render a radio only for `homeroom`, render `—` for other rows, and update explanatory/access labels.
 - Modify the relevant permission-matrix CSS only as needed to support five total columns without page overflow.
-- Modify `README.md` and `userguide.md` to document the new level and its restriction.
+- Modify `README.md` and the user guide (now `docs/guide/` → `/huong-dan-su-dung.html`) to document the new level and its restriction.
 - Extend `tests/menu-access.test.mjs`; add a focused permission-group UI/source test only if the current test harness cannot verify the matrix behavior cleanly in that file.
 
 **TDD sequence:**
@@ -1469,7 +1469,7 @@ Do not return raw stack traces or vendor secrets to clients.
 Update after each phase:
 
 - `README.md` current scope, tables, permissions, workflows, known limitations.
-- `userguide.md` role-oriented operation steps.
+- User guide (now `docs/guide/` → `/huong-dan-su-dung.html`) role-oriented operation steps.
 - `.cursor/rules/*.mdc` and `CLAUDE.md` only when introducing durable invariants that future agents must preserve; keep both synchronized.
 - Import template column documentation.
 - Operational runbook for camera import/sync, unresolved rows, backups, and rollback.

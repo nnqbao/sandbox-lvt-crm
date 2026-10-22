@@ -1,9 +1,9 @@
 ---
 id: menu-khac
-title: Thông báo, Trao đổi, Báo cáo, Đánh giá nhân sự, Ghi nhận lỗi
+title: Thông báo, Trao đổi, Ghi nhận lỗi và tài khoản
 menu: Các menu khác
 roles: Mọi người
-keywords: tra cuu, thong bao, trao doi, bao cao, danh gia, ghi nhan loi, ban tru
+keywords: tra cuu, thong bao, trao doi, ghi nhan loi, tai khoan, huong dan, dau hoi
 ---
 Tóm tắt nhanh các menu còn lại và nơi đọc hướng dẫn chi tiết.
 
@@ -14,12 +14,13 @@ Tóm tắt nhanh các menu còn lại và nơi đọc hướng dẫn chi tiết.
 |---|---|---|
 | Thông báo (chuông) | Lịch, việc sắp đến hạn, tin nhắn nhóm | [Thông báo](#tb-thong-bao) |
 | Trao đổi (tin nhắn) | Nhắn tin theo công việc, công tác, nhóm | [Trao đổi](#td-trao-doi), [Nhóm](#td-nhom) |
-| Báo cáo → Công việc | Lịch và chỉ số hoàn thành công việc theo người | [Báo cáo](#bc-bao-cao-cong-viec) |
-| Đánh giá nhân sự | Hồ sơ lỗi, công việc, kỳ đánh giá; BGH nhận xét | [Của tôi](#dg-ho-so-cua-toi), [Cấp dưới](#dg-danh-gia-nguoi-khac) |
+| Báo cáo | Công việc, Bán trú | [Báo cáo](#menu-bao-cao) |
+| Bán trú | Kỳ bán trú, giáo viên tham gia | [Bán trú](#bt-ban-tru) |
+| Đánh giá nhân sự | Hồ sơ lỗi, công việc, kỳ đánh giá; BGH nhận xét | [Đánh giá nhân sự](#menu-danh-gia-nhan-su) |
 | Ghi nhận lỗi | Lỗi của tôi, lỗi do tôi ghi nhận | [Ghi nhận lỗi](#ln-ghi-nhan-loi) |
 | Ảnh đại diện | Hồ sơ, đổi mật khẩu, thiết bị, hướng dẫn, đăng xuất | [Tài khoản](#tai-khoan-ca-nhan) |
-| Thiết lập tối cao | Chỉ Administrator | [Trình tự thiết lập](#tl-trinh-tu-thiet-lap) |
+| Thiết lập tối cao | Chỉ Administrator | [Thiết lập tối cao](#menu-thiet-lap) |
 
-::: note
-Báo cáo **Bán trú** và trang quản lý kỳ bán trú hiện đang ẩn trên bản web; khi nhà trường mở lại, hướng dẫn sẽ được bổ sung.
+::: tip Nút ? cạnh tên trang
+Ở mọi trang, nút tròn **?** cạnh tên trang mở đúng phần hướng dẫn của menu đó ngay bên cạnh màn hình làm việc — xem [Làm quen với màn hình chính](#giao-dien-chung).
 :::

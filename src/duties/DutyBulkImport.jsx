@@ -153,6 +153,7 @@ export default function DutyBulkImport({ onClose, onImported = null }) {
 
       <p className="duty-bulk-import-help">
         Mỗi dòng là một công tác. File được tải lên server trước, hệ thống đọc lại để kiểm tra.
+        Cột <code>dia_diem</code> gõ tự do (tối đa 200 ký tự).
         Một dòng lỗi thì chưa nhập dòng nào. Tổ trưởng/tổ phó chỉ dùng cột email cấp dưới hoặc thành phần khác, không điền mã phòng ban.
       </p>
 

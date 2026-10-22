@@ -4,7 +4,10 @@ import test from 'node:test';
 import {
   ACCOUNT_MENU_IDS,
   MENU_PATHS,
+  PRIMARY_MENUS,
+  SUPREME_SETTINGS,
   isAccountMenu,
+  isPrimaryMenuVisible,
   isSidebarPrimaryMenu,
   pathnameForMenu,
   pathnameForReportSection,
@@ -42,8 +45,38 @@ test('đường dẫn con mở đúng menu và chuẩn hóa dấu gạch cuối'
 test('đường dẫn menu đã ẩn được chuyển về menu đang dùng', () => {
   assert.deepEqual(routeForPathname('/quan-ly-cong-tac'), { menu: 'duties', reportSection: undefined });
   assert.deepEqual(routeForPathname('/quan-ly-cong-viec'), { menu: 'work', reportSection: undefined });
-  assert.deepEqual(routeForPathname('/bao-cao/ban-tru'), { menu: 'reports', reportSection: 'work' });
   assert.deepEqual(routeForPathname('/thiet-lap-dia-diem'), { menu: 'departments', reportSection: undefined });
+});
+
+test('Thiết lập địa điểm đã gỡ: không còn menu/đường dẫn riêng', () => {
+  assert.equal('locations' in MENU_PATHS, false);
+  assert.equal(pathnameForMenu('locations'), '/');
+  assert.equal(SUPREME_SETTINGS.some(([id]) => id === 'locations'), false);
+});
+
+test('Bán trú là menu trên sidebar, link cũ vẫn mở đúng chỗ', () => {
+  assert.equal(pathnameForMenu('boarding'), '/ban-tru');
+  assert.deepEqual(routeForPathname('/ban-tru'), { menu: 'boarding', reportSection: undefined });
+  assert.deepEqual(routeForPathname('/quan-ly-ban-tru'), { menu: 'boarding', reportSection: undefined });
+  assert.deepEqual(routeForPathname('/bao-cao/ban-tru'), { menu: 'reports', reportSection: 'boarding' });
+  assert.equal(pathnameForReportSection('boarding'), '/bao-cao/ban-tru');
+  assert.equal(isSidebarPrimaryMenu('boarding'), true);
+  assert.ok(PRIMARY_MENUS.some(([id, label]) => id === 'boarding' && label === 'Bán trú'));
+});
+
+test('Bán trú hiện theo quyền Báo cáo (giống convex/boarding.ts), admin/mod luôn thấy', () => {
+  assert.equal(isPrimaryMenuVisible('boarding', { canManageOperations: true, menuAccess: {} }), true);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'view' } }), true);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'view_all' } }), true);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'hidden' } }), false);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: {} }), false);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: null }), false);
+  // Other menus keep their own level; chat and work are always open.
+  assert.equal(isPrimaryMenuVisible('reports', { menuAccess: { reports: 'hidden' } }), false);
+  assert.equal(isPrimaryMenuVisible('attendance', { menuAccess: { attendance: 'supervisor' } }), true);
+  assert.equal(isPrimaryMenuVisible('homeroom', { menuAccess: { homeroom: 'hidden', attendance: 'supervisor' } }), false);
+  assert.equal(isPrimaryMenuVisible('chat', { menuAccess: {} }), true);
+  assert.equal(isPrimaryMenuVisible('work', { menuAccess: { work: 'hidden' } }), true);
 });
 
 test('các tab báo cáo đang dùng có đường dẫn riêng', () => {

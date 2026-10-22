@@ -1,19 +1,17 @@
 // Lịch công tác: one fictional school week (Thứ Hai 19/10 – Thứ Bảy 24/10/2026).
 import { DEPARTMENTS, T0, USERS, departmentById, positionById, userById } from './personas.js';
-import { LOCATIONS } from './common.js';
 
 const WEEK_START = '2026-10-19';
 const ALL_DEPTS = DEPARTMENTS.map((d) => d._id);
-const loc = (id) => LOCATIONS.find((row) => row._id === id)?.name || '';
 
 const RAW = [
-  { _id: 'd1', title: 'Chào cờ đầu tuần', content: 'Chào cờ, sơ kết thi đua tuần 6', startDate: '2026-10-19', startTime: '07:00', endTime: '07:45', location: 'loc_sanTruong', departmentIds: ALL_DEPTS, participantUserIds: [], createdBy: 'u_clerk' },
-  { _id: 'd2', title: 'Sinh hoạt chuyên môn tổ Toán – Tin', content: 'Sinh hoạt chuyên môn theo nghiên cứu bài học, chủ đề “Phân số”', startDate: '2026-10-20', startTime: '14:00', endTime: '16:30', location: 'loc_phonghop', departmentIds: ['dep_toan'], participantUserIds: [], createdBy: 'u_leader', team: true },
-  { _id: 'd3', title: 'Dự giờ tiết Toán lớp 7/2', content: 'Dự giờ tiết Toán lớp 7/2 — GV Nguyễn Văn A dạy', startDate: '2026-10-21', startTime: '08:00', endTime: '10:00', location: '', locationText: 'Phòng học lớp 7/2', departmentIds: [], participantUserIds: ['u_teacher', 'u_leader', 'u_pht'], createdBy: 'u_leader', team: true },
-  { _id: 'd4', title: 'Họp Hội đồng sư phạm tháng 10', content: 'Họp Hội đồng sư phạm tháng 10: đánh giá tháng, kế hoạch tháng 11', startDate: '2026-10-21', startTime: '14:00', endTime: '16:00', location: 'loc_hoitruong', departmentIds: ALL_DEPTS, participantUserIds: [], createdBy: 'u_clerk' },
-  { _id: 'd5', title: 'Tập huấn sử dụng CRM', content: 'Tập huấn sử dụng CRM nội bộ cho giáo viên', startDate: '2026-10-22', startTime: '15:00', endTime: '16:30', location: 'loc_phongMay', departmentIds: ['dep_toan', 'dep_van'], participantUserIds: [], otherParticipants: 'Giáo viên mới nhận công tác', createdBy: 'u_clerk' },
-  { _id: 'd6', title: 'Kiểm tra nề nếp khối 6', content: 'Kiểm tra nề nếp, vệ sinh các lớp khối 6', startDate: '2026-10-23', startTime: '07:30', endTime: '09:30', location: '', locationText: 'Các lớp khối 6', departmentIds: [], participantUserIds: ['u_supervisor', 'u_gvcn', 'u_pht'], createdBy: 'u_clerk' },
-  { _id: 'd7', title: 'Ngày hội đọc sách', content: 'Tổ chức Ngày hội đọc sách cho học sinh', startDate: '2026-10-24', startTime: '08:00', endTime: '11:00', location: 'loc_thuVien', departmentIds: ['dep_van', 'dep_anh'], participantUserIds: [], otherParticipants: 'Đại diện Ban đại diện cha mẹ học sinh', createdBy: 'u_clerk' },
+  { _id: 'd1', title: 'Chào cờ đầu tuần', content: 'Chào cờ, sơ kết thi đua tuần 6', startDate: '2026-10-19', startTime: '07:00', endTime: '07:45', locationText: 'Sân trường', departmentIds: ALL_DEPTS, participantUserIds: [], createdBy: 'u_clerk' },
+  { _id: 'd2', title: 'Sinh hoạt chuyên môn tổ Toán – Tin', content: 'Sinh hoạt chuyên môn theo nghiên cứu bài học, chủ đề “Phân số”', startDate: '2026-10-20', startTime: '14:00', endTime: '16:30', locationText: 'Phòng họp Hội đồng', departmentIds: ['dep_toan'], participantUserIds: [], createdBy: 'u_leader', team: true },
+  { _id: 'd3', title: 'Dự giờ tiết Toán lớp 7/2', content: 'Dự giờ tiết Toán lớp 7/2 — GV Nguyễn Văn A dạy', startDate: '2026-10-21', startTime: '08:00', endTime: '10:00', locationText: 'Phòng học lớp 7/2', departmentIds: [], participantUserIds: ['u_teacher', 'u_leader', 'u_pht'], createdBy: 'u_leader', team: true },
+  { _id: 'd4', title: 'Họp Hội đồng sư phạm tháng 10', content: 'Họp Hội đồng sư phạm tháng 10: đánh giá tháng, kế hoạch tháng 11', startDate: '2026-10-21', startTime: '14:00', endTime: '16:00', locationText: 'Hội trường', departmentIds: ALL_DEPTS, participantUserIds: [], createdBy: 'u_clerk' },
+  { _id: 'd5', title: 'Tập huấn sử dụng CRM', content: 'Tập huấn sử dụng CRM nội bộ cho giáo viên', startDate: '2026-10-22', startTime: '15:00', endTime: '16:30', locationText: 'Phòng máy tính', departmentIds: ['dep_toan', 'dep_van'], participantUserIds: [], otherParticipants: 'Giáo viên mới nhận công tác', createdBy: 'u_clerk' },
+  { _id: 'd6', title: 'Kiểm tra nề nếp khối 6', content: 'Kiểm tra nề nếp, vệ sinh các lớp khối 6', startDate: '2026-10-23', startTime: '07:30', endTime: '09:30', locationText: 'Các lớp khối 6', departmentIds: [], participantUserIds: ['u_supervisor', 'u_gvcn', 'u_pht'], createdBy: 'u_clerk' },
+  { _id: 'd7', title: 'Ngày hội đọc sách', content: 'Tổ chức Ngày hội đọc sách cho học sinh', startDate: '2026-10-24', startTime: '08:00', endTime: '11:00', locationText: 'Thư viện', departmentIds: ['dep_van', 'dep_anh'], participantUserIds: [], otherParticipants: 'Đại diện Ban đại diện cha mẹ học sinh', createdBy: 'u_clerk' },
 ];
 
 const toMs = (date, time) => Date.parse(`${date}T${time}:00+07:00`);
@@ -36,7 +34,7 @@ function names(duty) {
   return {
     departmentNames: duty.departmentIds.map((id) => departmentById(id)?.name).filter(Boolean),
     participantNames: duty.participantUserIds.map((id) => userById(id)?.name).filter(Boolean),
-    locationLabel: duty.location ? loc(duty.location) : duty.locationText || '',
+    locationLabel: duty.locationText || '',
   };
 }
 

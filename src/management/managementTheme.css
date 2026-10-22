@@ -61,7 +61,6 @@
 
 .users-management .section-intro::after { content: "ND"; }
 .departments-management .section-intro::after { content: "PB"; }
-.locations-management .section-intro::after { content: "ĐĐ"; }
 .permission-groups-management .section-intro::after { content: "NQ"; }
 .positions-management .section-intro::after { content: "CV"; }
 

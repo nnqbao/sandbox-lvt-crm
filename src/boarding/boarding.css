@@ -243,7 +243,7 @@
   border-radius: 11px;
   color: var(--boarding-blue);
   background: var(--boarding-paper);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 17px;
   font-weight: 800;
 }
@@ -453,7 +453,7 @@
 .boarding-period-card > h3 {
   margin: 4px 0 15px;
   color: var(--boarding-blue);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 22px;
 }
 
@@ -465,7 +465,7 @@
 
 .boarding-teacher-count strong {
   color: var(--boarding-coral);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 20px;
 }
 
@@ -761,7 +761,7 @@
 }
 
 .boarding-report-score strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 39px;
   line-height: .85;
 }
@@ -958,7 +958,7 @@
 
 .boarding-report-stats strong {
   color: var(--boarding-blue);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 17px;
 }
 
@@ -1077,14 +1077,14 @@
 
 .boarding-report-card-main > div > strong {
   color: var(--boarding-coral);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 30px;
 }
 
 .boarding-report-card-main h3 {
   margin: 0;
   color: var(--boarding-blue);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 20px;
 }
 
@@ -1294,7 +1294,7 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 900px) {
   .boarding-management,
   .boarding-report { padding: 20px 18px 42px; }
   .boarding-editor { grid-template-columns: 1fr; }
@@ -1308,9 +1308,9 @@
   .boarding-period-picker { align-items: stretch; }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 680px) {
   .boarding-management,
-  .boarding-report { padding: 16px 12px 35px; }
+  .boarding-report { padding: 16px 16px 35px; }
   .boarding-admin-hero,
   .boarding-report-hero { display: grid; padding: 22px 18px; }
   .boarding-add-button { justify-self: start; }
@@ -1336,4 +1336,62 @@
   .boarding-editor,
   .boarding-teacher-modal,
   .boarding-report-card { animation: none; }
+}
+
+/* Menu Bán trú: tabs Kỳ bán trú / Danh sách tham gia (operational managers). */
+.boarding-page {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px 34px 54px;
+}
+
+.boarding-page .boarding-management,
+.boarding-page .boarding-report {
+  padding: 0;
+}
+
+.boarding-page-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 12px;
+  background: var(--lvt-surface-muted);
+}
+
+.boarding-page-tabs button {
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--lvt-ink-soft);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boarding-page-tabs button[aria-selected="true"] {
+  color: var(--lvt-navy);
+  background: var(--lvt-paper);
+  box-shadow: 0 1px 3px rgba(20, 53, 95, .12);
+  font-weight: 800;
+}
+
+.boarding-page-tabs button:focus-visible {
+  outline: 2px solid var(--lvt-teal);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .boarding-page { padding: 20px 22px 42px; }
+}
+
+@media (max-width: 680px) {
+  .boarding-page { padding: 16px 16px 35px; }
+  .boarding-page-tabs { display: flex; }
+  .boarding-page-tabs button { flex: 1 1 0; min-height: 44px; }
 }

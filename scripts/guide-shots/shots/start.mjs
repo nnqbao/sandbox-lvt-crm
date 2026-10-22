@@ -56,11 +56,43 @@ export default [
     settle: 600,
     callouts: [
       { n: 1, target: '.shell-nav', pos: 'tr', pad: 2 },
-      { n: 2, target: '.shell-header h1', pos: 'left' },
+      { n: 2, target: '.shell-header h1', pos: 'bottom' },
       { n: 3, target: '.header-chat-button', pos: 'bottom' },
       { n: 4, target: '.notification-bell-button', pos: 'bottom' },
       { n: 5, target: '.account-menu-trigger', pos: 'bottom' },
       { n: 6, target: '.sidebar-collapse-button', pos: 'bottom' },
+      { n: 7, target: '.page-help-button', pos: 'bottom' },
+    ],
+  },
+  {
+    id: 'huong-dan-nhanh',
+    scenario: 'teacher',
+    path: '/cong-tac',
+    height: 820,
+    settle: 600,
+    actions: [
+      { click: '.page-help-button', after: 300 },
+      { waitFor: '.page-help-body iframe.is-loaded', timeout: 10000 },
+      { wait: 900 },
+    ],
+    callouts: [
+      { n: 1, target: '.page-help-head h2', pos: 'left' },
+      { n: 2, target: '.page-help-body', pos: 'left' },
+      { n: 3, target: '.page-help-foot a', pos: 'left' },
+      { n: 4, target: '.page-help-close', pos: 'bottom' },
+    ],
+  },
+  {
+    id: 'huong-dan-nhanh-mobile',
+    scenario: 'teacher',
+    path: '/cong-tac',
+    width: 390,
+    height: 760,
+    settle: 600,
+    actions: [
+      { click: '.page-help-button', after: 300 },
+      { waitFor: '.page-help-body iframe.is-loaded', timeout: 10000 },
+      { wait: 900 },
     ],
   },
   {
@@ -75,6 +107,7 @@ export default [
       { n: 3, target: '.header-chat-button', pos: 'bottom' },
       { n: 4, target: '.notification-bell-button', pos: 'bottom' },
       { n: 5, target: '.account-menu-trigger', pos: 'bottom' },
+      { n: 7, target: '.page-help-button', pos: 'bottom' },
     ],
   },
   {

@@ -280,7 +280,7 @@ test('UI Lịch công tác có 2 tab, lịch cá nhân dạng lịch, trang tạ
   const tabs = readFileSync(new URL('../src/duties/DutyWorkspaceTabs.jsx', import.meta.url), 'utf8');
   const shared = readFileSync(new URL('../src/duties/SharedDutyScheduleView.jsx', import.meta.url), 'utf8');
   const personal = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
-  assert.match(main, /\['duties', 'Lịch công tác'\]/);
+  assert.match(readFileSync(new URL('../src/navigationRoutes.js', import.meta.url), 'utf8'), /\['duties', 'Lịch công tác'\]/);
   assert.match(main, /chooseDutyView\('create'\)|onDutyNavigate\?\.\('create'\)|onDutyNavigate\('create'\)/);
   assert.match(main, /SharedDutyScheduleView/);
   assert.match(main, /DutyReportsView/);

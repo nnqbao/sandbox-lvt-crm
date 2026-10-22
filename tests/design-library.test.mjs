@@ -42,7 +42,8 @@ test('design library page is an admin-only supreme setting route', async () => {
   assert.equal(pathnameForMenu('design-library'), '/thu-vien-giao-dien');
   assert.equal(routeForPathname('/thu-vien-giao-dien')?.menu, 'design-library');
   const main = await read('src/main.jsx');
-  assert.match(main, /\['design-library', 'Thư viện giao diện'\],\n\];/);
+  const routes = await read('src/navigationRoutes.js');
+  assert.match(routes, /\['design-library', 'Thư viện giao diện'\],\n\]\);/);
   assert.match(main, /active === 'design-library' && isAdmin \?/);
   const view = await read('src/settings/DesignLibraryView.jsx');
   assert.match(view, /sandbox="allow-scripts"/);

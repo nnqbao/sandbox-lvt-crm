@@ -52,6 +52,13 @@ const NAV_ICONS = {
       <path d="m8.8 13.2 2.2 2.2 4.4-4.6" />
     </NavGlyph>
   ),
+  boarding: () => (
+    <NavGlyph>
+      <path d="M3.5 12h17a8.5 8.5 0 0 1-17 0z" />
+      <path d="M9 20.5h6" />
+      <path d="M9 4.5c-.8 1 .8 2-.1 3.2M12.5 3.8c-.8 1 .8 2-.1 3.2M16 4.5c-.8 1 .8 2-.1 3.2" />
+    </NavGlyph>
+  ),
   'people-review': () => (
     <NavGlyph>
       <circle cx="9" cy="8.2" r="3" />
