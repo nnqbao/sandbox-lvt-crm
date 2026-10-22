@@ -342,3 +342,47 @@ test('native Lịch CT mở hub trên tab, PDF qua cùng gateway, deep link vào
   assert.match(iosRoot, /openPersonal/);
   assert.match(iosRepo, /\/api\/duties\/shared-schedule\.pdf/);
 });
+
+test('PDF/bảng lịch từ bản làm việc chưa duyệt có dấu "BẢN NHÁP – CHƯA DUYỆT"; bản đã duyệt/công khai không đổi', async () => {
+  const { sharedScheduleIsDraft, buildSharedSchedulePayload, SHARED_SCHEDULE_DRAFT_MARK } = await import('../src/duties/sharedDutySchedule.js');
+  const { buildAuthorizedSharedSchedulePdf } = await import('../scripts/lib/shared-duty-schedule-pdf.mjs');
+  const approvedWeek = { weekStart: '2026-09-07', status: 'approved' };
+  assert.equal(SHARED_SCHEDULE_DRAFT_MARK, 'BẢN NHÁP – CHƯA DUYỆT');
+  assert.equal(sharedScheduleIsDraft({ viewer: 'public', weeks: [], events: [{ approvalChange: 'added' }] }), false);
+  assert.equal(sharedScheduleIsDraft({ viewer: 'manager', weeks: [approvedWeek], events: sampleEvents }), false);
+  assert.equal(sharedScheduleIsDraft({ viewer: 'manager', weeks: [{ ...approvedWeek, status: 'empty' }], events: [] }), false);
+  for (const status of ['draft', 'submitted', 'returned', 'approved_changed']) {
+    assert.equal(sharedScheduleIsDraft({ viewer: 'manager', weeks: [{ ...approvedWeek, status }], events: [] }), true, status);
+  }
+  assert.equal(sharedScheduleIsDraft({ viewer: 'reviewer', weeks: [approvedWeek], events: [{ approvalChange: 'changed' }] }), true);
+  assert.equal(sharedScheduleIsDraft(undefined), false);
+
+  const draftData = { viewer: 'manager', weeks: [{ ...approvedWeek, status: 'approved_changed' }], events: sampleEvents };
+  const draftPayload = buildSharedSchedulePayload('week', '2026-09-09', draftData);
+  assert.equal(draftPayload.draft, true);
+  const draftPdf = buildSharedDutySchedulePdf(draftPayload);
+  assert.equal(draftPdf.draft, true);
+  assert.ok(draftPdf.visibleTexts.includes(SHARED_SCHEDULE_DRAFT_MARK));
+  assert.match(Buffer.from(draftPdf.bytes).toString('latin1'), /\/ca 0\.12/, 'watermark is drawn with low opacity');
+
+  const publicPdf = buildSharedDutySchedulePdf(buildSharedSchedulePayload('week', '2026-09-09', { viewer: 'public', events: sampleEvents }));
+  assert.equal(publicPdf.draft, false);
+  assert.ok(!publicPdf.visibleTexts.includes(SHARED_SCHEDULE_DRAFT_MARK));
+
+  // Server gateway path builds through the same payload helper.
+  const fakeClient = (data) => ({ query: async () => data });
+  const serverDraft = await buildAuthorizedSharedSchedulePdf(fakeClient(draftData), 'week', '2026-09-09');
+  assert.equal(serverDraft.draft, true);
+  const serverApproved = await buildAuthorizedSharedSchedulePdf(
+    fakeClient({ viewer: 'manager', weeks: [approvedWeek], events: sampleEvents }),
+    'week',
+    '2026-09-09',
+  );
+  assert.equal(serverApproved.draft, false);
+
+  const table = readFileSync(new URL('../src/duties/DutyScheduleTable.jsx', import.meta.url), 'utf8');
+  assert.match(table, /lct-draft-mark/);
+  const view = readFileSync(new URL('../src/duties/SharedDutyScheduleView.jsx', import.meta.url), 'utf8');
+  assert.match(view, /buildSharedSchedulePayload\(mode, anchorIso, data\)/);
+  assert.match(view, /draft=\{built\.draft\}/);
+});

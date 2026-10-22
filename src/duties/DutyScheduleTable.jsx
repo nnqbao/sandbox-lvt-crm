@@ -1,5 +1,5 @@
 import { OfficialDutyHeader } from './DutyWorkspaceTabs';
-import { canOpenDutyContentEditor } from './sharedDutySchedule.js';
+import { canOpenDutyContentEditor, SHARED_SCHEDULE_DRAFT_MARK } from './sharedDutySchedule.js';
 import { DutyChatButton } from './DutyChatButton';
 import { CardIconButton, PencilIcon } from '../lib/CardActionIcons';
 import '../work/work.css';
@@ -18,10 +18,16 @@ export default function DutyScheduleTable({
   rows,
   onEditContent = null,
   onSelectEvent = null,
+  draft = false,
 }) {
   return (
-    <article className="lct-sheet" aria-label={title}>
+    <article
+      className={draft ? 'lct-sheet is-draft' : 'lct-sheet'}
+      aria-label={draft ? `${title} (${SHARED_SCHEDULE_DRAFT_MARK})` : title}
+      data-draft-mark={draft ? SHARED_SCHEDULE_DRAFT_MARK : undefined}
+    >
       <OfficialDutyHeader title={title} />
+      {draft ? <p className="lct-draft-mark">{SHARED_SCHEDULE_DRAFT_MARK}</p> : null}
       <table className="lct-table">
         <colgroup>
           <col className="lct-col-day" />

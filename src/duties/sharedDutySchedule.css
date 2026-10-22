@@ -159,6 +159,36 @@
   margin-bottom: 12px;
 }
 
+/* Working copy with unapproved changes: header line + light diagonal watermark. */
+.lct-sheet.is-draft {
+  position: relative;
+  overflow: hidden;
+}
+
+.lct-sheet.is-draft::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  content: attr(data-draft-mark);
+  color: var(--lvt-danger-text);
+  font-size: clamp(32px, 7vw, 72px);
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.08;
+  transform: rotate(-30deg);
+  pointer-events: none;
+}
+
+.lct-draft-mark {
+  margin: -4px 0 12px;
+  color: var(--lvt-danger-text);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
 .lct-official-banner {
   display: grid;
   grid-template-columns: minmax(0, 0.39fr) minmax(0, 0.61fr);

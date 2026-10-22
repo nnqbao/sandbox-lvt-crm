@@ -1,5 +1,5 @@
 import { anyApi } from 'convex/server';
-import { buildSharedScheduleRows, scheduleRange } from '../../src/duties/sharedDutySchedule.js';
+import { buildSharedSchedulePayload, scheduleRange } from '../../src/duties/sharedDutySchedule.js';
 import { buildSharedDutySchedulePdf } from '../../src/duties/sharedDutySchedulePdf.js';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -22,6 +22,6 @@ export async function buildAuthorizedSharedSchedulePdf(client, mode, anchor) {
     startDate: range.startIso,
     endDate: range.endIso,
   });
-  const payload = buildSharedScheduleRows(mode, anchor, data?.events || []);
-  return buildSharedDutySchedulePdf(payload);
+  // Working copy with unapproved changes → marked "BẢN NHÁP – CHƯA DUYỆT".
+  return buildSharedDutySchedulePdf(buildSharedSchedulePayload(mode, anchor, data));
 }

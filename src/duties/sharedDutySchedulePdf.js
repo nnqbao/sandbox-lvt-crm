@@ -6,6 +6,7 @@ import {
   LCT_NATIONAL_MOTTO_SUB,
   LCT_NATIONAL_MOTTO_TITLE,
   LCT_SCHOOL_LINES,
+  SHARED_SCHEDULE_DRAFT_MARK,
   sharedScheduleFilename,
 } from './sharedDutySchedule.js';
 
@@ -27,7 +28,30 @@ const PAGE = {
   ink: [31, 31, 31],
   /** @type {readonly [number, number, number]} */
   border: [31, 31, 31],
+  /** Draft line / watermark (danger text tone). @type {readonly [number, number, number]} */
+  draft: [155, 69, 57],
 };
+
+/** Light diagonal watermark across the page (drawn last, low opacity, never hides text). */
+function drawDraftWatermark(doc, pageWidth, pageHeight) {
+  const hasGState = typeof doc.GState === 'function' && typeof doc.setGState === 'function';
+  if (hasGState) doc.saveGraphicsState();
+  if (hasGState) doc.setGState(new doc.GState({ opacity: 0.12 }));
+  applyScheduleFont(doc, 'bold');
+  doc.setTextColor(PAGE.draft[0], PAGE.draft[1], PAGE.draft[2]);
+  const angle = 35;
+  const rad = (angle * Math.PI) / 180;
+  doc.setFontSize(54);
+  // Shrink so the rotated mark stays inside the page margins.
+  const fit = Math.min(1, ((pageWidth - PAGE.marginX * 2) * 0.95) / (Math.cos(rad) * doc.getTextWidth(SHARED_SCHEDULE_DRAFT_MARK)));
+  doc.setFontSize(54 * fit);
+  const width = doc.getTextWidth(SHARED_SCHEDULE_DRAFT_MARK);
+  // Start point so the rotated text is centred on the page.
+  const x = pageWidth / 2 - (Math.cos(rad) * width) / 2;
+  const y = pageHeight / 2 + (Math.sin(rad) * width) / 2;
+  doc.text(SHARED_SCHEDULE_DRAFT_MARK, x, y, { angle });
+  if (hasGState) doc.restoreGraphicsState();
+}
 
 const COL_RATIOS = [1800, 1500, 3000, 2200, 2132];
 
@@ -137,6 +161,15 @@ export function buildSharedDutySchedulePdf(payload) {
   const title = payload.range?.title || '';
   drawWrapped([title], pageWidth / 2, y, { fontSize: PAGE.titleSize, align: 'center', bold: true });
   y += 18;
+  if (payload.draft) {
+    applyScheduleFont(doc, 'bold');
+    doc.setFontSize(PAGE.headerSize);
+    doc.setTextColor(PAGE.draft[0], PAGE.draft[1], PAGE.draft[2]);
+    pushText(SHARED_SCHEDULE_DRAFT_MARK);
+    doc.text(SHARED_SCHEDULE_DRAFT_MARK, pageWidth / 2, y - 2, { align: 'center' });
+    doc.setTextColor(PAGE.ink[0], PAGE.ink[1], PAGE.ink[2]);
+    y += 12;
+  }
 
   const headers = ['Ngày', 'Thời gian', 'Nội dung', 'Địa điểm', 'Thành phần'];
   const xs = [];
@@ -148,6 +181,7 @@ export function buildSharedDutySchedulePdf(payload) {
 
   const drawHeader = (top) => {
     applyScheduleFont(doc, 'bold');
+    doc.setTextColor(PAGE.ink[0], PAGE.ink[1], PAGE.ink[2]);
     doc.setFillColor(PAGE.headerFill[0], PAGE.headerFill[1], PAGE.headerFill[2]);
     doc.setDrawColor(PAGE.border[0], PAGE.border[1], PAGE.border[2]);
     doc.setLineWidth(0.5);
@@ -212,6 +246,7 @@ export function buildSharedDutySchedulePdf(payload) {
     const label = `Trang ${page}/${pageCount}`;
     footers.push(label);
     doc.text(label, pageWidth - PAGE.marginX, pageHeight - 18, { align: 'right' });
+    if (payload.draft) drawDraftWatermark(doc, pageWidth, pageHeight);
   }
 
   return {
@@ -221,6 +256,7 @@ export function buildSharedDutySchedulePdf(payload) {
     visibleTexts,
     pageCount,
     footers,
+    draft: Boolean(payload.draft),
   };
 }
 

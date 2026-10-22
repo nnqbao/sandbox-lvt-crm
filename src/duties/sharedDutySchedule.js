@@ -235,6 +235,24 @@ export function canOpenDutyContentEditor(row) {
   return Boolean(row?.eventId) && (row?.canManage === true || row?.canReviewerEdit === true);
 }
 
+export const SHARED_SCHEDULE_DRAFT_MARK = 'BẢN NHÁP – CHƯA DUYỆT';
+
+/**
+ * True when the sheet shows the managers' working copy and something in it is
+ * not approved yet (văn thư / admin / BGH). Teachers ("public") only ever get
+ * the approved copy, so their sheet and PDF are never marked.
+ */
+export function sharedScheduleIsDraft(data) {
+  if (!data || !data.viewer || data.viewer === 'public') return false;
+  const pendingWeek = (data.weeks || []).some((week) => week.status && week.status !== 'approved' && week.status !== 'empty');
+  return pendingWeek || (data.events || []).some((event) => Boolean(event.approvalChange));
+}
+
+/** Payload for the official sheet / PDF (browser and server share it). */
+export function buildSharedSchedulePayload(mode, anchorIso, data) {
+  return { ...buildSharedScheduleRows(mode, anchorIso, data?.events || []), draft: sharedScheduleIsDraft(data) };
+}
+
 export function sharedScheduleFilename(range) {
   const start = formatVnDayMonth(range.startIso).replace('/', '.');
   const end = formatVnDayMonth(range.endIso).replace('/', '.');
