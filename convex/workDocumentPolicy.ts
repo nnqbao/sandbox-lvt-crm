@@ -428,3 +428,43 @@ export function workCreatorApprovalNotice(
   }
   return null;
 }
+
+/** Bell wording for a first submission (or a creator's own resubmission). */
+export const WORK_APPROVAL_REQUEST_CREATOR_TEXT =
+  "Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.";
+
+/**
+ * Who sent the current approval round, when it was not the creator: an edit
+ * (e.g. an admin re-approval edit) stamps `lastEditedBy` together with
+ * `submittedAt`. Returns the editor's id, or null when the creator submitted.
+ */
+export function workApprovalResubmittedBy(document: {
+  createdBy?: unknown;
+  lastEditedBy?: unknown;
+  lastEditedAt?: unknown;
+  submittedAt?: unknown;
+}): string | null {
+  const editor = String(document.lastEditedBy ?? "").trim();
+  if (!editor || editor === String(document.createdBy ?? "")) return null;
+  const editedAt = Number(document.lastEditedAt) || 0;
+  const submittedAt = Number(document.submittedAt) || 0;
+  if (!editedAt || editedAt < submittedAt) return null;
+  return editor;
+}
+
+/**
+ * Approval-request texts for Ban giám hiệu. `editorName` is set only when the
+ * round was (re)submitted by someone other than the creator.
+ */
+export function workApprovalRequestText(args: { title: string; editorName?: string | null }) {
+  const title = String(args.title || "").trim();
+  const editorName = String(args.editorName || "").trim();
+  if (!editorName) {
+    return { description: WORK_APPROVAL_REQUEST_CREATOR_TEXT, pushBody: title };
+  }
+  const sentence = `${editorName} đã sửa và gửi lại công việc này để duyệt`;
+  return {
+    description: `${sentence}.`,
+    pushBody: title ? `${sentence}: ${title}` : `${sentence}.`,
+  };
+}

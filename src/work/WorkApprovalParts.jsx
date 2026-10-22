@@ -122,7 +122,7 @@ export function WorkDocumentDecisionModal({ document, mode, onClose, onSubmit, s
           </>
         ) : (
           <p className="work-muted">
-            Sau khi bạn duyệt, công việc không thể sửa hoặc xóa nữa. Khi đủ người duyệt, công việc được giao ngay cho người nhận.
+            Sau khi bạn duyệt, công việc được giao cho người nhận. Chỉ Quản trị viên có thể sửa lại (và phải gửi duyệt lại); không ai xóa được.
           </p>
         )}
         <div className="work-modal-actions">

@@ -29,6 +29,8 @@ import {
 import {
   canApproveWorkDocument,
   workApprovalDecidedAt,
+  workApprovalRequestText,
+  workApprovalResubmittedBy,
   workCreatorApprovalNotice,
 } from "./workDocumentPolicy";
 import {
@@ -264,15 +266,23 @@ async function notificationItems(ctx: any, requestedNow?: number) {
   const submittedAtByDocument = new Map<string, number>();
   if (canSeeWorkModule && level >= 4 && !isOperationalManagerRole(user.role)) {
     // Ban giám hiệu: documents waiting for my approval decision (workflow, not a reminder switch).
+    const userNameById = new Map<string, string>(
+      users.map((row: any) => [String(row._id), String(row.name || "").trim()]),
+    );
     for (const document of activeDocuments) {
       if (!canApproveWorkDocument(document, String(user._id))) continue;
       submittedAtByDocument.set(String(document._id), Number(document.submittedAt || document.createdAt) || now);
+      const resubmittedBy = workApprovalResubmittedBy(document);
+      const { description } = workApprovalRequestText({
+        title: workListTitle(document),
+        editorName: resubmittedBy ? userNameById.get(resubmittedBy) || "Người dùng" : null,
+      });
       workSources.push({
         kind: "work",
         sourceType: "approval",
         sourceId: String(document._id),
         title: `Công việc chờ duyệt: ${workListTitle(document)}`,
-        description: "Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.",
+        description,
         dueAt: workDueAt(document.deadline),
       });
     }
