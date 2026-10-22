@@ -656,7 +656,7 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
               {latestItems.map((item) => (
                 <button
                   type="button"
-                  className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' ? ' is-rejection' : ''}`}
+                  className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? ' is-rejection' : ''}`}
                   key={item.key}
                   title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
                   onClick={() => openItem(item)}

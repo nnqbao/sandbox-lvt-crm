@@ -1,6 +1,7 @@
 import { buildWorkCreatePreview } from './workDisplay';
 
-export default function WorkCreatePreview({ title, fileName, assignments, catalogs, pending, onCancel, onConfirm }) {
+export default function WorkCreatePreview({ title, fileName, assignments, catalogs, approverNames = null, pending, onCancel, onConfirm }) {
+  const needsApproval = Array.isArray(approverNames);
   const preview = buildWorkCreatePreview({ title, fileName, assignments }, catalogs);
   return (
     <div className="work-modal-backdrop duty-preview-backdrop" role="presentation" onClick={onCancel}>
@@ -13,7 +14,11 @@ export default function WorkCreatePreview({ title, fileName, assignments, catalo
       >
         <span className="work-kicker">XEM TRƯỚC</span>
         <h3 id="work-preview-title">Xác nhận tạo công việc</h3>
-        <p className="work-modal-context">Kiểm tra lại thông tin trước khi tạo để tránh tạo nhầm.</p>
+        <p className="work-modal-context">
+          {needsApproval
+            ? 'Công việc sẽ được gửi Ban giám hiệu duyệt; người nhận chỉ thấy sau khi được duyệt đủ.'
+            : 'Kiểm tra lại thông tin trước khi tạo để tránh tạo nhầm.'}
+        </p>
         <dl className="duty-preview-list">
           <div>
             <dt>Tên công việc</dt>
@@ -23,6 +28,12 @@ export default function WorkCreatePreview({ title, fileName, assignments, catalo
             <dt>Tệp đính kèm</dt>
             <dd>{preview.fileName}</dd>
           </div>
+          {needsApproval ? (
+            <div>
+              <dt>Người duyệt</dt>
+              <dd>{approverNames.length ? approverNames.join(', ') : '—'}</dd>
+            </div>
+          ) : null}
           {preview.rows.map((row, index) => (
             <div key={`${row.recipient}-${index}`}>
               <dt>Người nhận {preview.rows.length > 1 ? index + 1 : ''}</dt>
@@ -39,7 +50,7 @@ export default function WorkCreatePreview({ title, fileName, assignments, catalo
             Hủy
           </button>
           <button type="button" className="work-primary-button" onClick={onConfirm} disabled={Boolean(pending)}>
-            {pending ? 'Đang tạo…' : 'Xác nhận tạo'}
+            {pending ? 'Đang tạo…' : needsApproval ? 'Xác nhận gửi duyệt' : 'Xác nhận tạo'}
           </button>
         </div>
       </section>
