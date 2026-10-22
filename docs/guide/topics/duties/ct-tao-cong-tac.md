@@ -3,7 +3,7 @@ id: ct-tao-cong-tac
 title: Tạo công tác mới
 menu: Lịch công tác → + Tạo công tác
 roles: Tổ trưởng, Tổ phó, Văn thư
-keywords: tao cong tac, them lich, len lich, hop to
+keywords: tao cong tac, them lich, len lich, hop to, dia diem
 ---
 Lên lịch một buổi họp, dự giờ, sự kiện cho tổ hoặc cho toàn trường.
 
@@ -14,7 +14,7 @@ Ai được phép tạo lịch sẽ thấy hai nút ở **góc trên bên phải
 1. Bấm **+ Tạo công tác**.
 2. Nhập **Tên công tác** [[1]] và **Nội dung công tác** [[2]].
 3. Chọn **Từ ngày** – **Đến ngày** kèm giờ [[3]]; tích **Cả ngày** nếu kéo dài cả ngày.
-4. Nhập **Địa điểm** [[4]].
+4. Gõ **Địa điểm** [[4]], ví dụ “Phòng họp Hội đồng” hoặc “UBND phường”. Ô này gõ tự do (tối đa 200 ký tự), không cần chọn từ danh sách có sẵn.
 5. Chọn **Người tham gia** [[5]]. Văn thư chọn được cả **Phòng ban tham gia**.
 6. Ghi **Thành phần khác** [[6]] nếu có khách mời, đoàn công tác (không bắt buộc).
 7. Bấm **Tạo** [[7]].

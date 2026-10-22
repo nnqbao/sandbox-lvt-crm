@@ -120,4 +120,56 @@
   window.addEventListener('afterprint', () => {
     reopen.forEach((details) => { details.open = false; });
   });
+
+  // ---------- embed mode (?embed=1, the app's "?" help panel) ----------
+  // Shows only the requested topic (or part). In-guide links swap the topic
+  // without adding history entries, so the app's Back button is unaffected.
+  if (document.documentElement.classList.contains('is-embed')) {
+    const content = document.getElementById('noi-dung');
+    const initial = decodeURIComponent(location.hash.slice(1));
+    const back = document.createElement('p');
+    back.className = 'embed-back';
+    back.hidden = true;
+    content.prepend(back);
+    const resolve = (id) => {
+      const el = id ? document.getElementById(id) : null;
+      return el ? el.closest('.topic, .part') : null;
+    };
+    const heading = (el) => (el.querySelector('h3, h2')?.textContent || '').trim();
+    const show = (id) => {
+      const target = resolve(id) || resolve(initial) || parts[0];
+      if (!target) return;
+      const part = target.closest('.part');
+      const wholePart = target === part;
+      for (const item of parts) item.hidden = item !== part;
+      for (const topic of topics) topic.hidden = wholePart ? topic.closest('.part') !== part : topic !== target;
+      part.classList.toggle('is-embed-part', wholePart);
+      const home = resolve(initial);
+      back.replaceChildren();
+      back.hidden = !home || home === target;
+      if (!back.hidden) {
+        const link = document.createElement('a');
+        link.href = `#${home.id}`;
+        link.textContent = `← Quay lại: ${heading(home)}`;
+        back.append(link);
+      }
+      const exact = id ? document.getElementById(id) : null;
+      if (exact && exact !== target) exact.scrollIntoView({ block: 'start' });
+      else window.scrollTo(0, 0);
+    };
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link) return;
+      event.preventDefault();
+      const id = decodeURIComponent(link.getAttribute('href').slice(1));
+      history.replaceState(null, '', `${location.pathname}${location.search}#${id}`);
+      show(id);
+    });
+    window.addEventListener('hashchange', () => show(decodeURIComponent(location.hash.slice(1))));
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || window.parent === window || dialog.open) return;
+      window.parent.postMessage({ type: 'lvt-guide:escape' }, location.origin);
+    });
+    show(initial);
+  }
 })();

@@ -35,7 +35,7 @@
       "part": "van-thu-quan-tri",
       "icon": "🗂️",
       "title": "Văn thư / Quản trị",
-      "text": "Lịch tuần, lớp, tài khoản, nhóm quyền, năm học"
+      "text": "Lịch tuần, lớp, bán trú, tài khoản, nhóm quyền, năm học"
     },
     {
       "part": "tra-cuu-menu",
@@ -122,11 +122,12 @@
       "id": "van-thu-quan-tri",
       "title": "Văn thư / Quản trị hệ thống",
       "kicker": "Moderator · Administrator",
-      "intro": "Soạn và nộp lịch tuần, quản lý lớp, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
+      "intro": "Soạn và nộp lịch tuần, quản lý lớp, kỳ bán trú, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
       "topics": [
         "tl-trinh-tu-thiet-lap",
         "ct-nop-duyet-tuan",
         "cn-quan-ly-lop",
+        "bt-ban-tru",
         "tl-nguoi-dung",
         "tl-quan-ly-tai-khoan",
         "tl-import-export",
@@ -142,11 +143,15 @@
       "id": "tra-cuu-menu",
       "title": "Tra cứu theo menu",
       "kicker": "Tham khảo",
-      "intro": "Tóm tắt từng menu: dùng để làm gì, ai nhìn thấy, các nút chính và liên kết tới hướng dẫn chi tiết.",
+      "intro": "Tóm tắt từng menu: dùng để làm gì, ai nhìn thấy, các nút chính và liên kết tới hướng dẫn chi tiết. Nút tròn ? cạnh tên trang trong ứng dụng mở đúng mục ở đây.",
       "topics": [
         "menu-lich-cong-tac",
         "menu-cong-viec",
         "menu-lop-chu-nhiem",
+        "menu-diem-danh",
+        "menu-bao-cao",
+        "menu-danh-gia-nhan-su",
+        "menu-thiet-lap",
         "menu-khac",
         "khi-khong-thay"
       ]

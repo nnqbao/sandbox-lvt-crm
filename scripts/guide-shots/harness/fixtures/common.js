@@ -1,5 +1,5 @@
 // Shell-level fixtures: session, sidebar badges, account pages and the shared
-// catalogs (users / departments / positions / permission groups / locations / school years).
+// catalogs (users / departments / positions / permission groups / school years).
 import {
   DAY,
   DEPARTMENTS,
@@ -64,14 +64,6 @@ export const SCHOOL_YEARS = [
   },
 ];
 
-export const LOCATIONS = [
-  { _id: 'loc_hoitruong', name: 'Hội trường', description: 'Tầng 1, dãy A' },
-  { _id: 'loc_phonghop', name: 'Phòng họp Hội đồng', description: 'Tầng 2, dãy A' },
-  { _id: 'loc_sanTruong', name: 'Sân trường', description: '' },
-  { _id: 'loc_thuVien', name: 'Thư viện', description: 'Tầng 1, dãy B' },
-  { _id: 'loc_phongMay', name: 'Phòng máy tính', description: 'Tầng 3, dãy B' },
-].map((row) => ({ ...row, active: true, createdAt: T0 - 200 * DAY, updatedAt: T0 - 200 * DAY, _creationTime: T0 - 200 * DAY }));
-
 const slimUsers = (field) => USERS.map((u) => ({ _id: u._id, name: u.name, email: u.email, status: u.status, role: u.role, [field]: u[field] }));
 
 export const queries = {
@@ -105,7 +97,6 @@ export const queries = {
     ],
     users: slimUsers('permissionGroupId'),
   }),
-  'locations:list': () => ({ locations: LOCATIONS }),
   'schoolYears:list': () => SCHOOL_YEARS,
   'loginSecurity:lockoutSettings': () => ({ maxFailedAttempts: 5, windowMinutes: 15 }),
   'work:badge': (_args, { state }) => ({ count: state.workBadge ?? 3 }),

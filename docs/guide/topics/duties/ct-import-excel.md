@@ -3,7 +3,7 @@ id: ct-import-excel
 title: Nhập nhiều công tác bằng Excel
 menu: Lịch công tác → Import Excel
 roles: Tổ trưởng, Tổ phó, Văn thư
-keywords: import, excel, nhap hang loat, file mau, lich tuan
+keywords: import, excel, nhap hang loat, file mau, lich tuan, dia diem
 ---
 Nhập cả tuần lịch công tác một lần từ file Excel.
 
@@ -15,7 +15,7 @@ Nhập cả tuần lịch công tác một lần từ file Excel.
 
 ![Import Excel công tác: 1 file mẫu, 2 chọn file, 3 xem trước, 4 xác nhận](ct-import)
 
-Các cột trong file mẫu: `ten_cong_tac`, `noi_dung`, `dia_diem`, `ngay_bat_dau`, `gio_bat_dau`, `ngay_ket_thuc`, `gio_ket_thuc`, `ca_ngay` (`1`/`0`), `ma_phong_ban`, `email_tham_gia`, `thanh_phan_khac`. Nhiều phòng ban hoặc email thì cách nhau bằng dấu phẩy.
+Các cột trong file mẫu: `ten_cong_tac`, `noi_dung`, `dia_diem`, `ngay_bat_dau`, `gio_bat_dau`, `ngay_ket_thuc`, `gio_ket_thuc`, `ca_ngay` (`1`/`0`), `ma_phong_ban`, `email_tham_gia`, `thanh_phan_khac`. Nhiều phòng ban hoặc email thì cách nhau bằng dấu phẩy. Cột `dia_diem` là chữ gõ tự do (bắt buộc, tối đa 200 ký tự), ví dụ `Hội trường` hoặc `Sân trường`; không cần khớp với danh mục nào.
 
 Nếu có dòng sai, hệ thống **chưa nhập dòng nào** và liệt kê **Báo cáo lỗi** theo từng dòng [[1]]. Sửa file rồi import lại.
 
