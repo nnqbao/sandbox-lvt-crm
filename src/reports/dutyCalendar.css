@@ -1113,7 +1113,8 @@
   .report-person { grid-template-columns: 34px 145px; min-width: 195px; }
   .report-person > i { display: none; }
   .report-person-avatar { width: 34px; height: 34px; }
-  .report-calendar-toolbar { display: grid; }
+  /* The base flex rule's space-between would shrink the single grid track to its content. */
+  .report-calendar-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
   .report-toolbar-actions { justify-content: flex-start; }
 }
 
@@ -1159,8 +1160,12 @@
   .report-summary-row span { font-size: 12px; }
   .report-calendar-toolbar { padding: 15px 13px; }
   .report-calendar-title h3 { font-size: 17px; }
-  .report-toolbar-actions { display: grid; justify-content: stretch; }
+  .report-toolbar-actions { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; }
   .report-period-nav, .report-mode-switch { justify-content: center; }
+  /* Nhân sự: one department per full-width page; its people share the width. */
+  .report-people-list { scroll-snap-type: x mandatory; }
+  .report-people-group { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; }
+  .report-person { flex: 1 0 195px; grid-template-columns: 34px minmax(0, 1fr); }
   .report-period-nav button, .report-mode-switch button { flex: 1; }
   .report-event-detail { top: auto; right: 16px; bottom: 16px; left: 16px; width: auto; }
 }

@@ -110,6 +110,12 @@ export function scheduleRange(mode, anchorIso) {
   };
 }
 
+/** Period heading above a week sheet: same Mon–Sat range as the sheet title, dd/MM/yyyy. */
+export function weekPeriodHeading(anchorIso) {
+  const range = scheduleRange('week', anchorIso);
+  return `${formatVnDate(range.startIso)} – ${formatVnDate(range.endIso)}`;
+}
+
 export function datesInSchedule(range) {
   const days = [];
   for (
