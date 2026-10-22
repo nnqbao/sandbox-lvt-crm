@@ -147,3 +147,10 @@ test('việc của tôi: backend chỉ dùng người dùng hiện tại, không
   assert.match(hub, /Việc của tôi/);
   assert.match(hub, /workHidden \? null/);
 });
+
+test('Việc của tôi: ô Hạn chót và Nhắc lúc thẳng hàng (trường xếp từ trên xuống)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../src/work/personalTodos.css', import.meta.url), 'utf8');
+  const block = css.slice(css.indexOf('.todo-field {'), css.indexOf('}', css.indexOf('.todo-field {')));
+  assert.match(block, /align-content: start;/);
+});
