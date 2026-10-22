@@ -172,3 +172,26 @@ export function cleanPermissionGroupMenuAccess(
   }
   return normalizeMenuAccess(entries);
 }
+
+/**
+ * Operator CLI change of one menu on one permission group (pure part of
+ * `permissionGroups.operatorSetMenuAccess`). Goes through the same boundary as
+ * create/update (`cleanPermissionGroupMenuAccess`), so `supervisor` stays
+ * attendance-only and unknown menus are rejected. Only canonical levels are
+ * accepted (no legacy `edit`). `changed` is false when the stored rows already
+ * match, so the caller skips the patch and the audit entry.
+ */
+export function planOperatorMenuAccessChange(
+  current: { menu: string; access: MenuAccess | string }[] | undefined,
+  menu: string,
+  access: string,
+): { menuAccess: { menu: string; access: MenuAccess }[]; changed: boolean; before: string } {
+  const menuId = String(menu || "").trim();
+  const level = String(access || "").trim();
+  if (!["hidden", "view", "view_all", "supervisor"].includes(level)) throw new Error(INVALID_MENU_ACCESS);
+  const base = migrateSupervisorMenuAccess(current).menuAccess;
+  const before = base.find((entry) => entry.menu === menuId)?.access || "";
+  const requested = base.filter((entry) => entry.menu !== menuId).concat([{ menu: menuId, access: level as MenuAccess }]);
+  const menuAccess = cleanPermissionGroupMenuAccess(requested);
+  return { menuAccess, changed: !menuAccessEntriesEqual(menuAccess, current), before };
+}

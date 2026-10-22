@@ -203,3 +203,31 @@ test('permission matrix source shows Giám thị after Xem tối cao and only fo
   assert.match(source, /radio-cell-unavailable|—/);
   assert.match(source, /Giám thị chỉ dành cho menu Điểm danh/);
 });
+
+test('operatorSetMenuAccess (CLI): kiểm tra như create/update, không đổi thì không ghi', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { planOperatorMenuAccessChange, normalizeMenuAccess, INVALID_MENU_ACCESS } = await import('../convex/menuAccess.ts');
+  const gth = normalizeMenuAccess([{ menu: 'attendance', access: 'supervisor' }, { menu: 'notifications', access: 'hidden' }]);
+  const opened = planOperatorMenuAccessChange(gth, 'notifications', 'view');
+  assert.equal(opened.changed, true);
+  assert.equal(opened.before, 'hidden');
+  assert.equal(opened.menuAccess.find((row) => row.menu === 'notifications').access, 'view');
+  // Every other menu is untouched (Giám thị stays on Điểm danh).
+  assert.equal(opened.menuAccess.find((row) => row.menu === 'attendance').access, 'supervisor');
+  assert.equal(opened.menuAccess.length, gth.length);
+  // Idempotent: applying it again changes nothing (no patch, no audit).
+  assert.equal(planOperatorMenuAccessChange(opened.menuAccess, 'notifications', 'view').changed, false);
+  // supervisor only on attendance; unknown menus/levels and legacy edit are rejected.
+  assert.throws(() => planOperatorMenuAccessChange(gth, 'homeroom', 'supervisor'), new RegExp(INVALID_MENU_ACCESS));
+  assert.throws(() => planOperatorMenuAccessChange(gth, 'attendance', 'view'), new RegExp(INVALID_MENU_ACCESS));
+  assert.throws(() => planOperatorMenuAccessChange(gth, 'nope', 'view'), /INVALID_MENU/);
+  assert.throws(() => planOperatorMenuAccessChange(gth, 'notifications', 'edit'), new RegExp(INVALID_MENU_ACCESS));
+  assert.throws(() => planOperatorMenuAccessChange(gth, 'notifications', 'admin'), new RegExp(INVALID_MENU_ACCESS));
+
+  const source = readFileSync(new URL('../convex/permissionGroups.ts', import.meta.url), 'utf8');
+  assert.match(source, /export const operatorSetMenuAccess = internalMutation\(\{\n  args: \{ code: v\.string\(\), menu: v\.string\(\), access: v\.string\(\) \}/);
+  const block = source.slice(source.indexOf('export const operatorSetMenuAccess'), source.indexOf('export const list'));
+  assert.match(block, /if \(!plan\.changed\) return/);
+  assert.match(block, /actorUserId: "operator:cli"/);
+  assert.doesNotMatch(source, /export const operatorSetMenuAccess = mutation/);
+});
