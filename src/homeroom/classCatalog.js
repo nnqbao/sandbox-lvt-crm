@@ -72,6 +72,19 @@ export function buildClassAssignmentPayload({ classId, userId, assignmentType = 
   };
 }
 
+export const END_ASSIGNMENT_HINT =
+  'Phân công kết thúc vào ngày liền trước. Lịch sử phân công và dữ liệu điểm danh được giữ nguyên; lớp hiển thị "Chưa có GVCN" cho tới khi phân công GVCN mới.';
+
+/** First day without GVCN: today, but never before the assignment starts. */
+export function defaultAssignmentEndDate(row, today) {
+  const start = String(row?.effectiveFrom || '');
+  return start && start > today ? start : today;
+}
+
+export function buildEndAssignmentPayload({ assignmentId, date }) {
+  return { assignmentId: String(assignmentId), date };
+}
+
 export function isHomeroomTeacherClassAssignment(row) {
   return row?.assignmentType === 'homeroom_teacher' && row?.scopeKind === 'class' && Boolean(row?.classId);
 }
@@ -96,6 +109,8 @@ export function classStatusLabel(status) {
 
 export function assignmentEffect(row, today) {
   if (!row) return 'ended';
+  // Revoked rows (ended on their start day, or closed by archiving) never take effect.
+  if (row.active === false) return 'ended';
   if (row.effectiveFrom && row.effectiveFrom > today) return 'upcoming';
   if (row.effectiveTo && row.effectiveTo < today) return 'ended';
   return 'current';

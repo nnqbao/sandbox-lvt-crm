@@ -21,6 +21,9 @@ export const DUPLICATE_ACTIVE_ENROLLMENT = "DUPLICATE_ACTIVE_ENROLLMENT";
 export const ENROLLMENT_YEAR_MISMATCH = "ENROLLMENT_YEAR_MISMATCH";
 export const TRANSFER_BEFORE_START = "TRANSFER_BEFORE_START";
 export const ASSIGNMENT_BEFORE_START = "ASSIGNMENT_BEFORE_START";
+export const ASSIGNMENT_END_BEFORE_START = "ASSIGNMENT_END_BEFORE_START";
+export const ASSIGNMENT_ALREADY_ENDED = "ASSIGNMENT_ALREADY_ENDED";
+export const ASSIGNMENT_NOT_FOUND = "ASSIGNMENT_NOT_FOUND";
 
 export const DEFAULT_GRADE_MIN = 6;
 export const DEFAULT_GRADE_MAX = 9;
@@ -279,6 +282,33 @@ export function toSafeAssignmentUser(
     name: String(user?.name || "").trim() || "Người dùng không còn hoạt động",
     role: user?.role || "",
   };
+}
+
+/**
+ * End a GVCN assignment with no replacement ("Kết thúc phân công").
+ *
+ * `date` is the first day the class has no GVCN — the same boundary contract
+ * as a replacement: the row keeps `active: true` and ends the day before, so
+ * history and every earlier date stay attributed to the teacher.
+ * Ending on the start day means the row never takes effect, so it is revoked
+ * (`active: false`) and kept for history. An end can only shorten a row.
+ */
+export function planHomeroomTeacherEnd(args: {
+  assignment: { assignmentType: string; active: boolean; effectiveFrom: string; effectiveTo?: string };
+  date: string;
+}) {
+  const { assignment, date } = args;
+  if (!assignment.active || assignment.assignmentType !== "homeroom_teacher") {
+    throw new Error(ASSIGNMENT_NOT_FOUND);
+  }
+  if (compareYmd(date, assignment.effectiveFrom) < 0) throw new Error(ASSIGNMENT_END_BEFORE_START);
+  if (assignment.effectiveTo && compareYmd(assignment.effectiveTo, date) < 0) {
+    throw new Error(ASSIGNMENT_ALREADY_ENDED);
+  }
+  if (compareYmd(date, assignment.effectiveFrom) === 0) {
+    return { revoked: true, patch: { active: false } };
+  }
+  return { revoked: false, patch: { effectiveTo: addDaysYmd(date, -1), active: true } };
 }
 
 export function planHomeroomTeacherReplacement(args: {

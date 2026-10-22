@@ -380,3 +380,59 @@ test('assignment candidate query is homeroom-scoped, manager-guarded, and return
   assert.match(catalogUiSource, /['"]skip['"]/);
   assert.match(classesSource, /toSafeAssignmentUser/);
 });
+
+test('Kết thúc phân công GVCN: kết thúc ngày liền trước, giữ lịch sử, chỉ rút ngắn', async () => {
+  const {
+    planHomeroomTeacherEnd,
+    ASSIGNMENT_END_BEFORE_START,
+    ASSIGNMENT_ALREADY_ENDED,
+    ASSIGNMENT_NOT_FOUND,
+  } = await import('../convex/homeroomCatalog.ts');
+  const { findEffectiveHomeroomTeacherAssignment } = await import('../convex/homeroomPolicy.ts');
+  const row = { classId: 'c1', schoolYearId: 'y1', userId: 'u1', assignmentType: 'homeroom_teacher', scopeKind: 'class', active: true, effectiveFrom: '2026-09-05' };
+
+  const plan = planHomeroomTeacherEnd({ assignment: row, date: '2026-10-22' });
+  assert.deepEqual(plan, { revoked: false, patch: { effectiveTo: '2026-10-21', active: true } });
+  const ended = { ...row, ...plan.patch };
+  // From the chosen day the class has no GVCN; earlier days stay with the teacher.
+  assert.equal(findEffectiveHomeroomTeacherAssignment([ended], { classId: 'c1', date: '2026-10-22' }), undefined);
+  assert.equal(findEffectiveHomeroomTeacherAssignment([ended], { classId: 'c1', date: '2026-10-21' })?.userId, 'u1');
+
+  // Ending on the start day: the row never takes effect (revoked, kept for history).
+  assert.deepEqual(planHomeroomTeacherEnd({ assignment: row, date: '2026-09-05' }), { revoked: true, patch: { active: false } });
+  assert.throws(() => planHomeroomTeacherEnd({ assignment: row, date: '2026-09-04' }), new RegExp(ASSIGNMENT_END_BEFORE_START));
+  // Only shortens: a row already ending earlier cannot be "ended" later.
+  assert.throws(
+    () => planHomeroomTeacherEnd({ assignment: { ...row, effectiveTo: '2026-10-01' }, date: '2026-10-22' }),
+    new RegExp(ASSIGNMENT_ALREADY_ENDED),
+  );
+  assert.deepEqual(
+    planHomeroomTeacherEnd({ assignment: { ...row, effectiveTo: '2026-12-31' }, date: '2026-11-01' }).patch,
+    { effectiveTo: '2026-10-31', active: true },
+  );
+  assert.throws(() => planHomeroomTeacherEnd({ assignment: { ...row, active: false }, date: '2026-10-22' }), new RegExp(ASSIGNMENT_NOT_FOUND));
+  assert.throws(() => planHomeroomTeacherEnd({ assignment: { ...row, assignmentType: 'supervisor' }, date: '2026-10-22' }), new RegExp(ASSIGNMENT_NOT_FOUND));
+});
+
+test('Kết thúc phân công: mutation chỉ admin/mod, ghi audit; UI có nút và nhóm phân công đã hủy thành lịch sử', async () => {
+  const { defaultAssignmentEndDate, buildEndAssignmentPayload, groupAssignmentsByEffect: group } = await import('../src/homeroom/classCatalog.js');
+  const body = classesSource.slice(classesSource.indexOf('export const endAssignment'), classesSource.indexOf('export const transferStudent'));
+  assert.match(body, /homeroomCatalogWriterOrThrow\(ctx\)/);
+  assert.match(body, /assertClassNotArchived\(klass\)/);
+  assert.match(body, /planHomeroomTeacherEnd\(/);
+  assert.match(body, /action: "homeroomAssignment\.end"/);
+  assert.match(body, /endedBy: String\(user\._id\)/);
+  assert.match(catalogUiSource, /anyApi\.homeroomClasses\.endAssignment/);
+  assert.match(catalogUiSource, /Kết thúc phân công/);
+
+  assert.equal(defaultAssignmentEndDate({ effectiveFrom: '2026-09-05' }, '2026-10-22'), '2026-10-22');
+  assert.equal(defaultAssignmentEndDate({ effectiveFrom: '2026-11-01' }, '2026-10-22'), '2026-11-01');
+  assert.deepEqual(buildEndAssignmentPayload({ assignmentId: 'a1', date: '2026-10-22' }), { assignmentId: 'a1', date: '2026-10-22' });
+  const grouped = group([
+    { _id: 'a', active: false, effectiveFrom: '2026-09-05' },
+    { _id: 'b', active: true, effectiveFrom: '2026-09-05', effectiveTo: '2026-10-21' },
+    { _id: 'c', active: true, effectiveFrom: '2026-10-22' },
+  ], '2026-10-22');
+  assert.deepEqual(grouped.current.map((row) => row._id), ['c']);
+  assert.deepEqual(grouped.historical.map((row) => row._id), ['a', 'b']);
+});
