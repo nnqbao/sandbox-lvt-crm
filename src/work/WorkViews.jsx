@@ -29,6 +29,8 @@ import {
   workTabAllowsPersonalReminder,
   WORK_LIST_TAB_TODO,
   WORK_COMPLETION_NOTE_MAX_LENGTH,
+  isWorkDocumentUnreleased,
+  workAssignmentDisplayStatus,
   workAssignmentPayload,
   workCreatorLabel,
 } from './workDisplay';
@@ -456,6 +458,7 @@ function workStatusLabel(status) {
     awaiting_approval: 'Chờ duyệt',
     approval_returned: 'Bị trả lại',
     unassigned: 'Chưa giao việc',
+    unreleased: 'Chờ duyệt (chưa giao)',
     in_progress: 'Đang thực hiện',
     completed: 'Đã hoàn thành',
     completed_late: 'Hoàn thành trễ',
@@ -1306,21 +1309,26 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
                             <strong>
                               {assignment.type === 'individual' ? 'Cá nhân' : assignment.departmentName}
                             </strong>
-                            <WorkStatus status={assignment.status || 'unassigned'} />
+                            <WorkStatus status={workAssignmentDisplayStatus(document, assignment)} />
                           </header>
                           <p>{assignment.content}</p>
                           <small>
                             Hạn {formatWorkDate(assignment.deadline)}
-                            {assignment.taskCount != null ? ` · ${assignment.taskCompletedCount || 0}/${assignment.taskCount} hoàn thành` : ''}
+                            {assignment.taskCount != null && !isWorkDocumentUnreleased(document)
+                              ? ` · ${assignment.taskCompletedCount || 0}/${assignment.taskCount} hoàn thành`
+                              : ''}
                           </small>
                           {assignment.members?.length ? (
                             <div className="work-member-progress">
-                              {assignment.members.map((member) => (
+                              {assignment.members.map((member) => (isWorkDocumentUnreleased(document) ? (
+                                // Not handed out yet: list who will receive it, without progress.
+                                <span key={member._id} className="work-member-chip status-unreleased">{member.name}</span>
+                              ) : (
                                 <span key={member._id} className={`work-member-chip status-${member.status}`}>
                                   {member.name} · {workStatusLabel(member.status)}
                                   {member.qualityPercent != null ? ` · ${member.qualityPercent}%` : ''}
                                 </span>
-                              ))}
+                              )))}
                             </div>
                           ) : null}
                         </section>

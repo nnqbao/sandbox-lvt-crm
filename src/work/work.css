@@ -2385,6 +2385,7 @@ fieldset.work-approver-block > legend b {
 }
 
 .work-status.awaiting_approval,
+.work-status.unreleased,
 .work-status.pending {
   color: var(--lvt-warning-text);
   background: var(--lvt-warning-bg);

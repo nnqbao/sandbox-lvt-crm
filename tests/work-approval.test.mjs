@@ -310,3 +310,19 @@ test('nhãn người tạo trung lập vai trò: không còn "Văn thư <tên>" 
   const work = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
   assert.match(work, /creatorRole: creator\?\.role === "admin" \|\| creator\?\.role === "moderator" \? creator\.role : "user"/);
 });
+
+test('công việc chờ BGH duyệt: phân công hiện "Chờ duyệt (chưa giao)", không hiện tiến độ', async () => {
+  const { isWorkDocumentUnreleased, workAssignmentDisplayStatus } = await import('../src/work/workDisplay.js');
+  const assignment = { status: 'in_progress' };
+  for (const status of ['pending', 'rejected']) {
+    assert.equal(isWorkDocumentUnreleased({ requiresApproval: true, status }), true, status);
+    assert.equal(workAssignmentDisplayStatus({ requiresApproval: true, status }, assignment), 'unreleased');
+  }
+  assert.equal(workAssignmentDisplayStatus({ requiresApproval: true, status: 'approved' }, assignment), 'in_progress');
+  // Documents that never needed approval are handed out at once.
+  assert.equal(workAssignmentDisplayStatus({ requiresApproval: false, status: 'pending' }, assignment), 'in_progress');
+  assert.equal(workAssignmentDisplayStatus({ requiresApproval: false, status: 'approved' }, {}), 'unassigned');
+  const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
+  assert.match(views, /unreleased: 'Chờ duyệt \(chưa giao\)'/);
+  assert.match(views, /workAssignmentDisplayStatus\(document, assignment\)/);
+});

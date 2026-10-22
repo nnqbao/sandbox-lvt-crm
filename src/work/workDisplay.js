@@ -39,6 +39,20 @@ export function workApproverDecisionLabel(approver) {
   return 'Chờ duyệt';
 }
 
+/**
+ * A document that needs Ban giám hiệu approval and is not approved yet has not
+ * been handed to anyone: its assignments read "Chờ duyệt (chưa giao)" instead
+ * of the task progress (which would say "Đang thực hiện · Chưa hoàn thành").
+ */
+export function isWorkDocumentUnreleased(document) {
+  return Boolean(document?.requiresApproval) && document?.status !== 'approved';
+}
+
+export function workAssignmentDisplayStatus(document, assignment) {
+  if (isWorkDocumentUnreleased(document)) return 'unreleased';
+  return assignment?.status || 'unassigned';
+}
+
 /** Role-neutral creator label: admin is "Quản trị viên", moderator "Văn thư". */
 export function workCreatorRoleLabel(role) {
   if (role === 'admin') return 'Quản trị viên';
