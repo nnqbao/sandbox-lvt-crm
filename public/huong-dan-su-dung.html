@@ -460,6 +460,9 @@ ul.bullets li::marker { color: var(--lvt-teal); }
 .table-wrap { overflow-x: auto; margin: 12px 0; border: 1px solid var(--lvt-line); border-radius: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--lvt-line); vertical-align: top; }
+/* Words never split mid-word ("Administrato r"): a narrow screen scrolls the table inside .table-wrap instead. */
+.table-wrap table { word-break: normal; overflow-wrap: normal; }
+.table-wrap th, .table-wrap td { overflow-wrap: break-word; hyphens: manual; }
 th { font-size: 12px; font-weight: 800; color: var(--lvt-muted); background: var(--lvt-surface); text-transform: uppercase; letter-spacing: .04em; }
 tr:last-child td { border-bottom: 0; }
 
