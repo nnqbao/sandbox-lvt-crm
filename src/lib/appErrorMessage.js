@@ -173,6 +173,7 @@ export function messageFor(error) {
     WORK_DOCUMENT_NOT_FOUND: 'Không tìm thấy công việc hoặc công việc đã bị xóa.',
     WORK_UPDATE_FORBIDDEN: 'Chỉ người tạo mới được sửa hoặc xóa công việc này.',
     WORK_ASSIGNEE_BGH_FORBIDDEN: 'Văn thư không thể giao công việc cho Ban giám hiệu.',
+    WORK_ASSIGNEE_OPS_FORBIDDEN: 'Chỉ giao việc cho tài khoản quản trị cùng phòng ban.',
     WORK_DEPARTMENT_FORBIDDEN: 'Chỉ Văn thư và Ban giám hiệu được giao việc cho cả phòng ban.',
     WORK_ASSIGNEE_NOT_SUBORDINATE: 'Chỉ được giao cho người có cấp thấp hơn bạn. Tổ trưởng/tổ phó chỉ giao trong phòng ban của mình.',
     ADMIN_USE_MANAGEMENT: 'Administrator/Moderator quản lý công việc, không duyệt thay Ban giám hiệu.',

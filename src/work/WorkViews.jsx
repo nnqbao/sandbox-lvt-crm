@@ -33,6 +33,7 @@ import {
   workAssignmentDisplayStatus,
   workAssignmentPayload,
   workCreatorLabel,
+  workFormRequiresApproval,
 } from './workDisplay';
 import {
   canPreviewWorkFile,
@@ -783,10 +784,15 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
 
   const documents = listData?.documents || [];
   const pendingCompletionReviews = listData?.pendingCompletionReviews || [];
-  // Creator-based rule (server enforces): admin/mod documents go to Ban giám hiệu first.
-  const formRequiresApproval = editingDocument
-    ? Boolean(editingDocument.requiresApproval)
-    : Boolean(options?.requiresApproval);
+  // Creator-based rule (server enforces): admin/mod documents go to Ban giám hiệu
+  // first, unless the only assignee is the creator (self-only work is released now).
+  const formRequiresApproval = workFormRequiresApproval({
+    followsApprovalFlow: editingDocument
+      ? (editingDocument.approvalFlow ?? editingDocument.requiresApproval)
+      : options?.requiresApproval,
+    assignments,
+    creatorId: editingDocument ? editingDocument.createdBy : options?.selfUserId,
+  });
 
   useEffect(() => {
     if (focusTarget?.sourceType !== 'work_chat' || !focusTarget?.sourceId) return;
@@ -1135,6 +1141,8 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
               }}
               error={approverError}
             />
+          ) : (editingDocument ? editingDocument.approvalFlow : options?.requiresApproval) ? (
+            <p className="work-muted">Việc chỉ giao cho chính bạn không cần Ban giám hiệu duyệt và được giao ngay.</p>
           ) : null}
           {feedback.text ? <div className={`work-feedback ${feedback.type}`}>{feedback.text}</div> : null}
           <div className="work-editor-actions duty-editor-actions">

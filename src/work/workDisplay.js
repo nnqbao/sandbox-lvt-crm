@@ -105,6 +105,27 @@ export function assignmentsFromDocument(document) {
   });
 }
 
+/**
+ * Mirrors `isSelfOnlyWorkAssignment` (convex/workDocumentPolicy.ts): every
+ * assignment row is individual and holds only the creator. A văn thư document
+ * assigned only to its creator is released without Ban giám hiệu approval.
+ */
+export function isSelfOnlyWorkAssignment(assignments, creatorId) {
+  const creator = String(creatorId || '').trim();
+  const rows = assignments || [];
+  if (!creator || !rows.length) return false;
+  return rows.every((row) => {
+    if (row?.type !== 'individual') return false;
+    const userIds = (row.userIds || []).map((id) => String(id).trim()).filter(Boolean);
+    return userIds.length > 0 && userIds.every((id) => id === creator);
+  });
+}
+
+/** Client mirror of `workDocumentNeedsApproval`; the server re-decides on save. */
+export function workFormRequiresApproval({ followsApprovalFlow, assignments, creatorId }) {
+  return Boolean(followsApprovalFlow) && !isSelfOnlyWorkAssignment(assignments, creatorId);
+}
+
 export function workAssignmentPayload(assignments) {
   return (assignments || []).map((item) => (
     item.type === 'individual'

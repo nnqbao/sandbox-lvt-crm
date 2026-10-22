@@ -23,7 +23,10 @@ import {
   workApprovalDecidedAt,
   workApprovalSubmission,
   workCreatorApprovalNotice,
+  workDocumentFollowsApprovalFlow,
+  workDocumentNeedsApproval,
   workDocumentRequiresApproval,
+  isSelfOnlyWorkAssignment,
   workReturnReason,
   WORK_APPROVED_NOTICE_MS,
 } from '../convex/workDocumentPolicy.ts';
@@ -40,6 +43,58 @@ test('chỉ văn thư (admin/mod) tạo thì cần Ban giám hiệu duyệt; ng�
   // Stored decision wins over the creator's later role change.
   assert.equal(workDocumentRequiresApproval({ requiresApproval: false, creatorRole: 'moderator' }), false);
   assert.equal(workDocumentRequiresApproval({ requiresApproval: true, creatorRole: 'user' }), true);
+});
+
+test('văn thư tự giao cho chính mình: không cần duyệt; có thêm người khác/phòng ban thì phải duyệt', async () => {
+  const self = (id = 'vt') => ({ type: 'individual', userIds: [id], content: 'x', deadline: '2026-10-30' });
+  const flow = workDocumentFollowsApprovalFlow({ creatorRole: 'moderator' });
+  assert.equal(flow, true);
+  assert.equal(workDocumentFollowsApprovalFlow({ creatorRole: 'admin' }), true);
+  assert.equal(workDocumentFollowsApprovalFlow({ creatorRole: 'user' }), false);
+  // A stored `false` on an ops document (self-only when saved) stays in the văn thư flow for later edits.
+  assert.equal(workDocumentFollowsApprovalFlow({ requiresApproval: false, creatorRole: 'admin' }), true);
+  assert.equal(workDocumentFollowsApprovalFlow({ requiresApproval: true, creatorRole: 'user' }), true);
+
+  // Self-only → released immediately, no approvers.
+  assert.equal(isSelfOnlyWorkAssignment([self()], 'vt'), true);
+  assert.equal(workDocumentNeedsApproval({ followsApprovalFlow: flow, assignments: [self()], creatorId: 'vt' }), false);
+  const released = workApprovalSubmission(false, []);
+  assert.equal(released.status, 'approved');
+  assert.deepEqual(released.approverUserIds, []);
+  // Self + someone else, self + department, or nobody selected → normal BGH approval.
+  for (const assignments of [
+    [self(), self('gv')],
+    [{ type: 'individual', userIds: ['vt', 'gv'], content: 'x', deadline: '2026-10-30' }],
+    [self(), { type: 'department', departmentId: 'bgh', content: 'x', deadline: '2026-10-30' }],
+    [{ type: 'department', departmentId: 'vp', content: 'x', deadline: '2026-10-30' }],
+    [{ type: 'individual', userIds: [], content: 'x', deadline: '2026-10-30' }],
+    [self('gv')],
+    [],
+  ]) {
+    assert.equal(
+      workDocumentNeedsApproval({ followsApprovalFlow: flow, assignments, creatorId: 'vt' }),
+      true,
+      JSON.stringify(assignments),
+    );
+  }
+  // Untyped input rows are department assignments (server default), never self-only.
+  assert.equal(isSelfOnlyWorkAssignment([{ userIds: ['vt'] }], 'vt'), false);
+  // Non-ops creators never need approval.
+  assert.equal(workDocumentNeedsApproval({ followsApprovalFlow: false, assignments: [self('gv')], creatorId: 'tt' }), false);
+
+  // Client mirror agrees with the server policy.
+  const { workFormRequiresApproval, isSelfOnlyWorkAssignment: clientSelfOnly } = await import('../src/work/workDisplay.js');
+  assert.equal(clientSelfOnly([self()], 'vt'), true);
+  assert.equal(workFormRequiresApproval({ followsApprovalFlow: true, assignments: [self()], creatorId: 'vt' }), false);
+  assert.equal(workFormRequiresApproval({ followsApprovalFlow: true, assignments: [self(), self('gv')], creatorId: 'vt' }), true);
+  assert.equal(workFormRequiresApproval({ followsApprovalFlow: false, assignments: [self('gv')], creatorId: 'vt' }), false);
+
+  // Create and update decide approval from the submitted assignments and the document creator.
+  const source = await readFile(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  const create = source.slice(source.indexOf('export const createDocument'), source.indexOf('export const updateDocument'));
+  assert.match(create, /workDocumentNeedsApproval\(\{[\s\S]*assignments: args\.assignments,[\s\S]*creatorId: actor\.user\._id/);
+  const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const updateDocument') + 6000);
+  assert.match(update, /workDocumentNeedsApproval\(\{[\s\S]*assignments: args\.assignments,[\s\S]*creatorId: document\.createdBy/);
 });
 
 test('ai được tạo công việc: admin/mod và mọi user cấp 2 sao trở lên; cấp 1 thì không', () => {
@@ -277,6 +332,8 @@ test('mã lỗi duyệt công việc có thông báo tiếng Việt', () => {
     'WORK_DOCUMENT_ALREADY_DECIDED',
     'WORK_RETURN_REASON_INVALID',
     'WORK_ASSIGNEE_NOT_SUBORDINATE',
+    'WORK_ASSIGNEE_BGH_FORBIDDEN',
+    'WORK_ASSIGNEE_OPS_FORBIDDEN',
     'WORK_DEPARTMENT_FORBIDDEN',
     'WORK_DOCUMENT_IMMUTABLE',
     'ADMIN_USE_MANAGEMENT',

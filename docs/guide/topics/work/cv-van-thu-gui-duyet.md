@@ -3,9 +3,9 @@ id: cv-van-thu-gui-duyet
 title: Văn thư tạo công việc và gửi Ban Giám hiệu duyệt
 menu: Công việc → Việc tôi tạo
 roles: Văn thư (Moderator), Administrator
-keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van
+keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van, tu giao, giao cho minh, cung phong ban
 ---
-Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám hiệu duyệt rồi mới đến tay người nhận.
+Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám hiệu duyệt rồi mới đến tay người nhận. Riêng việc chỉ giao cho chính mình thì giao ngay, không cần duyệt.
 
 1. Trong **Công việc**, kéo xuống mục **Việc tôi tạo**, bấm **+ Tạo công việc**.
 2. Nhập **Tên công việc** [[1]].
@@ -23,6 +23,15 @@ Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám
 
 ::: note
 Danh sách **Người duyệt** gồm những người đang hoạt động có chức vụ **4 hoặc 5 sao** (Phó Hiệu trưởng, Hiệu trưởng). Tài khoản Administrator, Moderator không làm người duyệt. Danh sách trống thì nhờ quản trị viên kiểm tra [chức vụ](#tl-chuc-vu).
+:::
+
+::: tip Tự giao việc cho mình
+Ở dòng **Cá nhân**, chọn chính mình (tên có chữ **(bạn)**). Khi người nhận **duy nhất** là bạn, mục **Người duyệt** ẩn đi, nút đổi thành **Tạo** và công việc được giao ngay. Thêm bất kỳ người hay phòng ban nào khác thì công việc lại phải gửi Ban Giám hiệu duyệt.
+:::
+
+::: note Ai có trong danh sách người nhận
+- Không giao riêng cho Hiệu trưởng, Phó Hiệu trưởng (4–5 sao); vẫn giao được cho **cả phòng ban** (kể cả Cấp Uỷ - Ban Giám Hiệu) và những người dưới 4 sao trong phòng đó.
+- Chỉ giao cho tài khoản Văn thư/Administrator khác khi **cùng phòng ban** với bạn (cả hai đều phải có phòng ban). Khác phòng thì hệ thống báo “Chỉ giao việc cho tài khoản quản trị cùng phòng ban.”
 :::
 
 #### Theo dõi công việc đang chờ duyệt

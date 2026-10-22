@@ -76,17 +76,41 @@ export function canAssignWorkToUser(
 }
 
 export const WORK_ASSIGNEE_BGH_FORBIDDEN = "WORK_ASSIGNEE_BGH_FORBIDDEN";
+export const WORK_ASSIGNEE_OPS_FORBIDDEN = "WORK_ASSIGNEE_OPS_FORBIDDEN";
 
 /**
- * Admin/mod ("Văn thư") never assign work to Ban giám hiệu individually —
- * position level 4+ (Hiệu trưởng, Hiệu phó) — even though BGH sit in Tổ Văn
- * phòng. BGH stay selectable as approvers. Department assignments remain
- * allowed: a department assignment is handled by the department, not by BGH
- * individually. (Lịch công tác is unaffected: văn thư may still add BGH as
- * duty participants.)
+ * Individual work targets for an admin/mod creator ("Văn thư"):
+ * - self is always allowed (a self-only document needs no approval);
+ * - another admin/moderator only when both have the same non-empty
+ *   departmentId (`WORK_ASSIGNEE_OPS_FORBIDDEN`);
+ * - never Ban giám hiệu individually — non-ops position level 4+ (Hiệu
+ *   trưởng, Hiệu phó) — even though BGH sit in Tổ Văn phòng
+ *   (`WORK_ASSIGNEE_BGH_FORBIDDEN`). BGH stay selectable as approvers.
+ * Department assignments remain allowed: a department assignment is handled by
+ * the department, not by BGH individually. (Lịch công tác is unaffected: văn
+ * thư may still add BGH as duty participants.) Moderator department scope is
+ * checked separately. Returns the error code, or `null` when allowed.
  */
-export function opsCanAssignWorkToUser(target: { level: number }) {
-  return !(Number(target.level) >= WORK_BGH_MIN_LEVEL);
+export function opsWorkAssigneeError(
+  actor: { _id: string; departmentId?: string | null },
+  target: { _id: string; role?: string | null; level: number; departmentId?: string | null },
+): string | null {
+  if (String(actor._id) === String(target._id)) return null;
+  if (isOperationalManagerRole(String(target.role || ""))) {
+    const actorDepartment = String(actor.departmentId || "").trim();
+    const targetDepartment = String(target.departmentId || "").trim();
+    return actorDepartment && actorDepartment === targetDepartment
+      ? null
+      : WORK_ASSIGNEE_OPS_FORBIDDEN;
+  }
+  return Number(target.level) >= WORK_BGH_MIN_LEVEL ? WORK_ASSIGNEE_BGH_FORBIDDEN : null;
+}
+
+export function opsCanAssignWorkToUser(
+  actor: { _id: string; departmentId?: string | null },
+  target: { _id: string; role?: string | null; level: number; departmentId?: string | null },
+) {
+  return opsWorkAssigneeError(actor, target) === null;
 }
 
 export function normalizeWorkVisibilityMode(value: string | null | undefined): WorkVisibilityMode {
