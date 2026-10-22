@@ -1,6 +1,29 @@
 // Công việc + Việc của tôi + Báo cáo công việc. Fixtures: harness/fixtures/work.js.
 const hub = { target: '.work-hub', pad: 12 };
 const PDF = { name: 'ke-hoach-day-hoc-toan.pdf', type: 'application/pdf', text: '%PDF-1.4 guide' };
+const at = (iso) => Date.parse(iso);
+
+// Bell feeds for the approval flow (same titles/labels as convex/notifications.ts).
+const BGH_FEED = {
+  items: [
+    { key: 'a1', kind: 'work', sourceType: 'approval', sourceId: 'doc12', milestoneHours: 0, milestoneLabel: 'Cần duyệt', title: 'Công việc chờ duyệt: Kiểm tra hồ sơ chuyên môn tháng 11', description: 'Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.', dueAt: at('2026-11-06T23:59:00+07:00'), read: false },
+    { key: 'a2', kind: 'work', sourceType: 'approval', sourceId: 'doc11', milestoneHours: 0, milestoneLabel: 'Cần duyệt', title: 'Công việc chờ duyệt: Kế hoạch ôn tập kiểm tra giữa kỳ I', description: 'Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.', dueAt: at('2026-10-30T23:59:00+07:00'), read: false },
+    { key: 'a3', kind: 'duty', sourceType: 'duty', sourceId: 'd4', milestoneHours: 12, milestoneLabel: 'Còn 5 giờ', title: 'Họp Hội đồng sư phạm tháng 10', description: '14:00 · Hội trường', dueAt: at('2026-10-21T14:00:00+07:00'), read: true },
+  ],
+  unreadCount: 2,
+  canDelete: false,
+  settings: { dutiesEnabled: true, workEnabled: true, milestonesHours: [24, 0], dutyMilestonesHours: [24, 12, 0], workMilestonesHours: [48, 24, 0] },
+};
+const CLERK_FEED = {
+  items: [
+    { key: 'c1', kind: 'work', sourceType: 'work_returned', sourceId: 'doc10', milestoneHours: 0, milestoneLabel: 'Bị trả lại', title: 'Công việc bị trả lại: Kế hoạch tổ chức Ngày hội đọc sách', description: 'Đổi hạn nộp sang 06/11 để các tổ kịp chuẩn bị và bổ sung Tổ Văn phòng vào phân công.', dueAt: at('2026-10-21T06:00:00+07:00'), read: false, priority: 'high' },
+    { key: 'c2', kind: 'work', sourceType: 'work_approved', sourceId: 'doc8', milestoneHours: 0, milestoneLabel: 'Đã duyệt', title: 'Công việc đã được duyệt: Chuẩn bị Hội thi giáo viên dạy giỏi cấp trường', description: 'Ban giám hiệu đã duyệt, công việc đã được giao.', dueAt: at('2026-10-20T13:00:00+07:00'), read: false },
+    { key: 'c3', kind: 'duty', sourceType: 'duty', sourceId: 'd4', milestoneHours: 12, milestoneLabel: 'Còn 5 giờ', title: 'Họp Hội đồng sư phạm tháng 10', description: '14:00 · Hội trường', dueAt: at('2026-10-21T14:00:00+07:00'), read: true },
+  ],
+  unreadCount: 2,
+  canDelete: true,
+  settings: BGH_FEED.settings,
+};
 
 export default [
   {
@@ -95,7 +118,7 @@ export default [
     id: 'cv-tao-cong-viec',
     scenario: 'clerk',
     path: '/cong-viec',
-    height: 1500,
+    height: 1700,
     actions: [
       { click: { css: 'button', text: 'Tạo công việc' }, after: 500 },
       { fill: { css: '#work-document-editor .duty-content-field input' }, value: 'Kế hoạch ôn tập kiểm tra giữa kỳ I' },
@@ -103,6 +126,8 @@ export default [
       { select: { css: '#work-document-editor .work-inline-row select' }, value: 'dep_toan' },
       { fill: { css: '#work-document-editor .work-inline-row textarea' }, value: 'Nộp đề cương ôn tập môn Toán các khối' },
       { fill: { css: '#work-document-editor .work-inline-row input[type=date]' }, value: '2026-10-30' },
+      { click: { css: '.work-approver-list label', text: 'Hoàng Văn E' } },
+      { click: { css: '.work-approver-list label', text: 'Bùi Thị K' } },
       { scrollTo: '#work-document-editor', offset: -20 },
     ],
     callouts: [
@@ -110,10 +135,132 @@ export default [
       { n: 2, target: { css: '#work-document-editor .duty-field', text: 'Tệp đính kèm' }, pos: 'left' },
       { n: 3, target: '#work-document-editor .work-assignment-actions', pos: 'top' },
       { n: 4, target: '#work-document-editor .work-inline-row', pos: 'left' },
-      { n: 5, target: { css: '#work-document-editor button[type=submit]' }, pos: 'left' },
+      { n: 5, target: '#work-document-editor .work-approver-block', pos: 'left' },
+      { n: 6, target: { css: '#work-document-editor button[type=submit]' }, pos: 'top' },
     ],
     clip: { target: '#work-document-editor', pad: 24 },
     quality: 72,
+  },
+  {
+    id: 'cv-gui-duyet-xem-truoc',
+    scenario: 'clerk',
+    path: '/cong-viec',
+    height: 1700,
+    actions: [
+      { click: { css: 'button', text: 'Tạo công việc' }, after: 500 },
+      { fill: { css: '#work-document-editor .duty-content-field input' }, value: 'Kế hoạch ôn tập kiểm tra giữa kỳ I' },
+      { click: { css: '#work-document-editor button', text: 'Phòng ban' } },
+      { select: { css: '#work-document-editor .work-inline-row select' }, value: 'dep_toan' },
+      { fill: { css: '#work-document-editor .work-inline-row textarea' }, value: 'Nộp đề cương ôn tập môn Toán các khối' },
+      { fill: { css: '#work-document-editor .work-inline-row input[type=date]' }, value: '2026-10-30' },
+      { click: { css: '.work-approver-list label', text: 'Hoàng Văn E' } },
+      { click: { css: '.work-approver-list label', text: 'Bùi Thị K' } },
+      { click: { css: '#work-document-editor button[type=submit]' }, after: 500 },
+    ],
+    callouts: [
+      { n: 1, target: '.duty-preview-modal .work-modal-context', pos: 'left' },
+      { n: 2, target: { css: '.duty-preview-list > div', text: 'Người duyệt' }, pos: 'left' },
+      { n: 3, target: { css: 'button', text: 'Xác nhận gửi duyệt' }, pos: 'top' },
+    ],
+    clip: { target: '.duty-preview-modal', pad: 24 },
+  },
+  {
+    id: 'cv-tao-cong-viec-to-truong',
+    scenario: 'leader',
+    path: '/cong-viec',
+    height: 1500,
+    actions: [
+      { click: { css: 'button', text: 'Tạo công việc' }, after: 500 },
+      { fill: { css: '#work-document-editor .duty-content-field input' }, value: 'Ra đề kiểm tra giữa kỳ I khối 7' },
+      { click: { css: '#work-document-editor button', text: 'Cá nhân' } },
+      { focus: '#work-document-editor .work-person-select input', after: 300 },
+      { click: { css: '.work-person-select-menu button', text: 'Nguyễn Văn A' } },
+      { fill: { css: '#work-document-editor .work-inline-row textarea' }, value: 'Ra đề và đáp án kiểm tra giữa kỳ Toán 7' },
+      { fill: { css: '#work-document-editor .work-inline-row input[type=date]' }, value: '2026-10-28' },
+      { scrollTo: '#work-document-editor', offset: -20 },
+    ],
+    callouts: [
+      { n: 1, target: '#work-document-editor .work-assignment-actions', pos: 'top' },
+      { n: 2, target: '#work-document-editor .work-inline-row', pos: 'left' },
+      { n: 3, target: { css: '#work-document-editor button[type=submit]' }, pos: 'top' },
+    ],
+    clip: { target: '#work-document-editor', pad: 24 },
+    quality: 72,
+  },
+  {
+    id: 'cv-cho-toi-duyet',
+    scenario: 'bgh',
+    path: '/cong-viec',
+    height: 1100,
+    callouts: [
+      { n: 1, target: '.page-help-button', pos: 'right' },
+      { n: 2, target: { css: '.work-approval-queue .approval-card', nth: 0 }, pos: 'tl' },
+      { n: 3, target: { css: '.work-approval-queue .work-approval-progress', nth: 0 }, pos: 'left' },
+      { n: 4, target: { css: '.work-approval-queue .work-reject-button', nth: 0 }, pos: 'left' },
+      { n: 5, target: { css: '.work-approval-queue .work-primary-button', nth: 0 }, pos: 'right' },
+      { n: 6, target: { css: '.work-approval-queue .approval-card', nth: 1 }, pos: 'left' },
+      { n: 7, target: '.work-approval-history summary', pos: 'left' },
+    ],
+    clip: { target: '.work-approval-queue', pad: 12 },
+    maxHeight: 1060,
+  },
+  {
+    id: 'cv-cho-toi-duyet-mobile',
+    scenario: 'bgh',
+    path: '/cong-viec',
+    width: 390,
+    height: 844,
+    actions: [{ scrollTo: '.work-approval-queue', offset: -12 }],
+    callouts: [
+      { n: 1, target: { css: '.work-approval-queue .work-reject-button', nth: 0 }, pos: 'tl' },
+      { n: 2, target: { css: '.work-approval-queue .work-primary-button', nth: 0 }, pos: 'tl' },
+    ],
+  },
+  {
+    id: 'cv-duyet-cong-viec-modal',
+    scenario: 'bgh',
+    path: '/cong-viec',
+    actions: [{ click: { css: '.work-approval-queue .work-primary-button', nth: 0 }, after: 400 }],
+    callouts: [
+      { n: 1, target: { css: '.work-modal .work-muted' }, pos: 'left' },
+      { n: 2, target: { css: '.work-modal button[type=submit]' }, pos: 'top' },
+    ],
+    clip: { target: '.work-modal', pad: 24 },
+  },
+  {
+    id: 'cv-tra-lai-modal',
+    scenario: 'bgh',
+    path: '/cong-viec',
+    actions: [
+      { click: { css: '.work-approval-queue .work-reject-button', nth: 0 }, after: 400 },
+      { fill: '#work-return-reason', value: 'Đề nghị ghi rõ danh mục hồ sơ cần kiểm tra và giao thêm cho Tổ Ngữ văn.' },
+    ],
+    callouts: [
+      { n: 1, target: '#work-return-reason', pos: 'left' },
+      { n: 2, target: { css: '.work-modal button[type=submit]' }, pos: 'top' },
+    ],
+    clip: { target: '.work-modal', pad: 24 },
+  },
+  {
+    id: 'cv-thong-bao-duyet',
+    scenario: 'bgh',
+    path: '/cong-viec',
+    overrides: { 'notifications:feed': BGH_FEED },
+    actions: [{ click: '.notification-bell-button', after: 300 }],
+    callouts: [{ n: 1, target: { css: '.notification-popover-item', nth: 0 }, pos: 'left' }],
+    clip: { target: '.notification-popover', pad: 40 },
+  },
+  {
+    id: 'cv-thong-bao-ket-qua-duyet',
+    scenario: 'clerk',
+    path: '/cong-viec',
+    overrides: { 'notifications:feed': CLERK_FEED },
+    actions: [{ click: '.notification-bell-button', after: 300 }],
+    callouts: [
+      { n: 1, target: { css: '.notification-popover-item', nth: 0 }, pos: 'left' },
+      { n: 2, target: { css: '.notification-popover-item', nth: 1 }, pos: 'left' },
+    ],
+    clip: { target: '.notification-popover', pad: 40 },
   },
   {
     id: 'cv-duyet-hoan-thanh',
@@ -151,8 +298,39 @@ export default [
     callouts: [
       { n: 1, target: { css: '.work-management button', text: 'Tạo công việc' }, pos: 'left' },
       { n: 2, target: { css: '.work-management .duty-modern-card', nth: 0 }, pos: 'left' },
-      { n: 3, target: '.work-document-locked', pos: 'left' },
-      { n: 4, target: { css: '.work-management .work-edit-button', nth: 0 }, pos: 'left' },
+      { n: 3, target: { css: '.work-document-locked', nth: 0 }, pos: 'left' },
+    ],
+    clip: { target: '.work-management', pad: 12 },
+    maxHeight: 960,
+  },
+  {
+    id: 'cv-van-thu-bi-tra-lai',
+    scenario: 'clerk',
+    path: '/cong-viec',
+    height: 1800,
+    actions: [{ scrollTo: '.work-management [data-document-id=doc10]', offset: -40 }],
+    callouts: [
+      { n: 1, target: { css: '[data-document-id=doc10] .work-status.approval_returned' }, pos: 'left' },
+      { n: 2, target: { css: '[data-document-id=doc10] .work-approval-reason' }, pos: 'left' },
+      { n: 3, target: { css: '[data-document-id=doc10] .work-edit-button' }, pos: 'left' },
+    ],
+    clip: { target: '.work-management [data-document-id=doc10]', pad: 16 },
+  },
+  {
+    id: 'cv-van-thu-cho-duyet',
+    scenario: 'clerk',
+    path: '/cong-viec',
+    height: 1300,
+    actions: [
+      { click: { css: '.work-management .work-list-tabs button', text: 'Đang chờ duyệt' }, after: 300 },
+      { scrollTo: { css: 'h3, h2, .duty-list-heading', text: 'Việc tôi tạo' }, offset: -20 },
+    ],
+    callouts: [
+      { n: 1, target: { css: '.work-management .work-list-tabs button', text: 'Đang chờ duyệt' }, pos: 'bottom' },
+      { n: 2, target: { css: '.work-management .work-status.awaiting_approval', nth: 0 }, pos: 'left' },
+      { n: 3, target: { css: '.work-management .work-approval-progress', nth: 0 }, pos: 'left' },
+      { n: 4, target: { css: '.work-management .work-document-locked', nth: 0 }, pos: 'left' },
+      { n: 5, target: { css: '.work-management .work-edit-button', nth: 0 }, pos: 'left' },
     ],
     clip: { target: '.work-management', pad: 12 },
     maxHeight: 1100,

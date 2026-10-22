@@ -7,7 +7,7 @@
 // Writes <dir>/guide-<width>-<anchor|top>.png and reports horizontal overflow.
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { extname, join, normalize, resolve, dirname } from 'node:path';
+import { extname, join, normalize, resolve, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { launchChrome } from './cdp.mjs';
 
@@ -26,7 +26,8 @@ for (let i = 0; i < argv.length; i += 1) {
   else if (argv[i] === '--full') args.full = true;
 }
 if (!args.out) throw new Error('--out <dir> is required (keep previews outside the repo)');
-if (args.out.startsWith(repoRoot)) throw new Error('--out must be outside the repository');
+// Compare whole path segments: a sibling such as <repo>-verify is outside the repository.
+if (args.out === repoRoot || args.out.startsWith(repoRoot + sep)) throw new Error('--out must be outside the repository');
 mkdirSync(args.out, { recursive: true });
 
 const server = createServer((req, res) => {

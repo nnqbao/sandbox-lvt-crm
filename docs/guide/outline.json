@@ -29,13 +29,13 @@
       "part": "to-truong-bgh",
       "icon": "🧭",
       "title": "Tổ trưởng / BGH",
-      "text": "Tạo, duyệt, sửa lịch; giao và duyệt việc; báo cáo"
+      "text": "Tạo, duyệt, sửa lịch; giao việc, duyệt việc Văn thư gửi; báo cáo"
     },
     {
       "part": "van-thu-quan-tri",
       "icon": "🗂️",
       "title": "Văn thư / Quản trị",
-      "text": "Lịch tuần, lớp, bán trú, tài khoản, nhóm quyền, năm học"
+      "text": "Lịch tuần, gửi duyệt công việc, lớp, bán trú, tài khoản, nhóm quyền"
     },
     {
       "part": "tra-cuu-menu",
@@ -107,12 +107,13 @@
       "id": "to-truong-bgh",
       "title": "Tôi là tổ trưởng / Ban Giám hiệu",
       "kicker": "Quản lý chuyên môn",
-      "intro": "Tạo lịch cho tổ, duyệt và sửa lịch tuần của trường, giao việc và duyệt kết quả, theo dõi báo cáo và đánh giá nhân sự.",
+      "intro": "Tạo lịch cho tổ, duyệt và sửa lịch tuần của trường, giao việc ngay cho cấp dưới, duyệt công việc Văn thư gửi và duyệt kết quả, theo dõi báo cáo và đánh giá nhân sự.",
       "topics": [
         "ct-tao-cong-tac",
         "ct-import-excel",
         "ct-bgh-duyet-sua",
         "cv-tao-cong-viec",
+        "cv-bgh-duyet-cong-viec",
         "cv-duyet-hoan-thanh",
         "bc-bao-cao-cong-viec",
         "dg-danh-gia-nguoi-khac"
@@ -122,10 +123,11 @@
       "id": "van-thu-quan-tri",
       "title": "Văn thư / Quản trị hệ thống",
       "kicker": "Moderator · Administrator",
-      "intro": "Soạn và nộp lịch tuần, quản lý lớp, kỳ bán trú, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
+      "intro": "Soạn và nộp lịch tuần, tạo công việc và gửi Ban Giám hiệu duyệt, quản lý lớp, kỳ bán trú, tài khoản, phòng ban, chức vụ, nhóm quyền, năm học và các thiết lập chung.",
       "topics": [
         "tl-trinh-tu-thiet-lap",
         "ct-nop-duyet-tuan",
+        "cv-van-thu-gui-duyet",
         "cn-quan-ly-lop",
         "bt-ban-tru",
         "tl-nguoi-dung",

@@ -1,4 +1,7 @@
-// Công việc (admin/mod giao việc) + Việc của tôi + Báo cáo công việc. Fictional data only.
+// Công việc + Việc của tôi + Báo cáo công việc. Fictional data only.
+// Approval rule mirrored here (convex/workDocumentPolicy.ts): work created by Văn thư
+// (admin/mod) waits for Ban giám hiệu approval; work created by BGH or a tổ trưởng is
+// released immediately.
 import { DAY, DEPARTMENTS, HOUR, POSITIONS, T0, USERS, departmentById, positionById, userById } from './personas.js';
 
 const level = (user) => positionById(user.positionId)?.level || 0;
@@ -60,45 +63,173 @@ const PENDING_REVIEWS = [
   { kind: 'work_item', workItemId: 'wi6', taskId: null, userId: 'u_t7', userName: 'Lý Thị N', content: 'Tổng hợp danh sách học sinh tham gia CLB tiếng Anh', deadline: '2026-10-18', submittedAt: T0 - 26 * HOUR, submittedLate: true, note: '', type: 'department', departmentName: 'Tổ Tiếng Anh' },
 ];
 
-function adminDocuments() {
+/* ---------------------------------------------------------- Ban giám hiệu duyệt */
+const APPROVER_IDS = ['u_bgh', 'u_pht'];
+
+/** One approver row as documentView() returns it. decision: 'approved' | 'rejected' | null. */
+const approverRow = (id, decision = null, hoursAgo = 0, reason = '') => {
+  const u = userById(id);
+  return {
+    _id: u._id, name: u.name, email: u.email, level: level(u),
+    approved: decision === 'approved', rejected: decision === 'rejected',
+    decidedAt: decision ? T0 - hoursAgo * HOUR : null, reason,
+  };
+};
+
+const member = (id, status, qualityPercent = null) => ({ ...person(id, status), qualityPercent, rejectionReason: '' });
+
+/** Approval fields of a document (released, waiting or returned). */
+function approvalFields(approvers, { status, submittedHoursAgo, returnReason = '' }) {
+  const approvalCount = approvers.filter((row) => row.approved).length;
+  const decided = approvers.filter((row) => row.decidedAt).map((row) => row.decidedAt);
+  return {
+    status,
+    requiresApproval: true,
+    approvers,
+    approvalCount,
+    approvalTotal: approvers.length,
+    approvalLocked: approvalCount > 0,
+    submittedAt: T0 - submittedHoursAgo * HOUR,
+    decidedAt: status === 'pending' || !decided.length ? null : Math.max(...decided),
+    returnReason,
+    creatorName: 'Đỗ Thị G',
+  };
+}
+
+const RETURN_REASON = 'Đổi hạn nộp sang 06/11 để các tổ kịp chuẩn bị và bổ sung Tổ Văn phòng vào phân công.';
+
+/** Documents created by Văn thư Đỗ Thị G. */
+function clerkDocuments() {
   return [
     {
+      // Released: both approvers approved → locked, assignees working.
       _id: 'doc1', title: 'Kế hoạch dạy học học kỳ I', fileName: 'ke-hoach-day-hoc-hk1.docx', fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', fileSize: 48230,
-      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp kế hoạch dạy học môn học kỳ I', deadline: '2026-10-25', status: 'approved', workStatus: 'in_progress',
-      departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, approvalCount: 0, approvalTotal: 0, createdAt: T0 - 4 * DAY, createdBy: 'u_clerk',
+      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp kế hoạch dạy học môn học kỳ I', deadline: '2026-10-25', workStatus: 'in_progress',
+      departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, createdAt: T0 - 5 * DAY, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_bgh', 'approved', 100), approverRow('u_pht', 'approved', 98)], { status: 'approved', submittedHoursAgo: 120 }),
       archived: false, canEdit: false, canDelete: false, taskCount: 6,
       assignments: [
         { _id: 'wi1', type: 'department', departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', content: 'Nộp kế hoạch dạy học môn Toán học kỳ I', deadline: '2026-10-25', status: 'in_progress', taskCount: 3, taskCompletedCount: 1,
-          members: [{ ...person('u_teacher', 'pending_task'), qualityPercent: null, rejectionReason: '' }, { ...person('u_leader', 'pending_completion'), qualityPercent: null, rejectionReason: '' }, { ...person('u_t5', 'completed'), qualityPercent: 90, rejectionReason: '' }] },
+          members: [member('u_teacher', 'pending_task'), member('u_leader', 'pending_completion'), member('u_t5', 'completed', 90)] },
         { _id: 'wi7', type: 'department', departmentId: 'dep_van', departmentName: 'Tổ Ngữ văn', content: 'Nộp kế hoạch dạy học môn Ngữ văn học kỳ I', deadline: '2026-10-25', status: 'in_progress', taskCount: 3, taskCompletedCount: 0,
-          members: [{ ...person('u_gvcn', 'pending_task'), qualityPercent: null, rejectionReason: '' }, { ...person('u_t6', 'pending_task'), qualityPercent: null, rejectionReason: '' }] },
+          members: [member('u_gvcn', 'pending_task'), member('u_t6', 'pending_task')] },
       ],
     },
     {
+      // Returned by the Hiệu trưởng before anyone approved → editable, waiting for resubmission.
+      _id: 'doc10', title: 'Kế hoạch tổ chức Ngày hội đọc sách', fileName: 'ke-hoach-ngay-hoi-doc-sach.pdf', fileType: 'application/pdf', fileSize: 96400,
+      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Chuẩn bị gian sách của tổ', deadline: '2026-10-30', workStatus: 'approval_returned',
+      departmentId: 'dep_van', departmentName: 'Tổ Ngữ văn', assignmentCount: 2, createdAt: T0 - 2 * DAY, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_bgh', 'rejected', 3, RETURN_REASON), approverRow('u_pht')], { status: 'rejected', submittedHoursAgo: 26, returnReason: RETURN_REASON }),
+      archived: false, canEdit: true, canDelete: true, taskCount: 4,
+      assignments: [
+        { _id: 'wi10', type: 'department', departmentId: 'dep_van', departmentName: 'Tổ Ngữ văn', content: 'Chuẩn bị gian sách và tiết mục giới thiệu sách của tổ', deadline: '2026-10-30', status: 'in_progress', taskCount: 2, taskCompletedCount: 0,
+          members: [member('u_gvcn', 'pending_task'), member('u_t6', 'pending_task')] },
+        { _id: 'wi11', type: 'department', departmentId: 'dep_anh', departmentName: 'Tổ Tiếng Anh', content: 'Chuẩn bị góc sách tiếng Anh', deadline: '2026-10-30', status: 'in_progress', taskCount: 2, taskCompletedCount: 0,
+          members: [member('u_t7', 'pending_task'), member('u_t8', 'pending_task')] },
+      ],
+    },
+    {
+      // Released with a single approver.
       _id: 'doc8', title: 'Chuẩn bị Hội thi giáo viên dạy giỏi cấp trường', fileName: '', fileType: '', fileSize: 0, fileUrl: null, privateFile: false,
-      content: 'Đăng ký tiết thi', deadline: '2026-11-02', status: 'approved', workStatus: 'pending_task', departmentId: 'dep_anh', departmentName: 'Tổ Tiếng Anh',
-      assignmentCount: 1, approvalCount: 0, approvalTotal: 0, createdAt: T0 - 1 * DAY, createdBy: 'u_clerk', archived: false, canEdit: true, canDelete: true, taskCount: 2,
+      content: 'Đăng ký tiết thi', deadline: '2026-11-02', workStatus: 'pending_task', departmentId: 'dep_anh', departmentName: 'Tổ Tiếng Anh',
+      assignmentCount: 1, createdAt: T0 - 1 * DAY, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_pht', 'approved', 20)], { status: 'approved', submittedHoursAgo: 24 }),
+      archived: false, canEdit: false, canDelete: false, taskCount: 2,
       assignments: [
         { _id: 'wi8', type: 'department', departmentId: 'dep_anh', departmentName: 'Tổ Tiếng Anh', content: 'Đăng ký tiết thi giáo viên dạy giỏi', deadline: '2026-11-02', status: 'in_progress', taskCount: 2, taskCompletedCount: 0,
-          members: [{ ...person('u_t7', 'pending_task'), qualityPercent: null, rejectionReason: '' }, { ...person('u_t8', 'pending_task'), qualityPercent: null, rejectionReason: '' }] },
+          members: [member('u_t7', 'pending_task'), member('u_t8', 'pending_task')] },
+      ],
+    },
+    {
+      // Waiting: Phó Hiệu trưởng approved, Hiệu trưởng not yet → already locked, still hidden from assignees.
+      _id: 'doc11', title: 'Kế hoạch ôn tập kiểm tra giữa kỳ I', fileName: 'de-cuong-on-tap-gk1.docx', fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', fileSize: 35100,
+      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp đề cương ôn tập', deadline: '2026-10-30', workStatus: 'awaiting_approval',
+      departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, createdAt: T0 - 5 * HOUR, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_bgh'), approverRow('u_pht', 'approved', 1)], { status: 'pending', submittedHoursAgo: 5 }),
+      archived: false, canEdit: false, canDelete: false, taskCount: 0,
+      assignments: [
+        { _id: 'wi12', type: 'department', departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', content: 'Nộp đề cương ôn tập môn Toán các khối', deadline: '2026-10-30', status: 'unassigned', taskCount: 3, taskCompletedCount: 0, members: [] },
+        { _id: 'wi13', type: 'department', departmentId: 'dep_van', departmentName: 'Tổ Ngữ văn', content: 'Nộp đề cương ôn tập môn Ngữ văn các khối', deadline: '2026-10-30', status: 'unassigned', taskCount: 3, taskCompletedCount: 0, members: [] },
+      ],
+    },
+    {
+      // Waiting: nobody decided yet → creator can still edit or delete.
+      _id: 'doc12', title: 'Kiểm tra hồ sơ chuyên môn tháng 11', fileName: '', fileType: '', fileSize: 0, fileUrl: null, privateFile: false,
+      content: 'Chuẩn bị hồ sơ', deadline: '2026-11-06', workStatus: 'awaiting_approval', departmentId: '', departmentName: 'Cá nhân',
+      assignmentCount: 1, createdAt: T0 - 2 * HOUR, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_bgh'), approverRow('u_pht')], { status: 'pending', submittedHoursAgo: 2 }),
+      archived: false, canEdit: true, canDelete: true, taskCount: 0,
+      assignments: [
+        { _id: 'wi14', type: 'individual', departmentName: 'Cá nhân', userNames: ['Nguyễn Văn A', 'Ngô Thị L'], content: 'Hoàn thiện sổ ghi đầu bài và kế hoạch bài dạy tháng 11', deadline: '2026-11-06', status: 'unassigned', taskCount: 2, taskCompletedCount: 0, members: [] },
       ],
     },
     {
       _id: 'doc9', title: 'Báo cáo sơ kết tháng 9', fileName: 'bao-cao-thang-9.pdf', fileType: 'application/pdf', fileSize: 210400, fileUrl: null, privateFile: true, documentTypeName: 'Báo cáo',
-      content: 'Báo cáo sơ kết', deadline: '2026-10-05', status: 'approved', workStatus: 'completed', departmentId: '', departmentName: 'Cá nhân',
-      assignmentCount: 1, approvalCount: 0, approvalTotal: 0, createdAt: T0 - 25 * DAY, createdBy: 'u_clerk', archived: false, canEdit: false, canDelete: false, taskCount: 2,
+      content: 'Báo cáo sơ kết', deadline: '2026-10-05', workStatus: 'completed', departmentId: '', departmentName: 'Cá nhân',
+      assignmentCount: 1, createdAt: T0 - 25 * DAY, createdBy: 'u_clerk',
+      ...approvalFields([approverRow('u_bgh', 'approved', 24 * 24)], { status: 'approved', submittedHoursAgo: 25 * 24 }),
+      archived: false, canEdit: false, canDelete: false, taskCount: 2,
       assignments: [
         { _id: 'wi9', type: 'individual', departmentName: 'Cá nhân', userNames: ['Lê Thị D', 'Đặng Văn M'], content: 'Gửi báo cáo sơ kết tháng 9 của tổ', deadline: '2026-10-05', status: 'completed', taskCount: 2, taskCompletedCount: 2,
-          members: [{ ...person('u_leader', 'completed'), qualityPercent: 100, rejectionReason: '' }, { ...person('u_t6', 'completed'), qualityPercent: 90, rejectionReason: '' }] },
+          members: [member('u_leader', 'completed', 100), member('u_t6', 'completed', 90)] },
       ],
     },
   ];
 }
 
+/** Released immediately (no approvers): created by Ban giám hiệu or a tổ trưởng. */
+function directDocument(id, title, createdBy, assignments, createdHoursAgo) {
+  return {
+    _id: id, title, fileName: '', fileType: '', fileSize: 0, fileUrl: null, privateFile: false, content: assignments[0].content,
+    deadline: assignments[0].deadline, status: 'approved', workStatus: 'pending_task', departmentId: assignments[0].departmentId || '',
+    departmentName: assignments[0].departmentName, assignmentCount: assignments.length, createdAt: T0 - createdHoursAgo * HOUR, createdBy,
+    requiresApproval: false, approvers: [], approvalCount: 0, approvalTotal: 0, approvalLocked: false, submittedAt: T0 - createdHoursAgo * HOUR,
+    decidedAt: null, returnReason: '', creatorName: userById(createdBy).name, archived: false, canEdit: true, canDelete: true,
+    taskCount: assignments.reduce((n, row) => n + row.taskCount, 0), assignments,
+  };
+}
+
+function adminDocuments(persona) {
+  if (persona._id === 'u_bgh') {
+    return [
+      directDocument('doc20', 'Dự giờ thao giảng chuyên đề đổi mới phương pháp', 'u_bgh', [
+        { _id: 'wi20', type: 'department', departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', content: 'Đăng ký tiết thao giảng chuyên đề', deadline: '2026-11-04', status: 'in_progress', taskCount: 3, taskCompletedCount: 0,
+          members: [member('u_teacher', 'pending_task'), member('u_leader', 'pending_task'), member('u_t5', 'pending_task')] },
+        { _id: 'wi21', type: 'individual', departmentName: 'Cá nhân', userNames: ['Lý Thị N'], content: 'Chuẩn bị tiết thao giảng tiếng Anh', deadline: '2026-11-04', status: 'in_progress', taskCount: 1, taskCompletedCount: 0,
+          members: [member('u_t7', 'pending_task')] },
+      ], 20),
+    ];
+  }
+  if (persona._id === 'u_leader') {
+    return [
+      directDocument('doc21', 'Ra đề kiểm tra giữa kỳ I khối 7', 'u_leader', [
+        { _id: 'wi22', type: 'individual', departmentName: 'Cá nhân', userNames: ['Nguyễn Văn A', 'Ngô Thị L'], content: 'Ra đề và đáp án kiểm tra giữa kỳ Toán 7', deadline: '2026-10-28', status: 'in_progress', taskCount: 2, taskCompletedCount: 0,
+          members: [member('u_teacher', 'pending_task'), member('u_t5', 'pending_task')] },
+      ], 30),
+    ];
+  }
+  return clerkDocuments();
+}
+
+/** "Chờ tôi duyệt" for a Ban giám hiệu member: waiting first, then the 30-day history. */
+function approvalsFor(persona) {
+  if (!APPROVER_IDS.includes(persona._id)) return [];
+  const decision = (document) => {
+    const mine = document.approvers.find((row) => row._id === persona._id);
+    const awaitingMyDecision = document.status === 'pending' && Boolean(mine) && !mine.approved && !mine.rejected;
+    return { ...document, canEdit: false, canDelete: false, awaitingMyDecision, canReject: awaitingMyDecision && document.approvalCount === 0 };
+  };
+  return clerkDocuments()
+    .filter((document) => document.approvers.some((row) => row._id === persona._id) && document.workStatus !== 'completed')
+    .map(decision)
+    .sort((a, b) => Number(b.awaitingMyDecision) - Number(a.awaitingMyDecision) || b.submittedAt - a.submittedAt);
+}
+
 function listMine(_args, { persona }) {
   const ops = isOps(persona);
   const lv = level(persona);
-  const canCreate = ops || lv === 2 || lv === 3;
+  const canCreate = ops || lv >= 2; // canCreateWorkDocuments: level 1 uses Việc của tôi only
   return {
     userId: persona._id,
     level: lv,
@@ -106,10 +237,11 @@ function listMine(_args, { persona }) {
     canCreate,
     assignerMode: 'admin_mod',
     assignableUsers: [],
-    approvals: [],
+    approvals: approvalsFor(persona),
     departmentWorks: [],
     personalTasks: [],
-    myTasks: ops ? [] : myTasks(),
+    // Only released work reaches assignees; Ban giám hiệu has no assigned work in these examples.
+    myTasks: ops || lv >= 4 ? [] : myTasks(),
     documentTypes: DOC_TYPES,
     // Reviews go to the person who created the work (Văn thư in these examples).
     pendingCompletionReviews: ops ? PENDING_REVIEWS : [],
@@ -118,18 +250,26 @@ function listMine(_args, { persona }) {
 
 function formOptions(_args, { persona }) {
   const ops = isOps(persona);
-  const users = USERS.filter((u) => u.role === 'user' && (ops || (u.departmentId === persona.departmentId && level(u) < level(persona))));
+  const lv = level(persona);
+  const bgh = !ops && lv >= 4;
+  // canAssignWorkToUser: ops → everyone; BGH → lower level in any department; others → lower level, same department.
+  const users = USERS.filter((u) => u.role === 'user' && (ops || (level(u) < lv && (bgh || u.departmentId === persona.departmentId))));
+  const option = (u) => ({
+    _id: u._id, name: u.name, email: u.email, role: u.role, departmentId: u.departmentId,
+    departmentName: departmentById(u.departmentId)?.name || '', positionName: positionById(u.positionId)?.name || '', level: level(u),
+  });
+  const canAssignDepartments = ops || bgh;
   return {
     canCreate: true,
     isOps: ops,
+    requiresApproval: ops,
+    canAssignDepartments,
     assignerMode: 'admin_mod',
-    departments: ops ? DEPARTMENTS.map((d) => ({ _id: d._id, name: d.name, code: d.code })) : [],
-    users: users.map((u) => ({
-      _id: u._id, name: u.name, email: u.email, role: u.role, departmentId: u.departmentId,
-      departmentName: departmentById(u.departmentId)?.name || '', positionName: positionById(u.positionId)?.name || '', level: level(u),
-    })),
+    departments: canAssignDepartments ? DEPARTMENTS.map((d) => ({ _id: d._id, name: d.name, code: d.code })) : [],
+    users: users.map(option),
     documentTypes: DOC_TYPES,
-    approvers: [],
+    // Active Ban giám hiệu (level 4+, never admin/moderator), highest level first.
+    approvers: ops ? APPROVER_IDS.map((id) => option(userById(id))) : [],
   };
 }
 
@@ -187,9 +327,9 @@ function workCalendar(args, { persona }) {
 
 export const queries = {
   'work:listMine': listMine,
-  'work:listAdmin': () => ({
-    assignerMode: 'admin_mod', visibilityMode: 'school', canCreate: true, isOps: true,
-    documents: adminDocuments(), documentTypes: DOC_TYPES, pendingCompletionReviews: PENDING_REVIEWS,
+  'work:listAdmin': (_args, { persona }) => ({
+    assignerMode: 'admin_mod', visibilityMode: 'school', canCreate: true, isOps: isOps(persona),
+    documents: adminDocuments(persona), documentTypes: DOC_TYPES, pendingCompletionReviews: isOps(persona) ? PENDING_REVIEWS : [],
   }),
   'work:formOptions': formOptions,
   'personalTodos:listMine': () => TODOS,

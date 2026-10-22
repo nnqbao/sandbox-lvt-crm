@@ -22,6 +22,12 @@ Trang **Thông báo** chia theo **Công tác**, **Trao đổi nhóm** và **Côn
 
 ![Trang Thông báo: 1 mốc nhắc, 2 đánh dấu đã đọc, 3 thẻ thông báo, 4 bài nộp bị trả về](tb-trang-thong-bao)
 
+Thông báo của bước duyệt công việc:
+
+- Ban Giám hiệu: **Công việc chờ duyệt** khi Văn thư gửi hoặc gửi lại, xem [Duyệt công việc](#cv-bgh-duyet-cong-viec).
+- Văn thư: **Công việc đã được duyệt** khi đủ người duyệt, **Công việc bị trả lại** (viền đỏ, kèm lý do) cho đến khi gửi duyệt lại, xem [Gửi duyệt](#cv-van-thu-gui-duyet).
+- Người nhận: **Mới phân công** chỉ khi công việc đã được duyệt đủ.
+
 ::: tip
 Cài ứng dụng LVT CRM trên điện thoại (nếu nhà trường cung cấp) để nhận thông báo đẩy ngay cả khi không mở trình duyệt.
 :::

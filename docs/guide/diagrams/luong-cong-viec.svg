@@ -16,9 +16,10 @@ text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-s
 <circle cx="50" cy="60" r="15" fill="#c0472f"/><text x="50" y="65" text-anchor="middle" class="n">1</text>
 <text x="74" y="54" class="k">NGƯỜI GIAO</text>
 <text x="74" y="74" class="t">Tạo công việc</text>
-<text x="42" y="102" class="s">Văn thư, tổ trưởng, tổ phó</text>
+<text x="42" y="102" class="s">Văn thư, BGH, tổ trưởng, tổ phó</text>
 <text x="42" y="121" class="s">Giao phòng ban hoặc cá nhân</text>
 <text x="42" y="140" class="s">Mỗi dòng: nội dung + hạn chót</text>
+<text x="42" y="159" class="s">Việc Văn thư tạo: BGH duyệt trước</text>
 <rect x="325" y="30" width="250" height="180" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
 <rect x="325" y="30" width="6" height="180" rx="3" fill="#28639a"/>
 <circle cx="355" cy="60" r="15" fill="#c0472f"/><text x="355" y="65" text-anchor="middle" class="n">2</text>

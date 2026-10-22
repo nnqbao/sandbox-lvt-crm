@@ -10,7 +10,7 @@ Các bước tự kiểm tra trước khi nhờ quản trị viên.
 1. Kiểm tra đang đăng nhập **đúng tài khoản** (bấm ảnh đại diện để xem tên).
 2. **Tải lại trang** (phím F5, hoặc kéo trang xuống trên điện thoại).
 3. Kiểm tra đã chọn đúng **kỳ, ngày, năm học** hoặc đúng tab (ví dụ tab **Quá hạn** thay vì **Việc cần làm**).
-4. Nhớ rằng nhiều nút chỉ hiện **đúng lúc** (xác nhận tham gia chỉ trong giờ công tác), **đúng người** (người giao mới duyệt được) hoặc **đúng chức vụ**.
+4. Nhớ rằng nhiều nút chỉ hiện **đúng lúc** (xác nhận tham gia chỉ trong giờ công tác; việc Văn thư giao chỉ hiện sau khi Ban Giám hiệu duyệt), **đúng người** (người giao mới duyệt được) hoặc **đúng chức vụ** (giáo viên 1 sao không có **+ Tạo công việc**).
 5. Vẫn không được: chụp màn hình, ghi rõ đang làm gì, gửi cho quản trị viên của trường.
 
 ::: tip

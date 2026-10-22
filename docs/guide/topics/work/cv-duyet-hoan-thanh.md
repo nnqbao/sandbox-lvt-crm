@@ -2,7 +2,7 @@
 id: cv-duyet-hoan-thanh
 title: Duyệt kết quả hoàn thành
 menu: Công việc
-roles: Văn thư, Tổ trưởng, Tổ phó, Administrator
+roles: Người tạo công việc (Văn thư, Tổ trưởng, Tổ phó, Ban Giám hiệu, Administrator)
 keywords: duyet hoan thanh, cham diem, muc do, phan tram, tra ve, chua duyet
 ---
 Người tạo việc xác nhận bài nộp đạt yêu cầu, chấm mức độ hoàn thành hoặc trả về cho làm lại.
@@ -17,6 +17,10 @@ Người tạo việc xác nhận bài nộp đạt yêu cầu, chấm mức đ�
 5. Bấm nút xác nhận [[4]] (**Duyệt hoàn thành** hoặc **Trả về user**).
 
 ![Hộp Duyệt hoàn thành: 1 Duyệt, 2 mức độ %, 3 Chưa duyệt, 4 nút xác nhận](cv-duyet-modal)
+
+::: note
+Đây là duyệt **kết quả** sau khi giao. Khác với bước Ban Giám hiệu duyệt công việc Văn thư gửi **trước khi giao**, xem [Duyệt công việc](#cv-bgh-duyet-cong-viec).
+:::
 
 ::: tip
 Ghi lý do cụ thể (“thiếu danh sách học sinh”, “sai mẫu biên bản”) để đồng nghiệp sửa một lần là xong.

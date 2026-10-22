@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" role="img" aria-labelledby="t d"><title id="t">Luồng duyệt Công việc</title><desc id="d">Văn thư tạo công việc và gửi Ban Giám hiệu duyệt; Ban Giám hiệu duyệt thì công việc được giao cho người nhận, trả lại thì Văn thư sửa và gửi duyệt lại. Công việc do Ban Giám hiệu, tổ trưởng hoặc tổ phó tạo được giao ngay.</desc><style>
+text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-serif}
+.t{font-size:17px;font-weight:800;fill:#14355f}
+.s{font-size:13px;font-weight:500;fill:#2b465e}
+.k{font-size:11px;font-weight:800;letter-spacing:.08em;fill:#0e7363}
+.n{font-size:15px;font-weight:800;fill:#fff}
+.a{fill:none;stroke:#28639a;stroke-width:2.5;marker-end:url(#arr)}
+.ad{fill:none;stroke:#c0472f;stroke-width:2;stroke-dasharray:6 5;marker-end:url(#arrr)}
+.cap{font-size:12px;font-weight:600;fill:#5a6b7c}
+.capr{font-size:12px;font-weight:700;fill:#a33a25}
+.lab{font-size:12px;font-weight:700;fill:#28639a}
+</style>
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#28639a"/></marker>
+<marker id="arrr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#c0472f"/></marker>
+</defs><rect width="900" height="430" rx="16" fill="#fff"/>
+<rect x="20" y="30" width="250" height="170" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="20" y="30" width="6" height="170" rx="3" fill="#e9ad43"/>
+<circle cx="50" cy="60" r="15" fill="#c0472f"/><text x="50" y="65" text-anchor="middle" class="n">1</text>
+<text x="74" y="54" class="k">VĂN THƯ · ADMIN</text>
+<text x="74" y="74" class="t">Tạo và gửi duyệt</text>
+<text x="42" y="104" class="s">Chọn Người duyệt (BGH)</text>
+<text x="42" y="123" class="s">Bấm “Gửi duyệt”</text>
+<text x="42" y="142" class="s">Trạng thái: Chờ duyệt</text>
+<text x="42" y="161" class="s">Người nhận chưa thấy việc</text>
+<rect x="325" y="30" width="250" height="170" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="325" y="30" width="6" height="170" rx="3" fill="#28639a"/>
+<circle cx="355" cy="60" r="15" fill="#c0472f"/><text x="355" y="65" text-anchor="middle" class="n">2</text>
+<text x="379" y="54" class="k">BAN GIÁM HIỆU</text>
+<text x="379" y="74" class="t">Duyệt hoặc trả lại</text>
+<text x="347" y="104" class="s">Mục “Chờ tôi duyệt”</text>
+<text x="347" y="123" class="s">Đủ mọi người duyệt mới giao</text>
+<text x="347" y="142" class="s">Lần duyệt đầu khóa sửa, xóa</text>
+<text x="347" y="161" class="s">Trả lại: chỉ khi chưa ai duyệt</text>
+<rect x="630" y="30" width="250" height="354" rx="14" fill="#f3faf8" stroke="#cfe6df" stroke-width="1.5"/>
+<rect x="630" y="30" width="6" height="354" rx="3" fill="#138f7b"/>
+<circle cx="660" cy="60" r="15" fill="#c0472f"/><text x="660" y="65" text-anchor="middle" class="n">3</text>
+<text x="684" y="54" class="k">NGƯỜI NHẬN</text>
+<text x="684" y="74" class="t">Nhận việc</text>
+<text x="652" y="104" class="s">Việc hiện ở tab Việc cần làm</text>
+<text x="652" y="123" class="s">Chuông + thông báo đẩy</text>
+<text x="652" y="142" class="s">Làm xong: nộp bằng chứng</text>
+<text x="652" y="161" class="s">Người tạo duyệt hoàn thành</text>
+<path class="a" d="M272 115 H322"/>
+<path class="a" d="M577 115 H627"/>
+<text x="602" y="104" text-anchor="middle" class="lab">Đủ</text>
+<path class="ad" d="M450 202 C450 250 145 250 145 204"/>
+<text x="297" y="268" text-anchor="middle" class="capr">Trả lại kèm lý do → Văn thư sửa, gửi duyệt lại</text>
+<rect x="20" y="284" width="555" height="100" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
+<rect x="20" y="284" width="6" height="100" rx="3" fill="#138f7b"/>
+<text x="42" y="308" class="k">BAN GIÁM HIỆU · TỔ TRƯỞNG · TỔ PHÓ</text>
+<text x="42" y="330" class="t">Tạo công việc → giao ngay, không cần duyệt</text>
+<text x="42" y="352" class="s">BGH: người cấp thấp hơn ở mọi tổ, hoặc giao cả phòng ban</text>
+<text x="42" y="371" class="s">Tổ trưởng, tổ phó: người cấp thấp hơn trong tổ mình</text>
+<path class="a" d="M577 334 H627"/>
+<text x="602" y="323" text-anchor="middle" class="lab">Ngay</text>
+<text x="450" y="412" text-anchor="middle" class="cap">Giáo viên, nhân viên 1 sao không tạo công việc; ghi việc riêng ở tab “Việc của tôi”.</text></svg>

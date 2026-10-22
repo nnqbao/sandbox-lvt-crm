@@ -15,8 +15,8 @@ Chức vụ gắn với cấp bậc 1–5 sao; cấp bậc quyết định ai du
 
 | Cấp | Ví dụ | Dùng để |
 |---|---|---|
-| 5 sao | Hiệu trưởng | Duyệt, sửa lịch tuần; ghi nhận xét đánh giá |
+| 5 sao | Hiệu trưởng | Duyệt, sửa lịch tuần; duyệt công việc Văn thư gửi; giao việc cho mọi tổ; ghi nhận xét đánh giá |
 | 4 sao | Phó Hiệu trưởng | Như trên |
 | 3 sao | Tổ trưởng | Tạo lịch tổ, giao việc, duyệt hoàn thành cho cấp dưới trong tổ |
 | 2 sao | Tổ phó | Như tổ trưởng, với người cấp thấp hơn |
-| 1 sao | Giáo viên, Văn thư, Giám thị | Người thực hiện |
+| 1 sao | Giáo viên, Văn thư, Giám thị | Người thực hiện; không tạo công việc (Văn thư giao việc nhờ vai trò Moderator) |
