@@ -21,6 +21,8 @@ import {
   isEligibleWorkApprover,
   isWorkApprovalLocked,
   workApprovalDecidedAt,
+  workApprovalRequestText,
+  workApprovalResubmittedBy,
   workApprovalSubmission,
   workCreatorApprovalNotice,
   workDocumentFollowsApprovalFlow,
@@ -598,4 +600,54 @@ test('ghi "Đã chỉnh sửa bởi": chỉ khi sửa (không khi tạo/duyệt/
   assert.match(views, /document\.hasSubmissions\s*\? WORK_HAS_SUBMISSIONS_NOTE/);
   const summary = readFileSync(new URL('../src/work/WorkListSummary.jsx', import.meta.url), 'utf8');
   assert.match(summary, /workLastEditedLabel\(item\)/);
+});
+
+test('approval request credits the editor when someone other than the creator resubmitted', () => {
+  const base = { createdBy: 'clerk', submittedAt: 1000 };
+  assert.equal(workApprovalResubmittedBy(base), null);
+  assert.equal(workApprovalResubmittedBy({ ...base, lastEditedBy: 'clerk', lastEditedAt: 1000 }), null);
+  assert.equal(workApprovalResubmittedBy({ ...base, lastEditedBy: 'admin', lastEditedAt: 1000 }), 'admin');
+  // A later submission than the recorded edit is not the editor's round.
+  assert.equal(workApprovalResubmittedBy({ ...base, lastEditedBy: 'admin', lastEditedAt: 900 }), null);
+
+  assert.deepEqual(workApprovalRequestText({ title: 'Kế hoạch tháng 11' }), {
+    description: 'Văn thư đã gửi công việc này, cần bạn duyệt trước khi giao.',
+    pushBody: 'Kế hoạch tháng 11',
+  });
+  assert.deepEqual(workApprovalRequestText({ title: 'Kế hoạch tháng 11', editorName: 'Nguyễn An' }), {
+    description: 'Nguyễn An đã sửa và gửi lại công việc này để duyệt.',
+    pushBody: 'Nguyễn An đã sửa và gửi lại công việc này để duyệt: Kế hoạch tháng 11',
+  });
+});
+
+test('approval bell and push build the editor wording server-side', () => {
+  const notifications = readFileSync(new URL('../convex/notifications.ts', import.meta.url), 'utf8');
+  assert.match(notifications, /workApprovalResubmittedBy\(document\)/);
+  assert.match(notifications, /workApprovalRequestText\(/);
+  const work = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
+  assert.match(work, /workApprovalRequestText\(\{ title: args\.title, editorName: args\.editorName \}\)/);
+});
+
+test('BGH approve dialog explains admin re-approval edits instead of a hard lock', () => {
+  const parts = readFileSync(new URL('../src/work/WorkApprovalParts.jsx', import.meta.url), 'utf8');
+  assert.match(parts, /Sau khi bạn duyệt, công việc được giao cho người nhận\. Chỉ Quản trị viên có thể sửa lại \(và phải gửi duyệt lại\); không ai xóa được\./);
+  assert.doesNotMatch(parts, /không thể sửa hoặc xóa nữa/);
+});
+
+test('work editor validates before the save confirmation and shows the approver error once', () => {
+  const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
+  const submit = views.slice(views.indexOf('  const submit = (event) => {'), views.indexOf("setPreviewOpen(true);\n  };"));
+  assert.ok(submit.indexOf('validateWorkForm()') > -1);
+  assert.ok(submit.indexOf('validateWorkForm()') < submit.indexOf("setEditConfirm('save')"));
+  const validate = views.slice(views.indexOf('const validateWorkForm = () => {'), views.indexOf('const persistWork = async'));
+  assert.match(validate, /setApproverError\('Vui lòng chọn ít nhất một người duyệt\.'\)/);
+  assert.doesNotMatch(views, /Vui lòng chọn người duyệt thuộc Ban giám hiệu/);
+});
+
+test('completion evidence form uses its own Vietnamese document-type validation', () => {
+  const views = readFileSync(new URL('../src/work/WorkViews.jsx', import.meta.url), 'utf8');
+  const modal = views.slice(views.indexOf('function CompletionSubmitModal('), views.indexOf('function CompletionReviewModal('));
+  assert.match(modal, /<form className="work-modal" onSubmit=\{submit\} noValidate>/);
+  assert.match(modal, /setDocumentTypeError\('Vui lòng chọn loại văn bản\.'\)/);
+  assert.match(modal, /error=\{documentTypeError\}/);
 });

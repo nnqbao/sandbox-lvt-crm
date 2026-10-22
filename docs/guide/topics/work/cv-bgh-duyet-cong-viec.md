@@ -17,12 +17,12 @@ Công việc Văn thư tạo chỉ được giao sau khi mọi người duyệt 
 ![Chờ tôi duyệt: 1 nút ?, 2 công việc chờ duyệt, 3 tiến độ duyệt, 4 Trả lại, 5 Duyệt, 6 việc đã có người duyệt, 7 lịch sử 30 ngày](cv-cho-toi-duyet)
 
 #### Duyệt
-Hộp xác nhận nhắc: sau khi duyệt, công việc **không sửa, xóa được nữa** [[1]]. Bấm **Duyệt** [[2]]. Khi đủ người duyệt, người nhận thấy việc và nhận thông báo ngay.
+Hộp xác nhận nhắc [[1]]: sau khi duyệt, công việc được giao cho người nhận; chỉ **Quản trị viên** còn sửa được (và phải gửi duyệt lại), không ai xóa được. Bấm **Duyệt** [[2]]. Khi đủ người duyệt, người nhận thấy việc và nhận thông báo ngay.
 
 #### Trả lại
 Ghi **Lý do trả lại** [[1]] (bắt buộc, tối đa 500 ký tự), rồi bấm **Trả lại** [[2]]. Văn thư nhận thông báo kèm lý do, sửa và gửi duyệt lại.
 
-![Hộp Duyệt công việc: 1 lưu ý khóa sửa/xóa, 2 Duyệt](cv-duyet-cong-viec-modal)
+![Hộp Duyệt công việc: 1 lưu ý sau khi duyệt, 2 Duyệt](cv-duyet-cong-viec-modal)
 ![Hộp Trả lại công việc: 1 lý do, 2 Trả lại](cv-tra-lai-modal)
 
 Khi Văn thư gửi (hoặc gửi lại) công việc, chuông hiện **Công việc chờ duyệt** [[1]]; bấm vào để mở đúng thẻ.
@@ -46,4 +46,4 @@ Mục này chỉ hiện với người được Văn thư chọn làm người d
 Công việc quay lại **Chờ tôi duyệt** như một yêu cầu mới; mọi người duyệt quyết định lại từ đầu.
 
 ??? Công việc tôi đã duyệt lại hiện trong Chờ tôi duyệt?
-Administrator đã sửa công việc sau khi duyệt. Mọi quyết định cũ được xóa, người nhận tạm không thấy việc cho đến khi đủ người duyệt lại. Thẻ ghi “Đã chỉnh sửa bởi … lúc …” để biết ai sửa.
+Administrator đã sửa công việc sau khi duyệt. Mọi quyết định cũ được xóa, người nhận tạm không thấy việc cho đến khi đủ người duyệt lại. Chuông và thông báo đẩy ghi “{tên người sửa} đã sửa và gửi lại công việc này để duyệt”; thẻ ghi “Đã chỉnh sửa bởi … lúc …” để biết ai sửa.

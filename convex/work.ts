@@ -50,6 +50,7 @@ import {
   isEligibleWorkApprover,
   isWorkApprovalLocked,
   workApprovalDecidedAt,
+  workApprovalRequestText,
   workApprovalSubmission,
   workAssignmentsUnchanged,
   workDocumentEditPolicy,
@@ -1164,13 +1165,21 @@ async function notifyWorkAssignees(
 /** Push "Công việc chờ duyệt" to the designated approvers of a (re)submitted document. */
 async function notifyWorkApprovers(
   ctx: any,
-  args: { approverUserIds: string[]; documentId: string; title: string; resubmitted: boolean },
+  args: {
+    approverUserIds: string[];
+    documentId: string;
+    title: string;
+    resubmitted: boolean;
+    /** Set when someone other than the creator (re)submitted, e.g. an admin edit. */
+    editorName?: string | null;
+  },
 ) {
   if (!args.approverUserIds.length) return;
+  const { pushBody } = workApprovalRequestText({ title: args.title, editorName: args.editorName });
   await ctx.scheduler.runAfter(0, internal.pushActions.sendToUsers, {
     userIds: args.approverUserIds.map(String),
     title: args.resubmitted ? "Công việc chờ duyệt lại" : "Công việc chờ duyệt",
-    body: args.title,
+    body: pushBody,
     kind: "work",
     sourceType: "approval",
     sourceId: args.documentId,
@@ -1580,6 +1589,9 @@ export const updateDocument = mutation({
         documentId: String(args.documentId),
         title: displayTitle,
         resubmitted: true,
+        editorName: String(actor.user._id) !== String(document.createdBy)
+          ? String(actor.user.name || "").trim() || "Người dùng"
+          : null,
       });
     } else {
       await notifyWorkAssignees(ctx, {

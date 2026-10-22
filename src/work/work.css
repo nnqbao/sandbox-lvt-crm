@@ -2351,6 +2351,10 @@ fieldset.work-approver-block > legend b {
   padding: 0;
 }
 
+.work-document-type-field select[aria-invalid="true"] {
+  border-color: var(--lvt-danger-line);
+}
+
 .work-approval-progress {
   display: grid;
   gap: 8px;

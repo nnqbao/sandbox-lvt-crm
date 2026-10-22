@@ -558,7 +558,8 @@ function SubmitterNote({ note, label = 'Nội dung từ người nộp' }) {
   );
 }
 
-function DocumentTypeField({ types, value, onChange, id = 'document-type' }) {
+function DocumentTypeField({ types, value, onChange, id = 'document-type', error = '' }) {
+  const errorId = `${id}-error`;
   return (
     <label className="duty-field work-document-type-field" htmlFor={id}>
       <span className="duty-field-label">Loại văn bản</span>
@@ -567,12 +568,15 @@ function DocumentTypeField({ types, value, onChange, id = 'document-type' }) {
         required
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
       >
         <option value="">Chọn loại văn bản</option>
         {(types || []).map((item) => (
           <option key={item._id} value={item._id}>{item.name}</option>
         ))}
       </select>
+      {error ? <span id={errorId} className="work-field-error" role="alert">{error}</span> : null}
     </label>
   );
 }
@@ -582,6 +586,7 @@ function CompletionSubmitModal({ title, onClose, onSubmit, saving, documentTypes
   const [file, setFile] = useState(null);
   const [note, setNote] = useState('');
   const [documentTypeId, setDocumentTypeId] = useState('');
+  const [documentTypeError, setDocumentTypeError] = useState('');
   const [error, setError] = useState('');
   const submit = async (event) => {
     event.preventDefault();
@@ -590,9 +595,11 @@ function CompletionSubmitModal({ title, onClose, onSubmit, saving, documentTypes
       return;
     }
     if (requireDocumentType && !documentTypeId) {
-      setError('Vui lòng chọn loại văn bản.');
+      setError('');
+      setDocumentTypeError('Vui lòng chọn loại văn bản.');
       return;
     }
+    setDocumentTypeError('');
     setError('');
     try {
       const token = await fetchAccessToken({ forceRefreshToken: false });
@@ -629,7 +636,7 @@ function CompletionSubmitModal({ title, onClose, onSubmit, saving, documentTypes
   };
   return (
     <div className="work-modal-backdrop" role="presentation">
-      <form className="work-modal" onSubmit={submit}>
+      <form className="work-modal" onSubmit={submit} noValidate>
         <button type="button" className="work-modal-close" onClick={onClose} aria-label="Đóng">×</button>
         <span className="work-kicker">Nộp công việc</span>
         <h3>{title}</h3>
@@ -639,7 +646,10 @@ function CompletionSubmitModal({ title, onClose, onSubmit, saving, documentTypes
           label="Kéo thả tài liệu/hình vào đây"
           onFile={(nextFile, fileError) => {
             setFile(nextFile);
-            if (!nextFile) setDocumentTypeId('');
+            if (!nextFile) {
+              setDocumentTypeId('');
+              setDocumentTypeError('');
+            }
             if (fileError) setError(fileError);
           }}
         />
@@ -648,7 +658,11 @@ function CompletionSubmitModal({ title, onClose, onSubmit, saving, documentTypes
             id="completion-document-type"
             types={documentTypes}
             value={documentTypeId}
-            onChange={setDocumentTypeId}
+            onChange={(next) => {
+              setDocumentTypeId(next);
+              if (next) setDocumentTypeError('');
+            }}
+            error={documentTypeError}
           />
         ) : null}
         <label className="work-field-label" htmlFor="completion-note">Nội dung gửi người giao (không bắt buộc)</label>
@@ -873,6 +887,31 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
     if (fallback?._id) setDocumentTypeId(fallback._id);
   }, [documentTypeId, editingDocument, listData?.documentTypes, options?.documentTypes]);
 
+  /**
+   * Client-side checks run before any confirmation/preview (the server re-checks).
+   * A missing approver shows only the picker's field error, not a second banner.
+   */
+  const validateWorkForm = () => {
+    if (!title.trim()) {
+      setFeedback({ type: 'error', text: 'Vui lòng nhập tên công việc.' });
+      return false;
+    }
+    if (!assignments.length) {
+      setFeedback({ type: 'error', text: 'Vui lòng thêm ít nhất một phân công.' });
+      return false;
+    }
+    if (file && !documentTypeId) {
+      setFeedback({ type: 'error', text: 'Vui lòng chọn loại văn bản.' });
+      return false;
+    }
+    if (needsApproverPick && !approverIds.length) {
+      setFeedback({ type: '', text: '' });
+      setApproverError('Vui lòng chọn ít nhất một người duyệt.');
+      return false;
+    }
+    return true;
+  };
+
   const persistWork = async () => {
     if (saving) return;
     setFeedback({ type: '', text: '' });
@@ -897,19 +936,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
       }
       return;
     }
-    if (!title.trim()) {
-      return setFeedback({ type: 'error', text: 'Vui lòng nhập tên công việc.' });
-    }
-    if (!assignments.length) {
-      return setFeedback({ type: 'error', text: 'Vui lòng thêm ít nhất một phân công.' });
-    }
-    if (file && !documentTypeId) {
-      return setFeedback({ type: 'error', text: 'Vui lòng chọn loại văn bản.' });
-    }
-    if (needsApproverPick && !approverIds.length) {
-      setApproverError('Vui lòng chọn ít nhất một người duyệt.');
-      return setFeedback({ type: 'error', text: 'Vui lòng chọn người duyệt thuộc Ban giám hiệu.' });
-    }
+    if (!validateWorkForm()) return;
     setSaving(true);
     let stage = file ? 'upload' : 'save';
     let uploaded = null;
@@ -1012,17 +1039,10 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
       void persistWork();
       return;
     }
+    // Validate first so a missing field never hides behind the save confirmation.
+    if (!validateWorkForm()) return;
     if (editingDocument) {
       setEditConfirm('save');
-      return;
-    }
-    if (!assignments.length) {
-      setFeedback({ type: 'error', text: 'Vui lòng thêm ít nhất một phân công.' });
-      return;
-    }
-    if (needsApproverPick && !approverIds.length) {
-      setApproverError('Vui lòng chọn ít nhất một người duyệt.');
-      setFeedback({ type: 'error', text: 'Vui lòng chọn người duyệt thuộc Ban giám hiệu.' });
       return;
     }
     setPreviewOpen(true);
