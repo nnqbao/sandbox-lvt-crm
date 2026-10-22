@@ -1817,6 +1817,13 @@
   margin-top: 18px;
 }
 
+.work-confirm-description {
+  margin: 8px 0 0;
+  color: var(--lvt-ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .work-muted {
   margin: 0;
   padding: 10px;

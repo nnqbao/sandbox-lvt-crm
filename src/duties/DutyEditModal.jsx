@@ -3,9 +3,9 @@ import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { messageFor } from '../lib/appErrorMessage';
 import CollapsibleMultiCheckList from '../lib/CollapsibleMultiCheckList.jsx';
-import { EditActionConfirm } from '../lib/ConfirmActionModal';
+import ConfirmActionModal, { EditActionConfirm } from '../lib/ConfirmActionModal';
 import DutyChangeHistory from './DutyChangeHistory';
-import { dutyEditModeFor } from './sharedDutySchedule.js';
+import { canDeleteDutyFromEditor, dutyEditModeFor } from './sharedDutySchedule.js';
 import DutyEditorFields from './DutyEditorFields';
 import {
   applyDutyEndDateTime,
@@ -68,6 +68,9 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
   const options = isReviewer ? reviewerContext : managerOptions;
   const update = useMutation(anyApi.duties.update);
   const reviewerUpdate = useMutation(anyApi.duties.reviewerUpdate);
+  const removeDuty = useMutation(anyApi.duties.remove);
+  const canDelete = canDeleteDutyFromEditor(duty, mode);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [form, setForm] = useState(() => dutyFormFromItem(duty));
   const [pending, setPending] = useState('');
   const [feedback, setFeedback] = useState({ type: '', text: '' });
@@ -78,6 +81,7 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
     setForm(dutyFormFromItem(duty));
     setFeedback({ type: '', text: '' });
     setEditConfirm(null);
+    setDeleteConfirm(false);
   }, [duty?._id]);
 
   const reviewerSourceId = reviewerContext?.duty?._id;
@@ -88,12 +92,12 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
 
   useEffect(() => {
     const onKey = (event) => {
-      if (event.key !== 'Escape' || pending || editConfirm) return;
+      if (event.key !== 'Escape' || pending || editConfirm || deleteConfirm) return;
       onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, pending, editConfirm]);
+  }, [onClose, pending, editConfirm, deleteConfirm]);
 
   const setField = (field, value) => {
     setForm((prev) => applyDutyFormField(prev, field, value));
@@ -114,6 +118,24 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
       onClose();
     } catch (error) {
       console.error('Duty inline update failed', error);
+      setFeedback({ type: 'error', text: messageFor(error) });
+    } finally {
+      setPending('');
+    }
+  };
+
+  const deleteDuty = async () => {
+    if (pending || !duty?._id || !canDelete) return;
+    setPending('delete');
+    setFeedback({ type: '', text: '' });
+    try {
+      await removeDuty({ id: duty._id });
+      setDeleteConfirm(false);
+      onSaved?.();
+      onClose();
+    } catch (error) {
+      console.error('Duty delete failed', error);
+      setDeleteConfirm(false);
       setFeedback({ type: 'error', text: messageFor(error) });
     } finally {
       setPending('');
@@ -207,6 +229,16 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
           </div>
 
           <div className="work-editor-actions duty-editor-actions duty-edit-modal-footer">
+            {canDelete ? (
+              <button
+                type="button"
+                className="work-reject-button duty-edit-delete"
+                onClick={() => setDeleteConfirm(true)}
+                disabled={Boolean(pending)}
+              >
+                {pending === 'delete' ? 'Đang xóa…' : 'Xóa'}
+              </button>
+            ) : null}
             <button type="button" className="work-ghost-button" onClick={() => setEditConfirm('cancel')} disabled={Boolean(pending)}>
               Hủy sửa
             </button>
@@ -216,6 +248,17 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
           </div>
         </form>
       </div>
+      {deleteConfirm ? (
+        <ConfirmActionModal
+          title="Xóa công tác này?"
+          description="Công tác sẽ bị gỡ khỏi lịch. Với lịch toàn trường, giáo viên vẫn thấy bản đã duyệt cho tới khi Ban Giám hiệu duyệt lại tuần."
+          confirmLabel="Xóa công tác"
+          tone="danger"
+          pending={pending === 'delete'}
+          onCancel={() => setDeleteConfirm(false)}
+          onConfirm={() => void deleteDuty()}
+        />
+      ) : null}
       <EditActionConfirm
         action={editConfirm}
         pending={pending === 'save'}

@@ -6,7 +6,9 @@ export const EDIT_SAVE_CONFIRM_TITLE = 'Bạn có chắc chắn Lưu không?';
 
 export default function ConfirmActionModal({
   title,
+  description = '',
   confirmLabel,
+  tone = 'primary',
   pending = false,
   onCancel,
   onConfirm,
@@ -36,11 +38,18 @@ export default function ConfirmActionModal({
       >
         <span className="work-kicker">XÁC NHẬN</span>
         <h3 id={titleId}>{title}</h3>
+        {description ? <p className="work-confirm-description">{description}</p> : null}
         <div className="work-modal-actions">
           <button type="button" className="work-ghost-button" onClick={onCancel} disabled={pending}>
             Hủy
           </button>
-          <button type="button" className="work-primary-button" onClick={onConfirm} disabled={pending} autoFocus>
+          <button
+            type="button"
+            className={tone === 'danger' ? 'work-reject-button' : 'work-primary-button'}
+            onClick={onConfirm}
+            disabled={pending}
+            autoFocus
+          >
             {pending ? 'Đang xử lý…' : confirmLabel}
           </button>
         </div>

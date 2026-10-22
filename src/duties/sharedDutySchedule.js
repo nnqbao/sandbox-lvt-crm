@@ -221,6 +221,15 @@ export function dutyEditModeFor(duty) {
   return null;
 }
 
+/**
+ * Delete from the sheet editor: only the manager editor (văn thư / admin / the
+ * creator, mirrored from `canMutateDuty` on the server). The BGH reviewer edit
+ * never deletes. `duties.remove` re-checks authorization server-side.
+ */
+export function canDeleteDutyFromEditor(duty, mode) {
+  return mode === 'manager' && duty?.canManage === true && duty?.active !== false;
+}
+
 /** Văn thư/creator edit, or BGH direct edit of a school row. */
 export function canOpenDutyContentEditor(row) {
   return Boolean(row?.eventId) && (row?.canManage === true || row?.canReviewerEdit === true);

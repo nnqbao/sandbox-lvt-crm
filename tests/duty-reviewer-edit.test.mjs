@@ -233,3 +233,27 @@ test('web: BGH mở biểu mẫu sửa trực tiếp, xóa vẫn chỉ dành cho
   const reports = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
   assert.match(reports, /event\.canManage && onDelete/);
 });
+
+test('bảng lịch chung: văn thư/người tạo xóa được trong biểu mẫu sửa; BGH sửa trực tiếp không có nút Xóa', async () => {
+  const { canDeleteDutyFromEditor, dutyEditModeFor } = await import('../src/duties/sharedDutySchedule.js');
+  // Công tác chỉ có "Thành phần khác" (không phòng ban/cá nhân) vẫn xóa được.
+  const otherOnly = { _id: 'd9', canManage: true, departmentIds: [], participantUserIds: [], otherParticipants: 'Khách mời' };
+  assert.equal(canDeleteDutyFromEditor(otherOnly, dutyEditModeFor(otherOnly)), true);
+  const bghOnly = { _id: 'd9', canManage: false, canReviewerEdit: true };
+  assert.equal(dutyEditModeFor(bghOnly), 'reviewer');
+  assert.equal(canDeleteDutyFromEditor(bghOnly, 'reviewer'), false);
+  // Even a manager flag never enables delete inside the reviewer editor.
+  assert.equal(canDeleteDutyFromEditor({ canManage: true }, 'reviewer'), false);
+  assert.equal(canDeleteDutyFromEditor({ canManage: false }, 'manager'), false);
+  assert.equal(canDeleteDutyFromEditor(null, 'manager'), false);
+
+  const modal = readFileSync(new URL('../src/duties/DutyEditModal.jsx', import.meta.url), 'utf8');
+  assert.match(modal, /anyApi\.duties\.remove/);
+  assert.match(modal, /canDeleteDutyFromEditor\(duty, mode\)/);
+  assert.match(modal, /tone="danger"/);
+  // Server stays the source of truth: remove re-checks văn thư/admin or creator.
+  const duties = readFileSync(new URL('../convex/duties.ts', import.meta.url), 'utf8');
+  const removeBody = duties.slice(duties.indexOf('export const remove = mutation'), duties.indexOf('async function requireDutyReviewer'));
+  assert.match(removeBody, /requireDutyWrite\(ctx\)/);
+  assert.match(removeBody, /canMutateDuty\(actor, current\)/);
+});
