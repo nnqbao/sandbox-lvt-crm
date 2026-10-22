@@ -51,6 +51,19 @@ export function toggleId(set, id) {
   return next;
 }
 
+/**
+ * Status chip source: the server marker, or the just-returned save result while
+ * the class list query catches up (whichever is newer for this date).
+ */
+export function latestSaved(serverSaved, localSaved, date) {
+  const local = localSaved && localSaved.date === date ? localSaved : null;
+  if (!local) return serverSaved || null;
+  if (!serverSaved || Number(local.savedAt) > Number(serverSaved.savedAt)) {
+    return { ...(serverSaved || {}), savedAt: local.savedAt, absentCount: local.absentCount, presentCount: local.presentCount };
+  }
+  return serverSaved;
+}
+
 export function classesForGrade(roster, grade) {
   return roster?.grades?.find((row) => row.gradeLevel === grade)?.classes || [];
 }
