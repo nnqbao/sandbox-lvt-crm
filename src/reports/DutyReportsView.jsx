@@ -23,6 +23,7 @@ import {
 import {
   buildSharedScheduleRows,
   toIsoDate as toSharedIsoDate,
+  formatVnDateSpan,
 } from '../duties/sharedDutySchedule.js';
 import { dutyListDateWindow } from '../duties/dutyListRange.js';
 import { refreshCachedDutyCalendar } from '../duties/dutyScheduleCache.js';
@@ -234,7 +235,7 @@ function EventDetail({
       <dl>
         <div><dt>Nhân sự</dt><dd>{personName}</dd></div>
         <div><dt>Thời gian</dt><dd>{eventTime(event)}</dd></div>
-        <div><dt>Ngày</dt><dd>{event.startDate === event.endDate ? event.startDate : `${event.startDate} → ${event.endDate}`}</dd></div>
+        <div><dt>Ngày</dt><dd>{formatVnDateSpan(event.startDate, event.endDate)}</dd></div>
         <div><dt>Địa điểm</dt><dd>{event.locationNames?.length ? event.locationNames.join(', ') : 'Chưa chỉ định'}</dd></div>
         {event.content ? (
           <div>

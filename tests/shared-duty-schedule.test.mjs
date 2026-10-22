@@ -78,23 +78,26 @@ test('đường dẫn Lịch công tác có tab chung và trang tạo/sửa', ()
   assert.equal(parseDutyPath('/cong-tac').view, 'personal');
 });
 
-test('format lịch chung khớp file Word mẫu tuần 07/9–12/9', () => {
+test('format lịch chung theo mẫu Word, ngày luôn dd/MM/yyyy (tuần 07/09–12/09)', async () => {
   assert.equal(formatDutyClock('07:00'), '7g00');
   assert.equal(formatDutyClock('16:45'), '16g45');
   assert.equal(formatDutyClock('21:00'), '21g00');
-  assert.equal(formatDayCell('2026-09-07'), 'Thứ Hai 07/9');
-  assert.equal(formatVnDate('2026-09-07'), '07/9/2026');
+  assert.equal(formatDayCell('2026-09-07'), 'Thứ Hai 07/09');
+  assert.equal(formatVnDate('2026-09-07'), '07/09/2026');
   assert.equal(formatTimeCell({ startDate: '2026-09-07', endDate: '2026-09-07', allDay: true }), 'Cả ngày');
   assert.equal(
     formatTimeCell({ startDate: '2026-09-11', endDate: '2026-09-13', allDay: false, startTime: '08:00' }),
-    'Từ 11/9 – 13/9',
+    'Từ 11/09 – 13/09',
   );
 
   const range = scheduleRange('week', '2026-09-09');
   assert.equal(range.startIso, '2026-09-07');
   assert.equal(range.endIso, '2026-09-12');
-  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 07/9/2026 ĐẾN 12/9/2026');
+  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 07/09/2026 ĐẾN 12/09/2026');
   assert.equal(sharedScheduleFilename(range), 'LCT tu 07.9-12.9.pdf');
+  const { formatVnDateSpan } = await import('../src/duties/sharedDutySchedule.js');
+  assert.equal(formatVnDateSpan('2026-09-07', '2026-09-07'), '07/09/2026');
+  assert.equal(formatVnDateSpan('2026-09-07', '2026-09-09'), '07/09/2026 → 09/09/2026');
 
   const { rows } = buildSharedScheduleRows('week', '2026-09-09', sampleEvents);
   const monday = rows.filter((row) => row.dayIso === '2026-09-07');
@@ -110,7 +113,7 @@ test('format lịch chung khớp file Word mẫu tuần 07/9–12/9', () => {
   assert.equal(tuesday[0].time, 'Cả ngày');
 
   const friday = rows.filter((row) => row.dayIso === '2026-09-11');
-  assert.equal(friday[0].time, 'Từ 11/9 – 13/9');
+  assert.equal(friday[0].time, 'Từ 11/09 – 13/09');
 
   const saturday = rows.filter((row) => row.dayIso === '2026-09-12');
   assert.equal(saturday.length, 1);
@@ -155,7 +158,7 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   assert.match(visible, /LÊ VĂN TÁM/);
   assert.match(visible, /CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM/);
   assert.match(visible, /Độc lập – Tự do – Hạnh phúc/);
-  assert.match(visible, /LỊCH CÔNG TÁC TỪ NGÀY 07\/9\/2026 ĐẾN 12\/9\/2026/);
+  assert.match(visible, /LỊCH CÔNG TÁC TỪ NGÀY 07\/09\/2026 ĐẾN 12\/09\/2026/);
   assert.match(visible, /Ngày/);
   assert.match(visible, /Thời gian/);
   assert.match(visible, /Nội dung/);
@@ -164,7 +167,7 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   assert.match(visible, /Chào cờ đầu tuần/);
   assert.match(visible, /7g00/);
   assert.match(visible, /Thứ Bảy/);
-  assert.match(visible, /12\/9/);
+  assert.match(visible, /12\/09/);
   assert.match(visible, /Thứ Năm/);
 });
 
@@ -385,4 +388,14 @@ test('PDF/bảng lịch từ bản làm việc chưa duyệt có dấu "BẢN NH
   const view = readFileSync(new URL('../src/duties/SharedDutyScheduleView.jsx', import.meta.url), 'utf8');
   assert.match(view, /buildSharedSchedulePayload\(mode, anchorIso, data\)/);
   assert.match(view, /draft=\{built\.draft\}/);
+});
+
+test('Lịch công tác: chi tiết và xem trước import không hiện ngày ISO; nút Tải PDF có lề', () => {
+  const reports = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
+  assert.match(reports, /formatVnDateSpan\(event\.startDate, event\.endDate\)/);
+  assert.doesNotMatch(reports, /event\.startDate === event\.endDate \? event\.startDate/);
+  const bulk = readFileSync(new URL('../src/duties/DutyBulkImport.jsx', import.meta.url), 'utf8');
+  assert.match(bulk, /formatVnDate\(row\.startDate\)/);
+  const css = readFileSync(new URL('../src/duties/sharedDutySchedule.css', import.meta.url), 'utf8');
+  assert.match(css, /\.lct-shared-view \{\n  \/\*[^*]*\*\/\n  padding: 0 24px 32px;/);
 });

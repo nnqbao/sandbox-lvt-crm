@@ -76,6 +76,8 @@
 }
 
 .lct-shared-view {
+  /* Same side gutters as the sheet, so "Tải PDF" / "Tạo công tác" never sit flush on the edge. */
+  padding: 0 24px 32px;
   /* Shared buttons (.work-primary-button…) read these; without them "Tải PDF" rendered white on white. */
   --work-ink: var(--lvt-ink);
   --work-navy: var(--lvt-navy);
@@ -662,6 +664,10 @@
 
 /* Phones: keep readable column widths and scroll the sheet sideways in its own box. */
 @media (max-width: 680px) {
+  .lct-shared-view {
+    padding: 0 16px 24px;
+  }
+
   .lct-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

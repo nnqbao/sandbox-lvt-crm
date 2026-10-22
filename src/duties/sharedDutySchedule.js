@@ -31,16 +31,24 @@ export function startOfWeekMonday(date) {
   return addDays(new Date(date.getFullYear(), date.getMonth(), date.getDate()), day === 0 ? -6 : 1 - day);
 }
 
+/** dd/MM (DESIGN.md §5: dates show as dd/mm/yyyy). */
 export function formatVnDayMonth(isoDate) {
   const [, month, day] = String(isoDate || '').split('-');
   if (!month || !day) return '';
-  return `${day}/${Number(month)}`;
+  return `${day}/${month}`;
 }
 
+/** dd/MM/yyyy. */
 export function formatVnDate(isoDate) {
   const [year, month, day] = String(isoDate || '').split('-');
   if (!year || !month || !day) return '';
-  return `${day}/${Number(month)}/${year}`;
+  return `${day}/${month}/${year}`;
+}
+
+/** "07/09/2026" or "07/09/2026 → 09/09/2026" for a duty's date span. */
+export function formatVnDateSpan(startIso, endIso) {
+  if (!endIso || endIso === startIso) return formatVnDate(startIso);
+  return `${formatVnDate(startIso)} → ${formatVnDate(endIso)}`;
 }
 
 export function formatDayCell(isoDate) {
@@ -254,7 +262,12 @@ export function buildSharedSchedulePayload(mode, anchorIso, data) {
 }
 
 export function sharedScheduleFilename(range) {
-  const start = formatVnDayMonth(range.startIso).replace('/', '.');
-  const end = formatVnDayMonth(range.endIso).replace('/', '.');
+  // File name keeps the Word template's short form: "LCT tu 07.9-12.9.pdf".
+  const short = (iso) => {
+    const [, month, day] = String(iso || '').split('-');
+    return month && day ? `${day}.${Number(month)}` : '';
+  };
+  const start = short(range.startIso);
+  const end = short(range.endIso);
   return `LCT tu ${start}-${end}.pdf`;
 }
