@@ -10,8 +10,13 @@ Full text: `CLAUDE.md` sections **Work-document** / **Private file and cache** /
 
 ## Work documents
 
-- Creator may edit/delete until an assignee has submitted (nộp); admin/mod may always. Use `convex/workDocumentPolicy.ts`
-- Document approval is disabled (`WORK_APPROVAL_DISABLED`); work is live on create (`status: "approved"`)
+- Creator-based approval: admin/mod-created work needs ≥1 Ban giám hiệu approver (`WORK_APPROVER_REQUIRED`), stays `pending` until all approve; everyone else's work is released on create (`status: "approved"`)
+- Creators: admin/mod + any non-ops level ≥ 2 (`canCreateWorkDocuments`); BGH (4+) assigns any department / lower level, others same department / lower level
+- Released = `active && status === "approved"` (`isWorkReleased`); pending/returned work is hidden from assignees (list, chat, file, bell, push)
+- First approval locks edit/delete forever, admin/mod included — do **not** lock only on `status === "approved"`; use `convex/workDocumentPolicy.ts`
+- Reject (Trả lại, reason required) only while nobody has approved (`canRejectWorkDocument`); edit resets decisions and resubmits
+- Approvers = active level 4+ **users**, never admin/moderator
+- Otherwise creator may edit/delete until an assignee has submitted (nộp); in-scope admin/mod may still edit
 - Completions: assignee **Nộp** (web requires evidence file); only the **creator** marks complete / returns
 - Soft-delete first; inactive docs must deny access even if Drive cleanup lags
 - File replace is staged: publish DB only after new upload validates; never delete old Drive object before DB success

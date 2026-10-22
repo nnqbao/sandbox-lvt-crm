@@ -28,7 +28,7 @@ import {
   workMenuBadgeCount,
 } from '../convex/assignmentPolicy.ts';
 
-test('chỉ admin/mod và tổ trưởng/tổ phó (2/3 sao) được tạo công tác/công việc', () => {
+test('chỉ admin/mod và tổ trưởng/tổ phó (2/3 sao) được tạo công tác', () => {
   assert.equal(canCreateAssignments('admin', 0), true);
   assert.equal(canCreateAssignments('moderator', 0), true);
   assert.equal(canCreateAssignments('user', 2), true);
@@ -79,8 +79,8 @@ test('danh sách công việc ưu tiên tên công việc, không bắt buộc f
   assert.equal(workListTitle({ fileName: 'scan.pdf' }), 'scan.pdf');
 });
 
-test('công việc hiện ngay khi tạo; chỉ từ chối mới không giao', () => {
-  assert.equal(isWorkReleased({ active: true, status: 'pending' }), true);
+test('chỉ công việc đã duyệt (approved) mới được giao; chờ duyệt / bị trả lại thì chưa', () => {
+  assert.equal(isWorkReleased({ active: true, status: 'pending' }), false);
   assert.equal(isWorkReleased({ active: true, status: 'approved' }), true);
   assert.equal(isWorkReleased({ active: true, status: 'rejected' }), false);
   assert.equal(isWorkReleased({ active: false, status: 'approved' }), false);

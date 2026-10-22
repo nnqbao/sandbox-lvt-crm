@@ -4,6 +4,7 @@ import {
   canSeeArchivedWork,
   canSeeLiveWork,
   isWorkItemArchived,
+  isWorkReleased,
   type WorkVisibilityMode,
 } from "./assignmentPolicy.ts";
 import { isWorkDocumentInModeratorScope, workDocumentScopeAssignments } from "./moderatorScope.ts";
@@ -184,7 +185,12 @@ export function canAccessWorkChat(args: {
   actorLevel: number;
   actorDepartmentId: string;
   visibilityMode: WorkVisibilityMode;
-  document: { active?: boolean; createdBy?: string; status?: string } | null | undefined;
+  document: {
+    active?: boolean;
+    createdBy?: string;
+    status?: string;
+    approverUserIds?: string[];
+  } | null | undefined;
   workItems: WorkChatWorkItem[];
   personalTasks?: WorkChatPersonalTask[];
   usersById?: Map<string, { status?: string; departmentId?: string }>;
@@ -218,6 +224,11 @@ export function canAccessWorkChat(args: {
     isAssignee,
     visibilityMode: args.visibilityMode,
     inModeratorScope,
+    // Pending/returned documents: creator, designated approvers and in-scope admin/mod only.
+    released: isWorkReleased(document),
+    isApprover: (document.approverUserIds || []).some(
+      (id) => String(id) === String(args.actorUserId),
+    ),
   });
 }
 

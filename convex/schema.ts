@@ -427,6 +427,24 @@ export default defineSchema({
     approvedByUserIds: v.array(v.string()),
     rejectedByUserIds: v.optional(v.array(v.string())),
     status: v.string(), // pending | approved | rejected
+    /**
+     * True when created by admin/moderator: Ban giám hiệu must approve before
+     * release. Missing on legacy rows (fallback: creator's current role).
+     */
+    requiresApproval: v.optional(v.boolean()),
+    /** Last time the document was (re)submitted for approval. */
+    submittedAt: v.optional(v.number()),
+    /** Per-approver decisions of the current submission; reset on edit. */
+    approvalDecisions: v.optional(
+      v.array(
+        v.object({
+          userId: v.string(),
+          decision: v.string(), // approved | rejected
+          at: v.number(),
+          reason: v.optional(v.string()),
+        }),
+      ),
+    ),
     active: v.boolean(),
     createdBy: v.string(),
     updatedBy: v.optional(v.string()),

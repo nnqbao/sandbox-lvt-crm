@@ -8,6 +8,8 @@ export const WORK_NOTIFICATION_FOCUS_TYPES = [
   'completion_rejected',
   'work_assigned',
   'work_chat',
+  'work_approved',
+  'work_returned',
 ];
 
 /**

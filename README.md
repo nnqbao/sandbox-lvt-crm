@@ -90,10 +90,12 @@ CRUD chức vụ với **cấp bậc 1–5 sao** (vàng). Cấp bậc dùng cho 
 
 ### Công việc / công văn
 
-- Công việc **không duyệt công văn**. Tạo xong là giao ngay. User **Nộp** kèm file bằng chứng và có thể gửi thêm nội dung text (không bắt buộc) cho người giao; **người tạo** mới đánh dấu hoàn thành (kèm %) hoặc trả về (kèm lý do, có thể đổi hạn).
-- Badge menu **Công việc** = task chờ duyệt hoàn thành + việc chưa hoàn thành của tôi + việc chưa hoàn thành tôi tạo.
+- **Duyệt theo người tạo**: công việc do **Văn thư (admin/mod)** tạo phải chọn ít nhất một **Người duyệt (Ban giám hiệu)** — user 4/5★ đang hoạt động, không phải admin/mod. Công việc ở trạng thái **Chờ duyệt** cho đến khi **đủ** người duyệt bấm **Duyệt**, rồi mới giao cho người nhận (chuông + push). Người duyệt có thể **Trả lại** (bắt buộc lý do) khi chưa ai duyệt; Văn thư sửa rồi gửi duyệt lại. Lần duyệt đầu tiên khóa sửa/xóa vĩnh viễn. Trong lúc chờ duyệt / bị trả lại chỉ người tạo, người duyệt và admin/mod (trong phạm vi) thấy công việc.
+- Công việc do người khác tạo được giao ngay: tổ trưởng/tổ phó (và mọi user 2★ trở lên) giao cho cấp thấp hơn **cùng phòng ban**; Ban giám hiệu (4/5★) giao cho cấp thấp hơn ở **mọi phòng ban** và được giao cả phòng ban. User 1★ không tạo được công việc (dùng **Việc của tôi** cho việc cá nhân).
+- User **Nộp** kèm file bằng chứng và có thể gửi thêm nội dung text (không bắt buộc) cho người giao; **người tạo** mới đánh dấu hoàn thành (kèm %) hoặc trả về (kèm lý do, có thể đổi hạn).
+- Badge menu **Công việc** = công việc chờ tôi duyệt (Ban giám hiệu) + task chờ duyệt hoàn thành + việc chưa hoàn thành của tôi + việc chưa hoàn thành tôi tạo.
 - Danh sách **Việc của tôi** / **Việc tôi tạo**: bốn tab **Việc cần làm**, **Đang chờ duyệt**, **Quá hạn**, **Đã duyệt hoàn thành** — mỗi tab hiện số việc. Thẻ công việc dùng icon Thu gọn/Chi tiết/Sửa/Xóa; icon chat mở trao đổi (rich text) trên Convex cho mọi người đã thấy việc đó (người giao, người nhận, admin/mod, 4/5★ theo chế độ hiển thị). Người gửi có thể **thu hồi** tin của mình trong 15 phút (giữ dòng, hiện *Tin nhắn đã được thu hồi*). Tin nhắn mới (chưa thu hồi) tạo thông báo chuông cho người khác được xem thread; bấm thông báo mở đúng việc và popup Trao đổi.
-- Sửa/xóa: người tạo đến khi user nộp; admin/mod mọi lúc.
+- Sửa/xóa: chỉ khi chưa có ai duyệt; ngoài ra người tạo đến khi user nộp, admin/mod (trong phạm vi) mọi lúc.
 - File đính kèm công việc là tùy chọn. Có file thì **bắt buộc chọn Loại văn bản** (Kế hoạch / Biên bản / Báo cáo, catalog admin). File cũ chưa có loại được gắn mặc định **Biên bản**. Danh sách ưu tiên **tên công việc**.
 - Nộp hoàn thành: bắt buộc file bằng chứng **và** loại văn bản. Bằng chứng cũ chưa có loại cũng gắn **Biên bản**.
 - File xem/tải qua `/api/files/:documentId` + cache server; không trả URL Drive hay Convex Storage cho client.

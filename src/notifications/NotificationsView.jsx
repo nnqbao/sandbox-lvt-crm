@@ -20,7 +20,7 @@ function formatDueAt(value) {
 function NotificationItem({ item, onOpen, onDismiss, canDelete, pending }) {
   return (
     <article
-      className={`notification-card ${item.read ? 'is-read' : 'is-unread'} milestone-${item.milestoneHours}${item.sourceType === 'completion_rejected' ? ' is-rejection' : ''}`}
+      className={`notification-card ${item.read ? 'is-read' : 'is-unread'} milestone-${item.milestoneHours}${item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? ' is-rejection' : ''}`}
     >
       <button
         type="button"
@@ -30,7 +30,7 @@ function NotificationItem({ item, onOpen, onDismiss, canDelete, pending }) {
         disabled={pending === item.key}
       >
         <span className="notification-icon" aria-hidden="true">
-          {item.sourceType === 'completion_rejected' ? '!' : item.kind === 'duty' ? '◷' : '✓'}
+          {item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? '!' : item.kind === 'duty' ? '◷' : '✓'}
         </span>
         <span className="notification-copy">
           <span className="notification-meta">

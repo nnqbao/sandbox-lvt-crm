@@ -2281,3 +2281,141 @@
   }
 }
 
+
+/* Ban giám hiệu approval of văn thư-created work (tokens only). */
+fieldset.work-approver-block {
+  min-width: 0;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+fieldset.work-approver-block > legend.work-field-label {
+  float: left;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--lvt-ink-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+fieldset.work-approver-block > legend b {
+  color: var(--lvt-danger-text);
+}
+
+.work-approval-note {
+  clear: both;
+  margin: 0;
+  padding: 0 12px 4px;
+  color: var(--lvt-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.work-field-error {
+  margin: 4px 0 0;
+  padding: 0 12px 8px;
+  color: var(--lvt-danger-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.work-modal .work-field-error {
+  padding: 0;
+}
+
+.work-approval-progress {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 8px;
+  background: var(--lvt-surface);
+}
+
+.work-approval-count {
+  color: var(--lvt-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.work-approver-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.work-approver-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.work-approver-chip.is-approved {
+  color: var(--lvt-success-text);
+  background: var(--lvt-success-bg);
+}
+
+.work-approver-chip.is-returned {
+  color: var(--lvt-danger-text);
+  background: var(--lvt-danger-bg);
+}
+
+.work-approver-chip.is-waiting {
+  color: var(--lvt-warning-text);
+  background: var(--lvt-warning-bg);
+}
+
+.work-approval-reason {
+  margin: 0;
+  color: var(--lvt-danger-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.work-status.awaiting_approval,
+.work-status.pending {
+  color: var(--lvt-warning-text);
+  background: var(--lvt-warning-bg);
+}
+
+.work-status.approval_returned {
+  color: var(--lvt-danger-text);
+  background: var(--lvt-danger-bg);
+}
+
+.work-approval-queue .work-user-card h3 {
+  margin: 8px 0 4px;
+  font-size: 16px;
+}
+
+.work-approval-queue .work-approval-actions {
+  justify-content: flex-end;
+}
+
+.work-approval-queue .work-approval-actions > button {
+  min-width: 140px;
+}
+
+@media (max-width: 680px) {
+  .work-approval-queue .work-approval-actions > button {
+    flex: 1 1 100%;
+  }
+}
+
+.work-approval-history {
+  margin-top: 12px;
+}
+
+.work-approval-history > summary {
+  min-height: 44px;
+  padding: 12px 0;
+  color: var(--lvt-navy);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
