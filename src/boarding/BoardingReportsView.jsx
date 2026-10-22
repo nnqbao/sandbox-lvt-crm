@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import './boarding.css';
+import { boardingPeriodLabel } from './boardingLabels.js';
 
 function periodLabel(period) {
-  return period ? `Kỳ ${period.semester} · Năm học ${period.schoolYear}` : 'Chưa có kỳ bán trú';
+  return period ? boardingPeriodLabel(period) : 'Chưa có kỳ bán trú';
 }
 
 export default function BoardingReportsView() {

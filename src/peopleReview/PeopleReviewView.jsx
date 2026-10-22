@@ -3,6 +3,7 @@ import { useConvexAuth } from '@convex-dev/auth/react';
 import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import './peopleReview.css';
+import { boardingPeriodLabel } from '../boarding/boardingLabels.js';
 
 const ACCEPTED = ['pdf', 'png', 'jpg', 'jpeg'];
 
@@ -44,7 +45,7 @@ function currentQuarter() {
 function periodLabel(file) {
   if (file.kind === 'quarterly') return `Quý ${file.quarter}/${file.year}`;
   if (file.kind === 'civil_servant') return `Năm học ${file.schoolYear}`;
-  if (file.kind === 'boarding') return `HK${file.semester} · ${file.schoolYear}`;
+  if (file.kind === 'boarding') return boardingPeriodLabel(file);
   return file.periodKey;
 }
 

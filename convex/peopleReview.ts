@@ -446,7 +446,7 @@ async function boardingParticipationKeys(ctx: any, userId: string) {
       schoolYear: period.schoolYear,
       semester: period.semester,
       periodKey: `BD-${period.schoolYear}-HK${period.semester}`,
-      label: `HK${period.semester} · ${period.schoolYear}`,
+      label: `Học kỳ ${period.semester} · Năm học ${period.schoolYear}`,
     }))
     .sort(
       (a: any, b: any) =>
