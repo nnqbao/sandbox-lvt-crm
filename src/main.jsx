@@ -87,8 +87,8 @@ const publicConvexUrl =
 const convex = publicConvexUrl ? new ConvexReactClient(publicConvexUrl) : null;
 
 const SYSTEM_MANAGEMENT_MENUS = [];
-/** Menus stored in permission groups (Trao đổi and Bán trú have no matrix key; the backend list wins once loaded). */
-const MATRIX_MENUS = PRIMARY_MENUS.filter(([id]) => id !== 'chat' && id !== 'boarding');
+/** Menus stored in permission groups (Trao đổi has no matrix key; the backend list wins once loaded). */
+const MATRIX_MENUS = PRIMARY_MENUS.filter(([id]) => id !== 'chat');
 const ROLE_LABELS = { admin: 'Administrator', moderator: 'Moderator', user: 'User' };
 const ACCESS_LABELS = {
   hidden: 'Ẩn',
@@ -167,6 +167,7 @@ function AppShell({ session }) {
     [canManageOperations, menuAccess],
   );
   const canUseChat = visiblePrimaryMenus.some(([id]) => id === 'chat');
+  const canSeeBoarding = visiblePrimaryMenus.some(([id]) => id === 'boarding');
   const sidebarPrimaryMenus = useMemo(
     () => visiblePrimaryMenus.filter(([id]) => isSidebarPrimaryMenu(id)),
     [visiblePrimaryMenus],
@@ -423,6 +424,7 @@ function AppShell({ session }) {
                   <ReportSubmenu
                     active={reportSection}
                     onChoose={chooseReportSection}
+                    showBoarding={canSeeBoarding}
                   />
                 ) : null}
               </React.Fragment>
@@ -575,7 +577,7 @@ function AppShell({ session }) {
         ) : active === 'staff-faults' ? (
           <StaffFaultsView />
         ) : active === 'reports' ? (
-          reportSection === 'boarding' ? <BoardingReportsView /> : <WorkReportsView />
+          reportSection === 'boarding' && canSeeBoarding ? <BoardingReportsView /> : <WorkReportsView />
         ) : active === 'boarding' ? (
           <BoardingPage canManage={canManageOperations} />
         ) : active === 'homeroom' ? (
@@ -696,15 +698,17 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
   );
 }
 
-function ReportSubmenu({ active, onChoose }) {
+function ReportSubmenu({ active, onChoose, showBoarding = true }) {
   return (
     <div className="report-submenu" aria-label="Loại báo cáo">
       <button type="button" className={active === 'work' ? 'active' : ''} onClick={() => onChoose('work')}>
         <span className="nav-icon">{navIconFor('work')}</span> Công việc
       </button>
-      <button type="button" className={active === 'boarding' ? 'active' : ''} onClick={() => onChoose('boarding')}>
-        <span className="nav-icon">{navIconFor('boarding')}</span> Bán trú
-      </button>
+      {showBoarding ? (
+        <button type="button" className={active === 'boarding' ? 'active' : ''} onClick={() => onChoose('boarding')}>
+          <span className="nav-icon">{navIconFor('boarding')}</span> Bán trú
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -64,11 +64,13 @@ test('Bán trú là menu trên sidebar, link cũ vẫn mở đúng chỗ', () =>
   assert.ok(PRIMARY_MENUS.some(([id, label]) => id === 'boarding' && label === 'Bán trú'));
 });
 
-test('Bán trú hiện theo quyền Báo cáo (giống convex/boarding.ts), admin/mod luôn thấy', () => {
+test('Bán trú hiện theo dòng Bán trú của nhóm quyền, admin/mod luôn thấy', () => {
   assert.equal(isPrimaryMenuVisible('boarding', { canManageOperations: true, menuAccess: {} }), true);
-  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'view' } }), true);
-  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'view_all' } }), true);
-  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'hidden' } }), false);
+  // Bán trú has its own matrix row; the server fills it from Báo cáo for older groups.
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { boarding: 'view' } }), true);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { boarding: 'view_all' } }), true);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { boarding: 'hidden', reports: 'view' } }), false);
+  assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: { reports: 'view' } }), false);
   assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: {} }), false);
   assert.equal(isPrimaryMenuVisible('boarding', { menuAccess: null }), false);
   // Other menus keep their own level; chat and work are always open.

@@ -11,6 +11,7 @@ export const SYSTEM_MENU_DEFS = [
   { id: "work", label: "Công việc" },
   { id: "homeroom", label: "Lớp học" },
   { id: "attendance", label: "Điểm danh" },
+  { id: "boarding", label: "Bán trú" },
   { id: "people-review", label: "Đánh giá nhân sự" },
   { id: "staff-faults", label: "Ghi nhận lỗi" },
 ] as const;
@@ -23,6 +24,12 @@ export type CanonicalMenuAccess = "hidden" | "view" | "view_all" | "supervisor";
 
 export const HOMEROOM_MENU_ID: MenuId = "homeroom";
 export const ATTENDANCE_MENU_ID: MenuId = "attendance";
+/**
+ * Bán trú used to follow the Báo cáo level (no matrix row). A group saved before the
+ * row existed keeps that behaviour: a missing `boarding` entry inherits `reports`.
+ */
+export const BOARDING_MENU_ID: MenuId = "boarding";
+export const BOARDING_FALLBACK_MENU_ID: MenuId = "reports";
 /** The only menu where `supervisor` (Giám thị) is a valid level. */
 export const SUPERVISOR_MENU_ID: MenuId = ATTENDANCE_MENU_ID;
 export const INVALID_MENU_ACCESS = "INVALID_MENU_ACCESS";
@@ -100,6 +107,9 @@ export function normalizeMenuAccess(
   entries: { menu: string; access: MenuAccess | string }[] | undefined,
 ): { menu: string; access: MenuAccess }[] {
   const map = new Map((entries || []).map((e) => [e.menu, e.access]));
+  if (!map.has(BOARDING_MENU_ID) && map.has(BOARDING_FALLBACK_MENU_ID)) {
+    map.set(BOARDING_MENU_ID, map.get(BOARDING_FALLBACK_MENU_ID)!);
+  }
   return SYSTEM_MENU_DEFS.map((item) => {
     const raw = map.get(item.id);
     if (raw === undefined) {

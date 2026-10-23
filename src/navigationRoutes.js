@@ -63,16 +63,15 @@ const SUPREME_SETTINGS = Object.freeze([
 /**
  * Sidebar visibility (UX only; every Convex query re-checks on the server).
  * - Trao đổi and Công việc ("Việc của tôi") are open to every active account.
- * - Bán trú has no permission-matrix key: convex/boarding.ts lets operational
- *   managers manage periods and anyone whose Báo cáo menu is not hidden read the
- *   participant list, so the menu follows the Báo cáo level.
+ * - Bán trú has its own matrix row (`boarding`); groups saved before it existed
+ *   inherit their Báo cáo level on the server (convex/lib.ts resolveUserMenuAccess).
  * @param {string} menuId
  * @param {{ canManageOperations?: boolean, menuAccess?: Record<string, string> | null }} [options]
  */
 export function isPrimaryMenuVisible(menuId, { canManageOperations = false, menuAccess = {} } = {}) {
   if (canManageOperations) return true;
   if (menuId === 'chat' || menuId === 'work') return true;
-  const level = menuId === 'boarding' ? menuAccess?.reports : menuAccess?.[menuId];
+  const level = menuAccess?.[menuId];
   return Boolean(level) && level !== 'hidden';
 }
 
