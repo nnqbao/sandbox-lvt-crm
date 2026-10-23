@@ -48,7 +48,8 @@ test('guide is built from docs/guide with external, captioned images', () => {
   for (const part of outline.parts) assert.match(guide, new RegExp(`<section class="part" id="${part.id}"`));
   assert.doesNotMatch(guide, /data:image\//, 'images must be separate files, not base64');
   assert.doesNotMatch(guide, /Chưa xếp mục|is-missing/, 'every topic is in the outline and every image exists');
-  assert.ok(Buffer.byteLength(guide) < 300 * 1024, 'guide HTML stays under 300 KB');
+  // 360 KB since 2026-10-24: 67 topics / 146 captioned figures (Lớp học, app sign-in); images stay external.
+  assert.ok(Buffer.byteLength(guide) < 360 * 1024, 'guide HTML stays under 360 KB');
   const images = [...guide.matchAll(/<img src="(huong-dan\/[^"]+)"[^>]*alt="([^"]*)"/g)];
   assert.ok(images.length > 0);
   for (const [, src, alt] of images) {
