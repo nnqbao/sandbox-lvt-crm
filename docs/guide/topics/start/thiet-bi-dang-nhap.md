@@ -7,7 +7,10 @@ keywords: thiet bi, phien, dang xuat tu xa, mat dien thoai, thu hoi
 ---
 Xem tài khoản đang đăng nhập ở những máy nào và đăng xuất từ xa máy không dùng nữa.
 
-1. Bấm ảnh đại diện → **Quản lý thiết bị đăng nhập**.
+1. Bấm ảnh đại diện → **Quản lý thiết bị đăng nhập** (số 3 trong hình).
+
+![Menu tài khoản: Quản lý thiết bị đăng nhập ở số 3](menu-tai-khoan)
+
 2. Mục **Thiết bị này** [[1]] là máy thầy cô đang dùng.
 3. Bấm **Đăng xuất tất cả phiên khác** [[2]] để thoát tài khoản trên mọi máy còn lại.
 4. Hoặc bấm **Thu hồi** [[3]] để chỉ đăng xuất một máy.

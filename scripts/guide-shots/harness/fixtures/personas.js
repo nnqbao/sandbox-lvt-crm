@@ -24,8 +24,9 @@ export const POSITIONS = [
   { _id: 'pos_gt', name: 'Giám thị', code: 'GT', level: 1 },
 ].map((row) => ({ ...row, active: true, createdAt: T0 - 300 * DAY, updatedAt: T0 - 30 * DAY, _creationTime: T0 - 300 * DAY }));
 
-const MENUS = ['reports', 'notifications', 'duties', 'work', 'homeroom', 'attendance', 'people-review', 'staff-faults'];
-const access = (map) => Object.fromEntries(MENUS.map((id) => [id, map[id] || (id === 'notifications' ? 'view' : 'hidden')]));
+const MENUS = ['reports', 'notifications', 'duties', 'work', 'homeroom', 'attendance', 'boarding', 'people-review', 'staff-faults'];
+// Bán trú defaults to the Báo cáo level, like groups saved before the row existed.
+const access = (map) => Object.fromEntries(MENUS.map((id) => [id, map[id] || (id === 'boarding' && map.reports) || (id === 'notifications' ? 'view' : 'hidden')]));
 
 export const PERMISSION_GROUPS = [
   {
@@ -33,7 +34,7 @@ export const PERMISSION_GROUPS = [
     name: 'Giáo viên',
     code: 'GV',
     description: 'Giáo viên bộ môn',
-    menuAccess: access({ duties: 'view', work: 'view', reports: 'view', 'people-review': 'view', 'staff-faults': 'view' }),
+    menuAccess: access({ duties: 'view', work: 'view', reports: 'view', homeroom: 'view', 'people-review': 'view', 'staff-faults': 'view' }),
   },
   {
     _id: 'grp_gvcn',

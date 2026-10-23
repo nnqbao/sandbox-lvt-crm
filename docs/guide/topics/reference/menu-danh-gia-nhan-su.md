@@ -10,6 +10,10 @@ Hồ sơ của từng người: lỗi được ghi nhận, kết quả công vi�
 1. Mở menu **Đánh giá nhân sự** ở cột trái.
 2. Phần trên cùng là **hồ sơ của tôi**; người quản lý thấy thêm danh sách người trong phạm vi của mình.
 
+![Hồ sơ đánh giá của tôi: Thêm đánh giá, Ghi nhận lỗi, Công việc, Kỳ đánh giá](dg-ho-so-cua-toi)
+
+![Ban Giám hiệu, tổ trưởng: danh sách nhân sự và hồ sơ chi tiết](dg-bgh-danh-sach)
+
 | Ai | Thấy / làm được gì | Hướng dẫn |
 |---|---|---|
 | Mọi người | Hồ sơ của mình, nộp file tự đánh giá | [Hồ sơ của tôi](#dg-ho-so-cua-toi) |

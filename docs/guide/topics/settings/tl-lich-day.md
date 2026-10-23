@@ -5,12 +5,25 @@ menu: Thiết lập tối cao → Thiết lập lịch dạy
 roles: Administrator
 keywords: lich day, thoi khoa bieu, xep lich, tiet hoc, khoi lop
 ---
-Xếp thời khóa biểu cho từng lớp: chọn giáo viên dạy mỗi tiết.
+Xếp thời khóa biểu theo **lớp**: chọn giáo viên dạy mỗi tiết. (Muốn xếp theo **giáo viên** thì dùng [Thiết lập giáo viên](#tl-giao-vien) → Thêm lịch dạy.)
 
-1. Chọn năm học bằng mũi tên ‹ ›, bấm vào khối (6, 7, 8, 9) để xổ ra các lớp, rồi bấm vào lớp.
-2. Ở mỗi ô (thứ × tiết), chọn giáo viên theo môn. Danh sách lấy từ [Thiết lập giáo viên](#tl-giao-vien) theo Môn giảng dạy.
-3. Chọn **Áp dụng từ ngày** rồi bấm **Lưu lịch dạy**.
+**Bước 1. Chọn lớp.**
+
+![Thiết lập lịch dạy: 1 năm học, 2 khối, 3 lớp](tl-lich-day-khoi)
+
+1. Chọn năm học bằng mũi tên ‹ › [[1]].
+2. Bấm vào khối [[2]] (6, 7, 8, 9) để xổ ra các lớp.
+3. Bấm vào lớp [[3]].
+
+**Bước 2. Chọn giáo viên cho từng tiết.**
+
+![Lưới thời khóa biểu của lớp: 1 thời gian năm học, 2 ô vừa đổi, 3 áp dụng từ ngày, 4 Lưu lịch dạy](tl-lich-day-luoi)
+
+1. Khung xanh [[1]] cho biết năm học từ ngày nào đến ngày nào, số ngày nghỉ lễ và số ngày học sẽ áp dụng.
+2. Ở mỗi ô (thứ × tiết), chọn giáo viên trong danh sách thả xuống; mỗi lựa chọn ghi **Tên · Môn**. Ô vừa đổi có viền vàng [[2]]. Chọn **— Trống —** để bỏ tiết.
+3. Chọn **Áp dụng từ ngày** [[3]].
+4. Bấm **Lưu lịch dạy** [[4]].
 
 ::: note
-Lịch tuần được áp dụng cho mọi ngày học từ ngày chọn đến hết năm học, tự bỏ ngày nghỉ lễ. Đổi lịch giữa năm thì chọn ngày bắt đầu mới: các ngày trước đó giữ nguyên giáo viên cũ (để Sổ đầu bài cũ vẫn đúng). Một giáo viên không thể dạy hai lớp cùng một tiết.
+Mỗi lớp chỉ hiện các giáo viên có lớp đó trong **Lớp giảng dạy** (Thiết lập giáo viên). Giáo viên đang dạy lớp khác cùng tiết bị mờ, ghi “đang dạy …”. Đổi lịch giữa năm thì chọn ngày bắt đầu mới: các ngày trước đó giữ nguyên giáo viên cũ (để Sổ đầu bài cũ vẫn đúng). Lịch tự bỏ ngày nghỉ lễ.
 :::

@@ -10,6 +10,10 @@ Giám thị ghi học sinh vắng của từng lớp mỗi sáng; GVCN và Ban G
 1. Mở menu **Điểm danh** ở cột trái (trên điện thoại: **☰ → Điểm danh**).
 2. Chọn khối, mở từng lớp, tích học sinh vắng rồi lưu lớp; hoặc nhập cả ngày bằng file Excel.
 
+![Trang Điểm danh: các tab khối, lớp chưa điểm danh và lớp đã lưu](dd-tong-quan)
+
+![Một lớp đang mở: tích ô Vắng rồi bấm Lưu lớp](dd-mo-lop)
+
 | Ai | Thấy / làm được gì | Hướng dẫn |
 |---|---|---|
 | Giám thị (nhóm quyền đặt Điểm danh là **Giám thị**) | Điểm danh ngày hôm nay, nhập Excel | [Trên màn hình](#dd-diem-danh-man-hinh), [Bằng Excel](#dd-diem-danh-excel), [Trên điện thoại](#dd-diem-danh-dien-thoai) |

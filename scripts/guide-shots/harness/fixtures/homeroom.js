@@ -58,7 +58,7 @@ const GIVEN = [
   ['Kim Ngân', 'female'], ['Quang Vinh', 'male'], ['Tường Vi', 'female'], ['Bảo Long', 'male'],
 ];
 
-const STUDENTS = GIVEN.map(([given, gender], index) => {
+export const STUDENTS = GIVEN.map(([given, gender], index) => {
   const n = index + 1;
   const month = ((index * 5) % 12) + 1;
   const day = ((index * 7) % 27) + 1;

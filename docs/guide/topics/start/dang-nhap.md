@@ -15,6 +15,14 @@ Vào CRM bằng email và mật khẩu tạm thời nhà trường cấp. Không
 
 ![Màn hình đăng nhập: 1 ô Email, 2 ô Mật khẩu, 3 nút Đăng nhập, 4 liên kết Quên mật khẩu?](dang-nhap)
 
+Lần đầu đăng nhập: đặt mật khẩu mới rồi bấm **Đổi mật khẩu và tiếp tục**.
+
+![Màn hình bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên](doi-mat-khau-lan-dau)
+
+Đăng nhập xong, thầy cô thấy màn hình làm việc với menu ở cột trái:
+
+![Màn hình làm việc sau khi đăng nhập](giao-dien-chung)
+
 ::: tip
 Lưu địa chỉ CRM vào dấu trang (bookmark) hoặc màn hình chính của điện thoại để lần sau mở nhanh.
 :::

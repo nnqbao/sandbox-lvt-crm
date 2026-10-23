@@ -11,7 +11,7 @@ export default [
   {
     id: 'cn-tong-quan',
     scenario: 'gvcn',
-    path: '/lop-chu-nhiem',
+    path: '/lop-chu-nhiem/chu-nhiem',
     height: 900,
     callouts: [
       { n: 1, target: '.hr-year-select', pos: 'left' },
