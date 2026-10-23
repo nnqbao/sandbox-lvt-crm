@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAction, useQuery } from 'convex/react';
+import { useAction, useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { clientKindIcon, formatSessionActiveAt } from './deviceSession';
 
@@ -122,6 +122,8 @@ export default function DevicesPanel({ mode = 'self', userId = null }) {
         )}
       </section>
 
+      {!isAdminMode ? <SignInKeysSection now={now} /> : null}
+
       {isAdminMode && sessions.length > 0 ? (
         <button
           type="button"
@@ -153,5 +155,61 @@ function SessionRow({ session, now }) {
         </small>
       </div>
     </div>
+  );
+}
+
+const KEY_KIND_LABELS = { device_key: 'Vân tay / Face ID', passkey: 'Passkey' };
+const PLATFORM_LABELS = { ios: 'iPhone / iPad', android: 'Android' };
+
+/** Vân tay / Face ID và passkey bật trên app. Gỡ ở đây khi mất máy hoặc đổi máy. */
+function SignInKeysSection({ now }) {
+  const keys = useQuery(anyApi.deviceAuth.listMine, {});
+  const remove = useMutation(anyApi.deviceAuth.removeMine);
+  const [pending, setPending] = useState('');
+  const [feedback, setFeedback] = useState('');
+  if (keys === undefined) return null;
+  return (
+    <section className="devices-section">
+      <h4>VÂN TAY, FACE ID VÀ PASSKEY</h4>
+      {feedback ? <p className="profile-feedback" role="status">{feedback}</p> : null}
+      {keys.length === 0 ? (
+        <p className="devices-empty">Chưa bật đăng nhập bằng vân tay, Face ID hay passkey trên app nào.</p>
+      ) : (
+        <ul className="devices-list">
+          {keys.map((key) => (
+            <li key={key._id}>
+              <div className="devices-row">
+                <span className="devices-icon" aria-hidden="true">{key.kind === 'passkey' ? '🔑' : '👆'}</span>
+                <div className="devices-meta">
+                  <strong>{key.deviceName}</strong>
+                  <span>{KEY_KIND_LABELS[key.kind] || key.kind} · {PLATFORM_LABELS[key.platform] || key.platform}</span>
+                  <small>{key.lastUsedAt ? formatSessionActiveAt(key.lastUsedAt, now) : 'Chưa dùng để đăng nhập'}</small>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="text-button devices-revoke"
+                disabled={Boolean(pending)}
+                onClick={async () => {
+                  if (!window.confirm(`Gỡ ${KEY_KIND_LABELS[key.kind] || 'cách đăng nhập'} trên ${key.deviceName}? Máy đó sẽ phải đăng nhập bằng mật khẩu.`)) return;
+                  setPending(key._id);
+                  setFeedback('');
+                  try {
+                    await remove({ id: key._id });
+                    setFeedback('Đã gỡ.');
+                  } catch (error) {
+                    setFeedback(localMessageFor(error));
+                  } finally {
+                    setPending('');
+                  }
+                }}
+              >
+                {pending === key._id ? '…' : 'Gỡ'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

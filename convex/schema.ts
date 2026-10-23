@@ -1021,6 +1021,39 @@ export default defineSchema({
   })
     .index("by_day", ["attendanceDayId"])
     .index("by_student_date", ["studentId", "attendanceDate"]),
+  /**
+   * Single-use, short-lived challenges for device-key (vân tay / Face ID) and passkey
+   * sign-in / registration. `userId` is set for registration challenges only.
+   */
+  authChallenges: defineTable({
+    purpose: v.string(), // device_login | device_register | passkey_login | passkey_register
+    challenge: v.string(), // base64url, 32 random bytes
+    userId: v.optional(v.string()),
+    expiresAt: v.number(),
+    usedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  }).index("by_expires", ["expiresAt"]),
+  /**
+   * Sign-in credentials bound to a device: `device_key` = P-256 key in Secure Enclave /
+   * Android Keystore unlocked by biometrics; `passkey` = WebAuthn credential. Public keys only.
+   */
+  deviceCredentials: defineTable({
+    userId: v.string(),
+    kind: v.string(), // device_key | passkey
+    credentialId: v.string(), // base64url
+    publicKey: v.string(), // device_key: base64 SPKI DER; passkey: base64url COSE key
+    counter: v.optional(v.number()),
+    transports: v.optional(v.array(v.string())),
+    deviceName: v.string(),
+    platform: v.string(), // ios | android
+    active: v.boolean(),
+    createdAt: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+    revokedReason: v.optional(v.string()),
+  })
+    .index("by_credential", ["credentialId"])
+    .index("by_user", ["userId"]),
   /** Thiết lập Môn học: seeded with the GDPT 2018 THCS subjects; soft-deleted. */
   subjects: defineTable({
     name: v.string(),
