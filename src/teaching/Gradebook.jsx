@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
-import { formatDate, formatDateTime } from '../homeroom/homeroomLabels';
+import { classLabel, formatDate, formatDateTime } from '../homeroom/homeroomLabels';
 import { EmptyState, Feedback, Icon, Loading, Modal, Notice, useAsyncTask } from '../homeroom/homeroomUi';
 import { formatScore, semesterForDate, vietnamNowParts } from '../lib/teachingSchedule';
 import { GradeClassPicker } from './teachingShared';
@@ -49,7 +49,7 @@ export function GradebookClass({ classId, nav }) {
       <header className="tc-page-head">
         <div>
           <span className="hr-eyebrow">Học bạ · Năm học {data.year.name}</span>
-          <h2>Lớp {data.class.name}</h2>
+          <h2>{classLabel(data.class.name)}</h2>
           <p className="hr-muted">{data.students.length} học sinh. Bấm vào học sinh để xem điểm.</p>
         </div>
       </header>
@@ -111,7 +111,7 @@ export function StudentGradebook({ studentId, nav }) {
           <p className="hr-muted">
             Mã HS {data.student.studentCode}
             {data.student.dateOfBirth ? ` · Ngày sinh ${formatDate(data.student.dateOfBirth)}` : ''}
-            {selected ? ` · Lớp ${selected.className} · Năm học ${selected.name}` : ''}
+            {selected ? ` · ${classLabel(selected.className)} · Năm học ${selected.name}` : ''}
           </p>
         </div>
         {data.writableSubjectIds.length && data.testTypes.length ? (
@@ -269,7 +269,7 @@ function ScoreModal({ data, year, entry, subjectNames, onClose }) {
   return (
     <Modal
       title={entry ? 'Sửa điểm' : 'Thêm điểm'}
-      subtitle={`${data.student.fullName}${year ? ` · Lớp ${year.className} · ${year.name}` : ''}`}
+      subtitle={`${data.student.fullName}${year ? ` · ${classLabel(year.className)} · ${year.name}` : ''}`}
       size="sm"
       onClose={onClose}
       busy={task.pending}

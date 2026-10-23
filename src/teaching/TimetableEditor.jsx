@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
-import { formatDate } from '../homeroom/homeroomLabels';
+import { classLabel, formatDate } from '../homeroom/homeroomLabels';
 import { EmptyState, Feedback, Icon, Loading, Notice, useAsyncTask } from '../homeroom/homeroomUi';
 import {
   addDaysYmd,
@@ -103,7 +103,7 @@ function Editor({ data, mode, teacherId }) {
     });
     const outcome = await task.run(
       () => apply({ classId: data.class._id, effectiveFrom, changes: payload }),
-      `Đã lưu lịch dạy lớp ${data.class.name}, áp dụng từ ${formatDate(effectiveFrom)}.`,
+      `Đã lưu lịch dạy ${classLabel(data.class.name, { lower: true })}, áp dụng từ ${formatDate(effectiveFrom)}.`,
     );
     if (outcome.ok) setDraft(new Map());
   };
@@ -118,7 +118,7 @@ function Editor({ data, mode, teacherId }) {
 
   return (
     <div className="hr-stack">
-      <Notice tone="info" icon="calendar" title={`Lớp ${data.class.name} · Năm học ${year.name}`}>
+      <Notice tone="info" icon="calendar" title={`${classLabel(data.class.name)} · Năm học ${year.name}`}>
         Thời gian học: {formatDate(year.startDate)} – {formatDate(year.endDate)}, Thứ 2 – Thứ 6, mỗi ngày 5 tiết sáng và 5 tiết chiều
         {data.holidays.length ? `, trừ ${data.holidays.length} ngày nghỉ lễ` : ''}. Lịch tuần bên dưới được áp dụng cho{' '}
         <strong>{remainingDays} ngày học</strong> từ {formatDate(effectiveFrom)} đến hết năm học; lịch các ngày trước đó giữ nguyên.
@@ -138,7 +138,7 @@ function Editor({ data, mode, teacherId }) {
           <div className="hr-toolbar">
             <div>
               <h3>{teacher.name}</h3>
-              <p className="hr-muted">Tick các tiết giáo viên dạy ở lớp {data.class.name}. Ô màu xám đã có giáo viên khác hoặc trùng giờ với lớp khác.</p>
+              <p className="hr-muted">Tick các tiết giáo viên dạy ở {classLabel(data.class.name, { lower: true })}. Ô màu xám đã có giáo viên khác hoặc trùng giờ với lớp khác.</p>
             </div>
             {teacher.subjectIds.length > 1 ? (
               <label className="hr-field">
@@ -272,7 +272,7 @@ function ClassCell({ cellKeyValue, value, changed, disabled, teachers, subjects,
               const busy = busyAt.get(`${row._id}|${cellKeyValue}`);
               return (
                 <option key={row._id} value={`${row._id}|${subject._id}`} disabled={Boolean(busy)}>
-                  {row.name}{busy ? ` (đang dạy ${busy})` : ''}
+                  {row.name} · {subject.name}{busy ? ` (đang dạy ${busy})` : ''}
                 </option>
               );
             })}
