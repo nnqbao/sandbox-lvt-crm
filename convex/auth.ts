@@ -5,6 +5,17 @@ import { Scrypt } from "lucia";
 import { internal } from "./_generated/api";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import {
+  DEFAULT_RP_ID,
+  DEVICE_CREDENTIAL_INVALID,
+  DEVICE_SIGNATURE_INVALID,
+  deviceSignedMessage,
+  PASSKEY_VERIFICATION_FAILED,
+  passkeyOrigins,
+} from "./deviceAuthPolicy";
+
+const passkeyRpId = () => process.env.PASSKEY_RP_ID || DEFAULT_RP_ID;
+const passkeyAllowedOrigins = () => passkeyOrigins(passkeyRpId(), process.env.PASSKEY_EXTRA_ORIGINS || "");
 
 function normalizeEmail(value: unknown): string {
   return String(value ?? "")
@@ -81,8 +92,65 @@ const PasswordSignInOnly = ConvexCredentials({
   },
 });
 
+/**
+ * Vân tay / Face ID: the device signs a single-use `device_login` challenge with its
+ * biometric-protected P-256 key (registered earlier while signed in with a password).
+ */
+const DeviceKeySignIn = ConvexCredentials({
+  id: "device-key",
+  authorize: async (params, ctx) => {
+    const credentialId = String(params.credentialId ?? "");
+    const challengeId = String(params.challengeId ?? "");
+    const signature = String(params.signature ?? "");
+    if (!credentialId || !challengeId || !signature || signature.length > 512) throw new ConvexError(DEVICE_CREDENTIAL_INVALID);
+    const credential = await ctx.runQuery(internal.deviceAuth.credentialById, { credentialId });
+    // Consume first so a challenge can never be retried, even after a failed check.
+    const challenge = await ctx.runMutation(internal.deviceAuth.consumeChallenge, { challengeId, purpose: "device_login" });
+    if (!credential || !credential.active || credential.kind !== "device_key") throw new ConvexError(DEVICE_CREDENTIAL_INVALID);
+    const ok = await ctx.runAction(internal.deviceAuthNode.verifyDeviceSignature, {
+      publicKey: credential.publicKey,
+      message: deviceSignedMessage("device_login", challengeId, challenge),
+      signature,
+    });
+    if (!ok) throw new ConvexError(DEVICE_SIGNATURE_INVALID);
+    await ctx.runMutation(internal.deviceAuth.touchCredential, { id: credential._id });
+    return { userId: credential.userId as Id<"users"> };
+  },
+});
+
+/** Passkey (WebAuthn assertion of a discoverable credential), from the Android / iOS app. */
+const PasskeySignIn = ConvexCredentials({
+  id: "passkey",
+  authorize: async (params, ctx) => {
+    const challengeId = String(params.challengeId ?? "");
+    const response = String(params.response ?? "");
+    if (!challengeId || !response || response.length > 20_000) throw new ConvexError(PASSKEY_VERIFICATION_FAILED);
+    let credentialId = "";
+    try {
+      credentialId = String(JSON.parse(response).id ?? "");
+    } catch {
+      throw new ConvexError(PASSKEY_VERIFICATION_FAILED);
+    }
+    const challenge = await ctx.runMutation(internal.deviceAuth.consumeChallenge, { challengeId, purpose: "passkey_login" });
+    const credential = credentialId ? await ctx.runQuery(internal.deviceAuth.credentialById, { credentialId }) : null;
+    if (!credential || !credential.active || credential.kind !== "passkey") throw new ConvexError(DEVICE_CREDENTIAL_INVALID);
+    const verified = await ctx.runAction(internal.deviceAuthNode.verifyPasskeyAuthentication, {
+      response,
+      challenge,
+      rpId: passkeyRpId(),
+      origins: passkeyAllowedOrigins(),
+      credentialId,
+      publicKey: credential.publicKey,
+      counter: credential.counter,
+    });
+    if (!verified) throw new ConvexError(PASSKEY_VERIFICATION_FAILED);
+    await ctx.runMutation(internal.deviceAuth.touchCredential, { id: credential._id, counter: verified.newCounter });
+    return { userId: credential.userId as Id<"users"> };
+  },
+});
+
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [PasswordSignInOnly],
+  providers: [PasswordSignInOnly, DeviceKeySignIn, PasskeySignIn],
   // Keep library rate-limit high so SYS-008 window/threshold is the controlling policy.
   signIn: { maxFailedAttempsPerHour: 1000 },
   callbacks: {

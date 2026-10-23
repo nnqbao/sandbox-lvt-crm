@@ -18,6 +18,7 @@ import { canonicalUploadMime, downloadContentPolicy } from './lib/file-content-p
 import { FileHttpError, classifyFileError } from './lib/file-http-errors.mjs';
 import { matchAvatarFileRoute, matchDriveMutationRoute } from './lib/file-route-policy.mjs';
 import { staticFrameHeaders } from './lib/static-frame-policy.mjs';
+import { wellKnownResponse } from './lib/well-known.mjs';
 import {
   buildAuthorizedSharedSchedulePdf,
   parseSharedScheduleQuery,
@@ -603,6 +604,16 @@ const server = createServer(async (request, response) => {
     } catch {
       response.writeHead(400);
       response.end();
+      return;
+    }
+    const wellKnown = request.method === 'GET' || request.method === 'HEAD' ? wellKnownResponse(pathname) : null;
+    if (wellKnown) {
+      response.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      response.end(request.method === 'HEAD' ? undefined : wellKnown);
       return;
     }
     if (pathname.startsWith('/api/')) {
