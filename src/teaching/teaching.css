@@ -133,3 +133,15 @@ button.tc-score:hover { border-color: var(--lvt-teal); background: var(--lvt-suc
   .tc-year-stepper strong { min-width: 104px; }
   .tc-savebar { bottom: 8px; }
 }
+
+/* ---------- Quick class pickers (Thiết lập giáo viên) ---------- */
+.tc-add-button { color: var(--lvt-teal-text); border: 1px dashed var(--lvt-teal); background: var(--lvt-success-bg); }
+.tc-pick-group { display: grid; gap: 8px; margin: 0; padding: 0; border: 0; }
+.tc-pick-group legend { margin-bottom: 8px; padding: 0; color: var(--lvt-navy); font-size: 14px; font-weight: 800; }
+.tc-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 8px; }
+.tc-pick { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--lvt-line); border-radius: 8px; background: var(--lvt-surface); color: var(--lvt-ink); font-size: 14px; font-weight: 700; cursor: pointer; }
+.tc-pick:hover { border-color: var(--lvt-teal); }
+.tc-pick.is-on { border-color: var(--lvt-teal); background: var(--lvt-success-bg); }
+.tc-pick input { width: 18px; height: 18px; accent-color: var(--lvt-teal); }
+.tc-pick span { display: grid; gap: 2px; }
+.tc-pick small { color: var(--lvt-muted); font-size: 12px; font-weight: 600; }

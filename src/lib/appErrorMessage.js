@@ -279,6 +279,8 @@ export function messageFor(error) {
     TEST_TYPE_NOT_FOUND: 'Không tìm thấy loại kiểm tra (có thể đã bị xóa).',
     INVALID_COEFFICIENT: 'Hệ số điểm là số nguyên từ 1 đến 5.',
     TEACHER_SUBJECT_IN_USE: 'Giáo viên còn tiết dạy môn này trong lịch hiện tại hoặc sắp tới. Đổi lịch dạy trước khi bỏ môn.',
+    TEACHER_CLASS_IN_USE: 'Giáo viên còn tiết dạy ở lớp này trong lịch hiện tại hoặc sắp tới. Xóa các tiết đó ở Lịch dạy trước khi bỏ lớp.',
+    TIMETABLE_CLASS_NOT_ASSIGNED: 'Lớp này chưa có trong Lớp giảng dạy của giáo viên. Chọn lớp ở Thiết lập giáo viên trước.',
     TEACHER_SCHEDULE_FORBIDDEN: 'Bạn chỉ xem được lịch dạy của chính mình.',
     INVALID_TIMETABLE_CELL: 'Tiết học không hợp lệ (Thứ 2 – Thứ 6, tiết 1 – 5 buổi sáng hoặc chiều).',
     TIMETABLE_DATE_OUTSIDE_YEAR: 'Ngày áp dụng phải nằm trong năm học.',

@@ -110,8 +110,8 @@ function Editor({ data, mode, teacherId }) {
 
   if (mode === 'teacher' && !teacher) {
     return (
-      <EmptyState icon="users" title="Giáo viên chưa có Môn giảng dạy trong năm học này.">
-        Quay lại Thiết lập giáo viên, chọn Môn giảng dạy cho giáo viên rồi thêm lịch dạy.
+      <EmptyState icon="users" title="Giáo viên chưa có Môn giảng dạy hoặc chưa nhận lớp này.">
+        Quay lại Thiết lập giáo viên, chọn Môn giảng dạy và Lớp giảng dạy cho giáo viên rồi thêm lịch dạy.
       </EmptyState>
     );
   }
@@ -126,6 +126,11 @@ function Editor({ data, mode, teacherId }) {
       </Notice>
       {locked ? (
         <Notice tone="warn" icon="alert" title={year.locked ? 'Năm học đã khóa — chỉ xem.' : 'Lớp đã lưu trữ — chỉ xem.'} />
+      ) : null}
+      {mode === 'class' && !data.teachers.length ? (
+        <Notice tone="warn" icon="users" title="Chưa có giáo viên nào nhận lớp này.">
+          Vào Thiết lập giáo viên, bấm (+) ở cột Lớp giảng dạy để giao lớp cho giáo viên rồi quay lại xếp lịch.
+        </Notice>
       ) : null}
       {futureVersions ? (
         <Notice tone="warn" icon="clock" title="Lớp có lịch đã hẹn đổi sau ngày đang chọn.">

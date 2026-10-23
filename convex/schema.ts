@@ -1042,6 +1042,11 @@ export default defineSchema({
     schoolYearId: v.string(),
     userId: v.string(),
     subjectIds: v.array(v.string()),
+    /**
+     * Lớp giảng dạy chosen by the admin. Absent on older rows: the classes the teacher has
+     * in the current timetable count instead (teachingData.effectiveTeachingClassIds).
+     */
+    teachingClassIds: v.optional(v.array(v.string())),
     updatedBy: v.string(),
     ...timestamps,
   })

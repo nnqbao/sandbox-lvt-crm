@@ -221,6 +221,19 @@ export function compareLessons(a: { date: string; session: string; period: numbe
   return time || a.period - b.period;
 }
 
+/**
+ * Lớp giảng dạy of a teacher in a year: the admin's list, or (rows saved before the list
+ * existed / no row) the classes the teacher still has in the timetable on `ref`.
+ */
+export function effectiveTeachingClassIds(
+  profile: { teachingClassIds?: string[] } | null | undefined,
+  teacherSlots: ReadonlyArray<{ classId: string; effectiveTo?: string }>,
+  ref: string,
+): string[] {
+  if (profile?.teachingClassIds) return [...profile.teachingClassIds];
+  return [...new Set(teacherSlots.filter((slot) => !slot.effectiveTo || slot.effectiveTo >= ref).map((slot) => slot.classId))];
+}
+
 // ------------------------------------------------------------------ Học bạ
 
 export function assertScore(value: number): number {

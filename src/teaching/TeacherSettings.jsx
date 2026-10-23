@@ -76,6 +76,8 @@ function TeacherList({ yearState, catalog, subjectNames }) {
   const data = useQuery(anyApi.teachers.listForYear, { schoolYearId: yearState.year._id });
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
+  const [picking, setPicking] = useState(null);
+  const locked = yearState.year.lockedAt != null;
 
   const groups = useMemo(() => {
     if (!data) return [];
@@ -152,8 +154,23 @@ function TeacherList({ yearState, catalog, subjectNames }) {
                           </button>
                         </div>
                       </td>
-                      <td><ChipList items={row.teachingClasses.map((item) => item.name)} tone="blue" empty="—" /></td>
-                      <td><ChipList items={row.homeroomClasses.map((item) => item.name)} empty="—" /></td>
+                      <td>
+                        <ClassCell
+                          items={row.teachingClasses}
+                          tone="blue"
+                          label={`Lớp giảng dạy của ${row.name}`}
+                          disabled={locked}
+                          onEdit={() => setPicking({ kind: 'teaching', teacher: row })}
+                        />
+                      </td>
+                      <td>
+                        <ClassCell
+                          items={row.homeroomClasses}
+                          label={`Lớp chủ nhiệm của ${row.name}`}
+                          disabled={locked}
+                          onEdit={() => setPicking({ kind: 'homeroom', teacher: row })}
+                        />
+                      </td>
                       <td className="is-actions">
                         <button type="button" className="hr-button hr-button--sm" onClick={() => navigateTo(settingsSubPathname('teachers', row._id))}>
                           <Icon name="calendar" size={14} /> Xem lịch
@@ -168,6 +185,16 @@ function TeacherList({ yearState, catalog, subjectNames }) {
         ))
       )}
 
+      {picking ? (
+        <ClassPickerModal
+          key={`${picking.kind}-${picking.teacher._id}`}
+          kind={picking.kind}
+          teacher={picking.teacher}
+          year={yearState.year}
+          classes={data?.classes || []}
+          onClose={() => setPicking(null)}
+        />
+      ) : null}
       {editing ? (
         <SubjectModal
           teacher={editing}
@@ -188,6 +215,125 @@ function ChipList({ items, tone = '', empty }) {
         <span key={`${item}-${index}`} className={`tc-chip${tone ? ` tc-chip--${tone}` : ''}`}>{item}</span>
       ))}
     </span>
+  );
+}
+
+/** Lớp giảng dạy / Lớp chủ nhiệm: chips + nút (+) khi trống, nút sửa khi đã có. */
+function ClassCell({ items, tone = '', label, disabled, onEdit }) {
+  const empty = !items.length;
+  return (
+    <div className="hr-row hr-row--wrap">
+      {empty ? null : <ChipList items={items.map((item) => item.name)} tone={tone} empty="—" />}
+      <button
+        type="button"
+        className={`hr-icon-button${empty ? ' tc-add-button' : ''}`}
+        onClick={onEdit}
+        disabled={disabled}
+        aria-label={`${empty ? 'Thêm' : 'Sửa'} ${label.charAt(0).toLowerCase()}${label.slice(1)}`}
+        title={empty ? 'Chọn nhanh' : 'Sửa'}
+      >
+        <Icon name={empty ? 'plus' : 'edit'} size={15} />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Chọn nhanh lớp theo khối. "teaching": nhiều lớp (Lớp giảng dạy).
+ * "homeroom": một lớp (Lớp chủ nhiệm, áp dụng từ hôm nay; GVCN cũ của lớp kết thúc hôm qua).
+ */
+function ClassPickerModal({ kind, teacher, year, classes, onClose }) {
+  const setTeaching = useMutation(anyApi.teachers.setTeachingClasses);
+  const setHomeroom = useMutation(anyApi.teachers.setHomeroomClass);
+  const task = useAsyncTask();
+  const teaching = kind === 'teaching';
+  const [selected, setSelected] = useState(() =>
+    new Set((teaching ? teacher.teachingClasses : teacher.homeroomClasses).map((row) => row._id)),
+  );
+  const homeroomId = [...selected][0] || '';
+  const replacing = !teaching && homeroomId
+    ? classes.find((row) => row._id === homeroomId && row.homeroomTeacherId && row.homeroomTeacherId !== teacher._id)
+    : null;
+  const grades = [...new Set(classes.map((row) => row.gradeLevel))].sort((a, b) => a - b);
+  const toggle = (id, checked) =>
+    setSelected((current) => {
+      if (!teaching) return new Set(checked ? [id] : []);
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  const save = async () => {
+    const outcome = await task.run(() =>
+      teaching
+        ? setTeaching({ schoolYearId: year._id, userId: teacher._id, classIds: [...selected] })
+        : setHomeroom({ schoolYearId: year._id, userId: teacher._id, classId: homeroomId }),
+    );
+    if (outcome.ok) onClose();
+  };
+  return (
+    <Modal
+      title={`${teaching ? 'Lớp giảng dạy' : 'Lớp chủ nhiệm'} · ${teacher.name}`}
+      subtitle={`Năm học ${year.name}${teaching ? ` · đã chọn ${selected.size} lớp` : ''}`}
+      size="lg"
+      onClose={onClose}
+      busy={task.pending}
+      footer={
+        <>
+          <button type="button" className="hr-button hr-button--ghost" onClick={onClose} disabled={task.pending}>Hủy</button>
+          <button type="button" className="primary-button" onClick={() => void save()} disabled={task.pending}>
+            {task.pending ? 'Đang lưu…' : 'Lưu'}
+          </button>
+        </>
+      }
+    >
+      <div className="hr-form">
+        <p className="hr-muted">
+          {teaching
+            ? 'Chọn các lớp giáo viên dạy. Khi Thêm lịch dạy và ở Thiết lập lịch dạy chỉ hiện các lớp này cho giáo viên.'
+            : 'Chọn một lớp. Giáo viên làm GVCN từ hôm nay; nếu lớp đang có GVCN khác thì GVCN đó kết thúc từ hôm qua.'}
+        </p>
+        {!classes.length ? <EmptyState icon="classes" title="Năm học chưa có lớp.">Tạo lớp tại Lớp học › Quản lý lớp.</EmptyState> : null}
+        {!teaching && classes.length ? (
+          <label className="hr-switch">
+            <input type="radio" name="tc-homeroom" checked={!homeroomId} onChange={() => setSelected(new Set())} />
+            <span>Không chủ nhiệm lớp nào</span>
+          </label>
+        ) : null}
+        {grades.map((grade) => (
+          <fieldset key={grade} className="tc-pick-group">
+            <legend>Khối {grade}</legend>
+            <div className="tc-pick-grid">
+              {classes
+                .filter((row) => row.gradeLevel === grade)
+                .map((row) => {
+                  const other = !teaching && row.homeroomTeacherId && row.homeroomTeacherId !== teacher._id;
+                  return (
+                    <label key={row._id} className={`tc-pick${selected.has(row._id) ? ' is-on' : ''}`}>
+                      <input
+                        type={teaching ? 'checkbox' : 'radio'}
+                        name={teaching ? undefined : 'tc-homeroom'}
+                        checked={selected.has(row._id)}
+                        onChange={(event) => toggle(row._id, event.target.checked)}
+                      />
+                      <span>
+                        {row.name}
+                        {other ? <small>GVCN: {row.homeroomTeacherName}</small> : null}
+                      </span>
+                    </label>
+                  );
+                })}
+            </div>
+          </fieldset>
+        ))}
+        {replacing ? (
+          <Notice tone="warn" icon="alert" title={`${replacing.name} đang có GVCN ${replacing.homeroomTeacherName}.`}>
+            Lưu sẽ thay GVCN của lớp từ hôm nay.
+          </Notice>
+        ) : null}
+        <Feedback error={task.error} />
+      </div>
+    </Modal>
   );
 }
 
@@ -309,16 +455,18 @@ function AddSchedulePage({ yearState, teacherId, onBack }) {
         <div>
           <span className="hr-eyebrow">Thêm lịch dạy · Năm học {yearState.year.name}</span>
           <h2>{schedule?.teacher.name || 'Giáo viên'}</h2>
-          <p className="hr-muted">Chọn khối rồi chọn lớp để tick các tiết giáo viên dạy.</p>
+          <p className="hr-muted">Chỉ hiện các Lớp giảng dạy của giáo viên. Chọn lớp để tick các tiết giáo viên dạy.</p>
         </div>
       </header>
-      {classes === undefined ? (
+      {classes === undefined || schedule === undefined ? (
         <Loading label="Đang tải lớp…" />
-      ) : !classes.length ? (
-        <EmptyState icon="classes" title="Năm học chưa có lớp.">Tạo lớp tại Lớp học › Quản lý lớp.</EmptyState>
+      ) : !schedule.teachingClassIds.length ? (
+        <EmptyState icon="classes" title="Giáo viên chưa có Lớp giảng dạy.">
+          Quay lại Thiết lập giáo viên, bấm dấu (+) ở cột Lớp giảng dạy để chọn lớp trước.
+        </EmptyState>
       ) : (
         <GradeClassPicker
-          classes={classes}
+          classes={classes.filter((row) => schedule.teachingClassIds.includes(row._id))}
           defaultOpen={[6, 7, 8, 9]}
           renderMeta={(row) => (countByClass.get(row._id) ? `${countByClass.get(row._id)} tiết/tuần` : 'Chưa xếp')}
           onOpen={(row) => navigateTo(settingsSubPathname('teachers', teacherId, 'them', row._id))}

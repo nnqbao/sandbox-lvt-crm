@@ -3,6 +3,7 @@ import type { DbCtx } from "./lib";
 import { getYearById } from "./homeroomData";
 import { vietnamDateFromUtcMs } from "./homeroomTime";
 import { holidaySet, type TimetableSlot } from "./teachingPolicy";
+export { effectiveTeachingClassIds } from "./teachingPolicy";
 
 export function toSlot(row: {
   _id: unknown;

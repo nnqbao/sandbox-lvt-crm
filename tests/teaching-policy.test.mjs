@@ -165,3 +165,23 @@ test('teaching mutations re-check authorization on the server', () => {
     assert.match(catalog, new RegExp(`export const ${name} = mutation\\(\\{[\\s\\S]*?await adminOrThrow\\(ctx\\)`));
   }
 });
+
+test('Lớp giảng dạy: admin list wins, older profiles fall back to the current timetable', () => {
+  const slots = [slot({ classId: 'c1' }), slot({ classId: 'c2', effectiveTo: '2026-09-30' })];
+  assert.deepEqual(server.effectiveTeachingClassIds(null, slots, '2026-10-23'), ['c1']);
+  assert.deepEqual(server.effectiveTeachingClassIds({}, slots, '2026-10-23'), ['c1']);
+  assert.deepEqual(server.effectiveTeachingClassIds({ teachingClassIds: ['c3'] }, slots, '2026-10-23'), ['c3']);
+  assert.deepEqual(server.effectiveTeachingClassIds({ teachingClassIds: [] }, slots, '2026-10-23'), []);
+});
+
+test('timetable only schedules a teacher in their Lớp giảng dạy; quick pickers are admin-only', () => {
+  const timetable = read('convex/timetable.ts');
+  assert.match(timetable, /if \(!teaching\.includes\(args\.classId\)\) throw new Error\(TIMETABLE_CLASS_NOT_ASSIGNED\)/);
+  const teachers = read('convex/teachers.ts');
+  for (const name of ['setTeachingClasses', 'setHomeroomClass']) {
+    assert.match(teachers, new RegExp(`export const ${name} = mutation\\(\\{[\\s\\S]*?await adminOrThrow\\(ctx\\)`));
+  }
+  assert.match(teachers, /TEACHER_CLASS_IN_USE/);
+  const page = read('src/teaching/TeacherSettings.jsx');
+  assert.match(page, /schedule\.teachingClassIds\.includes\(row\._id\)/, 'Thêm lịch dạy lists only Lớp giảng dạy');
+});

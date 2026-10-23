@@ -9,6 +9,7 @@ import { classesForYear, getClassById } from "./homeroomData";
 import { assertYmd } from "./homeroomTime";
 import { listSubjectRows } from "./teachingCatalog";
 import {
+  effectiveTeachingClassIds,
   holidaysForYear,
   profileFor,
   profilesForYear,
@@ -34,6 +35,7 @@ import {
 } from "./teachingPolicy";
 
 const MAX_CHANGES = 50; // 5 ngày × 10 tiết
+export const TIMETABLE_CLASS_NOT_ASSIGNED = "TIMETABLE_CLASS_NOT_ASSIGNED";
 
 async function previousYearOf(ctx: DbCtx, year: { _id: unknown; startDate: string }) {
   const years = await ctx.db.query("schoolYears").collect();
@@ -71,6 +73,8 @@ export const classTimetable = query({
     ]);
     const previousProfiles = previous ? await profilesForYear(ctx, String(previous._id)) : [];
     const own = new Map(profiles.map((row) => [row.userId, row.subjectIds]));
+    const profileByUser = new Map(profiles.map((row) => [row.userId, row]));
+    const ref = referenceDate(year);
     const inherited = new Map(previousProfiles.map((row) => [row.userId, row.subjectIds]));
     const activeSubjects = new Set(subjects.filter((row) => row.active).map((row) => String(row._id)));
     const teachers = users
@@ -79,7 +83,16 @@ export const classTimetable = query({
         const subjectIds = (own.get(id) || inherited.get(id) || []).filter((sid) => activeSubjects.has(sid));
         return { _id: id, name: teacherName(user), departmentId: user.departmentId || "", subjectIds };
       })
-      .filter((row) => row.subjectIds.length)
+      // Chỉ giáo viên có lớp này trong Lớp giảng dạy (Thiết lập giáo viên).
+      .filter(
+        (row) =>
+          row.subjectIds.length
+          && effectiveTeachingClassIds(
+            profileByUser.get(row._id),
+            yearSlots.filter((slot) => slot.teacherId === row._id),
+            ref,
+          ).includes(args.classId),
+      )
       .sort((a, b) => a.name.localeCompare(b.name, "vi"));
     const names = new Map(users.map((user) => [String(user._id), teacherName(user)]));
     for (const slot of slots) {
@@ -178,6 +191,12 @@ export const applyChanges = mutation({
         if (!subjectId || !info.subjectIds.includes(subjectId) || !subjects.get(subjectId)?.active) {
           throw new Error(TIMETABLE_SUBJECT_NOT_TAUGHT);
         }
+        const teaching = effectiveTeachingClassIds(
+          await profileFor(ctx, klass.schoolYearId, change.teacherId),
+          info.slots,
+          referenceDate(year),
+        );
+        if (!teaching.includes(args.classId)) throw new Error(TIMETABLE_CLASS_NOT_ASSIGNED);
         if (findTeacherConflict(info.slots, cell, effectiveFrom, args.classId)) {
           throw new Error(TIMETABLE_TEACHER_CONFLICT);
         }
