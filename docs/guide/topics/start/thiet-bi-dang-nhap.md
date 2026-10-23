@@ -14,6 +14,7 @@ Xem tài khoản đang đăng nhập ở những máy nào và đăng xuất t�
 2. Mục **Thiết bị này** [[1]] là máy thầy cô đang dùng.
 3. Bấm **Đăng xuất tất cả phiên khác** [[2]] để thoát tài khoản trên mọi máy còn lại.
 4. Hoặc bấm **Thu hồi** [[3]] để chỉ đăng xuất một máy.
+5. Mục **Vân tay, Face ID và passkey** liệt kê các điện thoại đã bật đăng nhập nhanh; bấm **Gỡ** để tắt ở máy không dùng nữa — xem [Đăng nhập nhanh trên app](#dang-nhap-nhanh-app).
 
 ![Thiết bị đã đăng nhập: 1 thiết bị này, 2 Đăng xuất tất cả phiên khác, 3 Thu hồi một phiên](thiet-bi)
 
