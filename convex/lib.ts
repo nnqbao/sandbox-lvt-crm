@@ -7,6 +7,8 @@ import {
   WORK_VISIBILITY_DEFAULT,
 } from "./assignmentPolicy";
 import {
+  BOARDING_FALLBACK_MENU_ID,
+  BOARDING_MENU_ID,
   canOperateMenu,
   defaultAccessForMenu,
   defaultMenuAccess,
@@ -335,6 +337,10 @@ export async function resolveUserMenuAccess(
   const result = { ...empty };
   for (const entry of group.menuAccess || []) {
     result[entry.menu] = effectiveMenuAccessLevel(entry.menu, entry.access);
+  }
+  // Nhóm lưu trước khi có dòng Bán trú: giữ hành vi cũ (theo mức Báo cáo).
+  if (!(group.menuAccess || []).some((entry) => entry.menu === BOARDING_MENU_ID)) {
+    result[BOARDING_MENU_ID] = result[BOARDING_FALLBACK_MENU_ID];
   }
   return result;
 }

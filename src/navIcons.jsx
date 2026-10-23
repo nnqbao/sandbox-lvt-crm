@@ -114,6 +114,31 @@ const NAV_ICONS = {
       <path d="m12 12.4.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2-1.45-1.4 2-.3z" />
     </NavGlyph>
   ),
+  teachers: () => (
+    <NavGlyph>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3.5 19.5c.6-3.3 2.8-5.2 5.5-5.2s4.9 1.9 5.5 5.2" />
+      <path d="M14.5 5.5h6v6.5h-4" />
+    </NavGlyph>
+  ),
+  timetable: () => (
+    <NavGlyph>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9.5h17M9.2 9.5v10M14.8 9.5v10M3.5 14.5h17" />
+    </NavGlyph>
+  ),
+  subjects: () => (
+    <NavGlyph>
+      <path d="M4.5 5.5c2.5-1 5-1 7.5.5v13c-2.5-1.5-5-1.5-7.5-.5z" />
+      <path d="M19.5 5.5c-2.5-1-5-1-7.5.5v13c2.5-1.5 5-1.5 7.5-.5z" />
+    </NavGlyph>
+  ),
+  'test-types': () => (
+    <NavGlyph>
+      <rect x="5" y="3.5" width="14" height="17" rx="2" />
+      <path d="M9 8.5h6M9 12h6M9 15.5h3" />
+    </NavGlyph>
+  ),
   'display-settings': () => (
     <NavGlyph>
       <path d="M4 8h16M4 16h16" />

@@ -15,6 +15,10 @@ Xem lỗi được ghi nhận, kết quả công việc và các kỳ đánh gi�
 
 ![Hồ sơ đánh giá của tôi: 1 Thêm đánh giá, 2 Ghi nhận lỗi, 3 Công việc, 4 Kỳ đánh giá](dg-ho-so-cua-toi)
 
+Bấm **+ Thêm đánh giá** sẽ mở hộp tải file: chọn kỳ, bấm **Upload file**, chọn file rồi bấm **Lưu**.
+
+![Hộp Thêm đánh giá: chọn kỳ, tải file tự đánh giá, Lưu](dg-them-danh-gia)
+
 ::: warn
 Khi Ban Giám hiệu đã ghi nhận xét cho một kỳ, file kỳ đó **bị khóa**, không tải lại được.
 :::

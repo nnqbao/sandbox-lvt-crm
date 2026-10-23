@@ -1,7 +1,7 @@
 ---
 id: cn-quan-ly-lop
 title: Quản lý lớp, phân công GVCN và nhập danh sách học sinh
-menu: Lớp chủ nhiệm → Quản lý lớp
+menu: Lớp học → Quản lý lớp
 roles: Văn thư, Administrator
 keywords: tao lop, gan gvcn, thay gvcn, nhap danh sach, excel hoc sinh, chuyen lop
 ---

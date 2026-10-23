@@ -13,7 +13,7 @@ Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem d
 | Menu **Báo cáo** ở mức **Xem tối cao** (thường là Ban Giám hiệu) | Danh sách tham gia của toàn trường |
 | Menu **Báo cáo** ở mức **Xem** | Danh sách giáo viên tham gia trong **phòng ban của mình** |
 
-Menu **Bán trú** hiện cho mọi người được xem menu **Báo cáo**. Danh sách tham gia cũng mở được từ **Báo cáo → Bán trú**.
+Menu **Bán trú** hiện theo dòng **Bán trú** trong nhóm quyền (nhóm cũ theo mức **Báo cáo**). Danh sách tham gia cũng mở được từ **Báo cáo → Bán trú**.
 
 #### Thêm kỳ bán trú (Văn thư, Administrator)
 1. Mở menu **Bán trú**, chọn tab **Kỳ bán trú** [[1]].
@@ -52,7 +52,7 @@ Mỗi học kỳ của một năm học chỉ có **một** kỳ bán trú. Ch�
 Học kỳ đó của năm học đó đã có. Bấm **Sửa** ở thẻ kỳ có sẵn để thêm hoặc bớt giáo viên.
 
 ??? Tôi là giáo viên nhưng không thấy menu Bán trú?
-Menu đi theo quyền **Báo cáo**. Nếu nhóm quyền của thầy cô đặt Báo cáo là **Ẩn**, hãy nhờ quản trị viên kiểm tra.
+Menu đi theo dòng **Bán trú** trong nhóm quyền. Nếu nhóm quyền của thầy cô đặt Bán trú là **Ẩn**, hãy nhờ quản trị viên kiểm tra.
 
 ??? Vì sao tôi chỉ thấy giáo viên trong tổ mình?
-Mức **Xem** chỉ hiện phòng ban của mình. Muốn xem toàn trường cần mức **Xem tối cao** ở menu Báo cáo.
+Mức **Xem** chỉ hiện phòng ban của mình. Muốn xem toàn trường cần mức **Xem tối cao** ở dòng Bán trú.

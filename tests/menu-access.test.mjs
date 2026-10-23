@@ -231,3 +231,20 @@ test('operatorSetMenuAccess (CLI): kiểm tra như create/update, không đổi 
   assert.match(block, /actorUserId: "operator:cli"/);
   assert.doesNotMatch(source, /export const operatorSetMenuAccess = mutation/);
 });
+
+test('Bán trú has its own matrix row; groups saved before it inherit the Báo cáo level', () => {
+  const ids = SYSTEM_MENU_DEFS.map((item) => item.id);
+  assert.equal(ids.indexOf('boarding'), ids.indexOf('attendance') + 1);
+  assert.equal(SYSTEM_MENU_DEFS.find((item) => item.id === 'boarding')?.label, 'Bán trú');
+  const legacy = normalizeMenuAccess([{ menu: 'reports', access: 'view_all' }]);
+  assert.equal(legacy.find((e) => e.menu === 'boarding')?.access, 'view_all');
+  const explicit = normalizeMenuAccess([{ menu: 'reports', access: 'view' }, { menu: 'boarding', access: 'hidden' }]);
+  assert.equal(explicit.find((e) => e.menu === 'boarding')?.access, 'hidden');
+  assert.equal(normalizeMenuAccess([]).find((e) => e.menu === 'boarding')?.access, 'hidden');
+  assert.throws(() => assertValidMenuAccessEntries([{ menu: 'boarding', access: 'supervisor' }]), /INVALID_MENU_ACCESS/);
+  const lib = readFileSync(new URL('../convex/lib.ts', import.meta.url), 'utf8');
+  assert.match(lib, /result\[BOARDING_MENU_ID\] = result\[BOARDING_FALLBACK_MENU_ID\]/);
+  const boarding = readFileSync(new URL('../convex/boarding.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(boarding, /menuAccess\.reports/);
+  assert.equal((boarding.match(/menuAccess\.boarding === "hidden"/g) || []).length, 2);
+});

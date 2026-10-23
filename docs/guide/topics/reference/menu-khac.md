@@ -10,6 +10,12 @@ Tóm tắt nhanh các menu còn lại và nơi đọc hướng dẫn chi tiết.
 1. Tìm menu ở cột trái, hoặc biểu tượng ở góc trên bên phải (Trao đổi, chuông, ảnh đại diện).
 2. Bấm liên kết trong bảng để đọc hướng dẫn.
 
+![Chuông thông báo ở góc trên bên phải](tb-chuong)
+
+![Trao đổi: nhắn tin theo công việc, công tác và nhóm](td-trao-doi)
+
+![Bấm ảnh đại diện: hồ sơ, đổi mật khẩu, thiết bị, hướng dẫn, đăng xuất](menu-tai-khoan)
+
 | Menu | Dùng để | Hướng dẫn |
 |---|---|---|
 | Thông báo (chuông) | Lịch, việc sắp đến hạn, tin nhắn nhóm | [Thông báo](#tb-thong-bao) |

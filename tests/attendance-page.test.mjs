@@ -145,7 +145,7 @@ test('Điểm danh page: 4 grade tabs, unsaved guard, sticky save, import previe
   assert.match(css, /@media \(max-width: 680px\)/);
   const shell = read('src/main.jsx');
   // Menu list lives next to the routes (src/navigationRoutes.js) since the "?" guide mapping.
-  assert.match(read('src/navigationRoutes.js'), /\['homeroom', 'Lớp chủ nhiệm'\],\n  \['attendance', 'Điểm danh'\],/);
+  assert.match(read('src/navigationRoutes.js'), /\['homeroom', 'Lớp học'\],\n  \['attendance', 'Điểm danh'\],/);
   assert.match(shell, /active === 'attendance' \? \(\n\s*<AttendancePage/);
 });
 

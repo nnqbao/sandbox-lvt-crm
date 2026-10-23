@@ -8,6 +8,9 @@ keywords: xac nhan, da tham gia, chua tham gia, diem danh cong tac
 Báo cho nhà trường biết mình đã có mặt ở một công tác.
 
 1. Trong **Lịch công tác cá nhân**, bấm vào công tác **đang diễn ra**.
+
+![Lịch công tác cá nhân: bấm vào một công tác để mở chi tiết](ct-ca-nhan)
+
 2. Khung chi tiết hiện ở bên phải. Bấm **Đã tham gia** hoặc **Chưa tham gia** [[1]].
 3. Bấm **×** [[2]] để đóng khung chi tiết.
 

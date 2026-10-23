@@ -11,7 +11,7 @@
       "part": "giao-vien",
       "icon": "👩‍🏫",
       "title": "Tôi là giáo viên",
-      "text": "Lịch công tác, công việc, việc của tôi, trao đổi"
+      "text": "Lịch công tác, công việc, việc của tôi, lớp giảng dạy, học bạ, trao đổi"
     },
     {
       "part": "gvcn",
@@ -77,7 +77,11 @@
         "td-trao-doi",
         "td-nhom",
         "dg-ho-so-cua-toi",
-        "ln-ghi-nhan-loi"
+        "ln-ghi-nhan-loi",
+        "lh-tong-quan",
+        "lh-lop-giang-day",
+        "lh-lich-day",
+        "lh-hoc-ba"
       ]
     },
     {
@@ -88,6 +92,7 @@
       "topics": [
         "cn-tong-quan-lop",
         "cn-diem-danh-lop",
+        "cn-so-dau-bai",
         "cn-danh-sach-hoc-sinh",
         "cn-bao-cao-xuat-file"
       ]
@@ -137,6 +142,10 @@
         "tl-chuc-vu",
         "tl-nhom-quyen",
         "nh-thiet-lap-nam-hoc",
+        "tl-giao-vien",
+        "tl-lich-day",
+        "tl-mon-hoc",
+        "tl-loai-kiem-tra",
         "tl-loai-van-ban",
         "tl-hien-thi"
       ]

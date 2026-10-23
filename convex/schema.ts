@@ -783,6 +783,8 @@ export default defineSchema({
     startDate: v.string(),
     endDate: v.string(),
     attendanceUploadDueTime: v.string(),
+    /** First day of Học kỳ II (YYYY-MM-DD). Học bạ uses it to default each score's semester. */
+    semester2StartDate: v.optional(v.string()),
     active: v.boolean(),
     lockedAt: v.optional(v.number()),
     createdBy: v.string(),
@@ -1019,4 +1021,88 @@ export default defineSchema({
   })
     .index("by_day", ["attendanceDayId"])
     .index("by_student_date", ["studentId", "attendanceDate"]),
+  /** Thiết lập Môn học: seeded with the GDPT 2018 THCS subjects; soft-deleted. */
+  subjects: defineTable({
+    name: v.string(),
+    code: v.string(),
+    sortOrder: v.number(),
+    active: v.boolean(),
+    ...timestamps,
+  }).index("by_code", ["code"]),
+  /** Thiết lập Loại kiểm tra: name + hệ số điểm (weight in the semester average). */
+  testTypes: defineTable({
+    name: v.string(),
+    coefficient: v.number(),
+    sortOrder: v.number(),
+    active: v.boolean(),
+    ...timestamps,
+  }),
+  /** Môn giảng dạy of one teacher in one school year (Thiết lập Giáo viên). */
+  teacherYearProfiles: defineTable({
+    schoolYearId: v.string(),
+    userId: v.string(),
+    subjectIds: v.array(v.string()),
+    /**
+     * Lớp giảng dạy chosen by the admin. Absent on older rows: the classes the teacher has
+     * in the current timetable count instead (teachingData.effectiveTeachingClassIds).
+     */
+    teachingClassIds: v.optional(v.array(v.string())),
+    updatedBy: v.string(),
+    ...timestamps,
+  })
+    .index("by_year_user", ["schoolYearId", "userId"])
+    .index("by_user", ["userId"]),
+  /**
+   * Weekly timetable cell (Thứ 2–6 × buổi sáng/chiều × tiết 1–5) valid from `effectiveFrom`
+   * until `effectiveTo` (inclusive, open-ended when absent). A mid-year change ends the old row
+   * the day before and inserts a new one, so past lessons keep their teacher.
+   */
+  timetableSlots: defineTable({
+    schoolYearId: v.string(),
+    classId: v.string(),
+    weekday: v.number(), // 1 = Thứ 2 … 5 = Thứ 6
+    session: v.string(), // morning | afternoon
+    period: v.number(), // 1 … 5
+    teacherId: v.string(),
+    subjectId: v.string(),
+    effectiveFrom: v.string(),
+    effectiveTo: v.optional(v.string()),
+    createdBy: v.string(),
+    ...timestamps,
+  })
+    .index("by_class", ["classId"])
+    .index("by_teacher_year", ["teacherId", "schoolYearId"])
+    .index("by_year", ["schoolYearId"]),
+  /** Sổ đầu bài: one rating per taught period (class + date + buổi + tiết). */
+  lessonLogs: defineTable({
+    schoolYearId: v.string(),
+    classId: v.string(),
+    date: v.string(),
+    session: v.string(),
+    period: v.number(),
+    teacherId: v.string(),
+    subjectId: v.string(),
+    rating: v.number(),
+    comment: v.string(),
+    ...timestamps,
+  })
+    .index("by_class_date", ["classId", "date"])
+    .index("by_teacher_date", ["teacherId", "date"]),
+  /** Học bạ: one score. testTypeName/coefficient are snapshots so later catalog edits keep history. */
+  gradeEntries: defineTable({
+    schoolYearId: v.string(),
+    classId: v.string(),
+    studentId: v.string(),
+    subjectId: v.string(),
+    semester: v.number(), // 1 | 2
+    testTypeId: v.string(),
+    testTypeName: v.string(),
+    coefficient: v.number(),
+    score: v.number(),
+    enteredBy: v.string(),
+    updatedBy: v.optional(v.string()),
+    ...timestamps,
+  })
+    .index("by_student", ["studentId"])
+    .index("by_class_subject", ["classId", "subjectId"]),
 });

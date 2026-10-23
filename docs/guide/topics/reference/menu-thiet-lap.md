@@ -5,7 +5,9 @@ menu: Thiết lập tối cao
 roles: Administrator
 keywords: tra cuu, thiet lap, cai dat, quan tri, thu vien giao dien, menu
 ---
-Nhóm menu chỉ Administrator nhìn thấy, nằm cuối cột trái.
+Nhóm menu chỉ Administrator nhìn thấy, nằm cuối cột trái, dưới nhãn **Thiết lập tối cao** [[1]].
+
+![Cột trái của Administrator: 1 nhóm Thiết lập tối cao](ref-thiet-lap-menu)
 
 | Menu | Dùng để | Hướng dẫn |
 |---|---|---|
@@ -14,7 +16,11 @@ Nhóm menu chỉ Administrator nhìn thấy, nằm cuối cột trái.
 | Thiết lập nhóm quyền | Mỗi nhóm thấy menu nào, ở mức nào | [Nhóm quyền](#tl-nhom-quyen) |
 | Thiết lập chức vụ | Chức vụ và cấp bậc 1–5 sao | [Chức vụ](#tl-chuc-vu) |
 | Thiết lập loại văn bản | Loại văn bản để chọn khi đính kèm file công việc | [Loại văn bản](#tl-loai-van-ban) |
-| Thiết lập năm học | Năm học, ngày nghỉ lễ, ngày học bù | [Năm học](#nh-thiet-lap-nam-hoc) |
+| Thiết lập năm học | Năm học, ngày bắt đầu học kỳ II, ngày nghỉ lễ, ngày học bù | [Năm học](#nh-thiet-lap-nam-hoc) |
+| Thiết lập giáo viên | Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm, Lịch dạy của từng giáo viên | [Giáo viên](#tl-giao-vien) |
+| Thiết lập lịch dạy | Thời khóa biểu từng lớp: giáo viên dạy mỗi tiết | [Lịch dạy](#tl-lich-day) |
+| Thiết lập môn học | Danh mục môn học | [Môn học](#tl-mon-hoc) |
+| Thiết lập loại kiểm tra | Loại kiểm tra và hệ số điểm của Học bạ | [Loại kiểm tra](#tl-loai-kiem-tra) |
 | Thiết lập hiển thị | Xác nhận tham gia, ai thấy công việc, mốc thông báo | [Hiển thị](#tl-hien-thi) |
 | Thư viện giao diện | Mẫu màu, chữ, nút… dùng khi thiết kế màn hình mới; chỉ để tham khảo | – |
 

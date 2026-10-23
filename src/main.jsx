@@ -14,6 +14,9 @@ import DutyWorkspaceTabs from './duties/DutyWorkspaceTabs';
 import WorkHub from './work/WorkHub';
 import DocumentTypeSettings from './settings/DocumentTypeSettings';
 import SchoolYearSettings from './settings/SchoolYearSettings';
+import TeacherSettings from './teaching/TeacherSettings';
+import TimetableSettings from './teaching/TimetableSettings';
+import { SubjectSettings, TestTypeSettings } from './teaching/CatalogSettings';
 import DisplaySettings from './settings/DisplaySettings';
 import DesignLibraryView from './settings/DesignLibraryView';
 import UserBulkImport from './settings/UserBulkImport';
@@ -84,8 +87,8 @@ const publicConvexUrl =
 const convex = publicConvexUrl ? new ConvexReactClient(publicConvexUrl) : null;
 
 const SYSTEM_MANAGEMENT_MENUS = [];
-/** Menus stored in permission groups (Trao đổi and Bán trú have no matrix key; the backend list wins once loaded). */
-const MATRIX_MENUS = PRIMARY_MENUS.filter(([id]) => id !== 'chat' && id !== 'boarding');
+/** Menus stored in permission groups (Trao đổi has no matrix key; the backend list wins once loaded). */
+const MATRIX_MENUS = PRIMARY_MENUS.filter(([id]) => id !== 'chat');
 const ROLE_LABELS = { admin: 'Administrator', moderator: 'Moderator', user: 'User' };
 const ACCESS_LABELS = {
   hidden: 'Ẩn',
@@ -164,6 +167,7 @@ function AppShell({ session }) {
     [canManageOperations, menuAccess],
   );
   const canUseChat = visiblePrimaryMenus.some(([id]) => id === 'chat');
+  const canSeeBoarding = visiblePrimaryMenus.some(([id]) => id === 'boarding');
   const sidebarPrimaryMenus = useMemo(
     () => visiblePrimaryMenus.filter(([id]) => isSidebarPrimaryMenu(id)),
     [visiblePrimaryMenus],
@@ -420,6 +424,7 @@ function AppShell({ session }) {
                   <ReportSubmenu
                     active={reportSection}
                     onChoose={chooseReportSection}
+                    showBoarding={canSeeBoarding}
                   />
                 ) : null}
               </React.Fragment>
@@ -513,6 +518,14 @@ function AppShell({ session }) {
           <DocumentTypeSettings />
         ) : active === 'school-years' && isAdmin ? (
           <SchoolYearSettings />
+        ) : active === 'teachers' && isAdmin ? (
+          <TeacherSettings />
+        ) : active === 'timetable' && isAdmin ? (
+          <TimetableSettings />
+        ) : active === 'subjects' && isAdmin ? (
+          <SubjectSettings />
+        ) : active === 'test-types' && isAdmin ? (
+          <TestTypeSettings />
         ) : active === 'display-settings' && isAdmin ? (
           <DisplaySettings />
         ) : active === 'design-library' && isAdmin ? (
@@ -564,7 +577,7 @@ function AppShell({ session }) {
         ) : active === 'staff-faults' ? (
           <StaffFaultsView />
         ) : active === 'reports' ? (
-          reportSection === 'boarding' ? <BoardingReportsView /> : <WorkReportsView />
+          reportSection === 'boarding' && canSeeBoarding ? <BoardingReportsView /> : <WorkReportsView />
         ) : active === 'boarding' ? (
           <BoardingPage canManage={canManageOperations} />
         ) : active === 'homeroom' ? (
@@ -685,15 +698,17 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
   );
 }
 
-function ReportSubmenu({ active, onChoose }) {
+function ReportSubmenu({ active, onChoose, showBoarding = true }) {
   return (
     <div className="report-submenu" aria-label="Loại báo cáo">
       <button type="button" className={active === 'work' ? 'active' : ''} onClick={() => onChoose('work')}>
         <span className="nav-icon">{navIconFor('work')}</span> Công việc
       </button>
-      <button type="button" className={active === 'boarding' ? 'active' : ''} onClick={() => onChoose('boarding')}>
-        <span className="nav-icon">{navIconFor('boarding')}</span> Bán trú
-      </button>
+      {showBoarding ? (
+        <button type="button" className={active === 'boarding' ? 'active' : ''} onClick={() => onChoose('boarding')}>
+          <span className="nav-icon">{navIconFor('boarding')}</span> Bán trú
+        </button>
+      ) : null}
     </div>
   );
 }

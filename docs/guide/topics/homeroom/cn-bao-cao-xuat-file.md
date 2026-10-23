@@ -1,7 +1,7 @@
 ---
 id: cn-bao-cao-xuat-file
 title: Báo cáo chuyên cần và xuất file Excel / PDF
-menu: Lớp chủ nhiệm → Báo cáo
+menu: Lớp học → Lớp chủ nhiệm → Báo cáo
 roles: GVCN, Ban Giám hiệu
 keywords: bao cao, chuyen can, xuat excel, pdf, thang, tuan
 ---

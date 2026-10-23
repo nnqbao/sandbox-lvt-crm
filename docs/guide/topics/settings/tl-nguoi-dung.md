@@ -16,6 +16,10 @@ Cấp tài khoản cho một thầy cô, chọn vai trò, phòng ban, chức v�
 
 ![Tạo tài khoản: 1 họ tên, 2 email, 3 vai trò, 4 phòng ban, 5 chức vụ, 6 nhóm quyền, 7 mật khẩu tạm, 8 Tạo tài khoản](tl-tao-tai-khoan)
 
+Tài khoản mới hiện trong danh sách người dùng bên dưới, nơi có thể sửa, khóa hoặc đặt lại mật khẩu:
+
+![Danh sách người dùng](tl-danh-sach-nguoi-dung)
+
 ::: note Moderator theo phòng ban
 Khi chọn vai trò **Moderator** và gán **Phòng ban**, Moderator đó chỉ thao tác trong phòng ban này ở **Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi**. Để trống phòng ban = toàn trường.
 :::
