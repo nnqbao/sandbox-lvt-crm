@@ -9,7 +9,7 @@ export const SYSTEM_MENU_DEFS = [
   { id: "notifications", label: "Thông báo" },
   { id: "duties", label: "Lịch công tác" },
   { id: "work", label: "Công việc" },
-  { id: "homeroom", label: "Lớp chủ nhiệm" },
+  { id: "homeroom", label: "Lớp học" },
   { id: "attendance", label: "Điểm danh" },
   { id: "people-review", label: "Đánh giá nhân sự" },
   { id: "staff-faults", label: "Ghi nhận lỗi" },

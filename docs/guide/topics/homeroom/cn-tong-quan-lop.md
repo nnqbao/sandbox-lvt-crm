@@ -1,13 +1,13 @@
 ---
 id: cn-tong-quan-lop
 title: Xem nhanh tình hình lớp chủ nhiệm
-menu: Lớp chủ nhiệm
+menu: Lớp học → Lớp chủ nhiệm
 roles: GVCN, Ban Giám hiệu
 keywords: lop chu nhiem, gvcn, si so, chuyen can, vang hom nay
 ---
 Mỗi sáng, xem lớp mình có bao nhiêu học sinh vắng và mở lớp để xử lý.
 
-1. Mở menu **Lớp chủ nhiệm**. Kiểm tra **Năm học** [[1]] (thường để mặc định).
+1. Mở menu **Lớp học** → tab **Lớp chủ nhiệm**. Kiểm tra **Năm học** [[1]] (thường để mặc định).
 2. Dùng mũi tên ‹ › [[2]] để xem ngày khác; nhãn **Ngày học** / **Ngày nghỉ** cho biết hôm đó có học không.
 3. Các ô số [[3]]: sĩ số, có mặt, vắng (có phép / không phép), số lớp Giám thị đã lưu, tỉ lệ chuyên cần.
 4. Bấm **Xem … học sinh vắng** [[4]] để đến thẳng danh sách vắng hôm nay.

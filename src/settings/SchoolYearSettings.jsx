@@ -229,6 +229,11 @@ function YearDetail({ year, today, onEdit }) {
             <small>Thứ 7 / Chủ nhật</small>
           </div>
           <div>
+            <dt>Bắt đầu học kỳ II</dt>
+            <dd>{year.semester2StartDate ? formatDate(year.semester2StartDate) : 'Chưa đặt'}</dd>
+            <small>dùng để chia điểm Học bạ</small>
+          </div>
+          <div>
             <dt>Giờ nhắc điểm danh</dt>
             <dd>{year.attendanceUploadDueTime}</dd>
             <small>quá giờ chưa có dữ liệu sẽ báo đỏ</small>
@@ -651,7 +656,13 @@ function YearFormModal({ year = undefined, latest = undefined, isFirst = false, 
   const [nameTouched, setNameTouched] = useState(Boolean(year));
   const [form, setForm] = useState(() => {
     if (year) {
-      return { name: year.name, startDate: year.startDate, endDate: year.endDate, attendanceUploadDueTime: year.attendanceUploadDueTime || '08:30' };
+      return {
+        name: year.name,
+        startDate: year.startDate,
+        endDate: year.endDate,
+        attendanceUploadDueTime: year.attendanceUploadDueTime || '08:30',
+        semester2StartDate: year.semester2StartDate || '',
+      };
     }
     const today = vietnamTodayYmd();
     const startYear = latest ? Number(latest.endDate.slice(0, 4)) : Number(today.slice(0, 4)) - (Number(today.slice(5, 7)) < 8 ? 1 : 0);
@@ -660,6 +671,7 @@ function YearFormModal({ year = undefined, latest = undefined, isFirst = false, 
       startDate: `${startYear}-09-05`,
       endDate: `${startYear + 1}-05-31`,
       attendanceUploadDueTime: latest?.attendanceUploadDueTime || '08:30',
+      semester2StartDate: `${startYear + 1}-01-12`,
       active: isFirst,
     };
   });
@@ -671,7 +683,10 @@ function YearFormModal({ year = undefined, latest = undefined, isFirst = false, 
       return next;
     });
   };
-  const valid = isYmd(form.startDate) && isYmd(form.endDate) && form.startDate <= form.endDate;
+  const semester2Valid =
+    !form.semester2StartDate
+    || (isYmd(form.semester2StartDate) && form.semester2StartDate > form.startDate && form.semester2StartDate <= form.endDate);
+  const valid = isYmd(form.startDate) && isYmd(form.endDate) && form.startDate <= form.endDate && semester2Valid;
   const preview = valid ? schoolYearStats(form, []) : null;
   const deleteBlocker = year ? (year.active ? 'SCHOOL_YEAR_DELETE_DEFAULT' : removal?.blocker || '') : '';
   const deleteReason = deleteBlocker ? messageFor(deleteBlocker) : '';
@@ -759,7 +774,14 @@ function YearFormModal({ year = undefined, latest = undefined, isFirst = false, 
           event.preventDefault();
           const outcome = await task.run(() =>
             year
-              ? update({ id: year._id, name: form.name, startDate: form.startDate, endDate: form.endDate, attendanceUploadDueTime: form.attendanceUploadDueTime })
+              ? update({
+                  id: year._id,
+                  name: form.name,
+                  startDate: form.startDate,
+                  endDate: form.endDate,
+                  attendanceUploadDueTime: form.attendanceUploadDueTime,
+                  semester2StartDate: form.semester2StartDate || '',
+                })
               : create(form),
           );
           if (!outcome.ok) return;
@@ -793,7 +815,20 @@ function YearFormModal({ year = undefined, latest = undefined, isFirst = false, 
             <span>Giờ nhắc thiếu điểm danh</span>
             <input type="time" value={form.attendanceUploadDueTime} onChange={(event) => setForm((current) => ({ ...current, attendanceUploadDueTime: event.target.value }))} />
           </label>
+          <label className="hr-field">
+            <span>Ngày bắt đầu học kỳ II</span>
+            <input
+              type="date"
+              value={form.semester2StartDate}
+              min={form.startDate}
+              max={form.endDate}
+              onChange={(event) => setForm((current) => ({ ...current, semester2StartDate: event.target.value }))}
+            />
+          </label>
         </div>
+        {!semester2Valid ? (
+          <p className="hr-alert hr-alert--error">Ngày bắt đầu học kỳ II phải sau ngày bắt đầu và không muộn hơn ngày kết thúc năm học.</p>
+        ) : null}
         {preview ? (
           <p className="sy-form-preview">
             <Icon name="calendar" size={15} /> {preview.weeks} tuần · khoảng <strong>{preview.schoolDays} ngày học</strong> (trước khi trừ ngày nghỉ lễ)

@@ -1,7 +1,7 @@
 ---
 id: cn-danh-sach-hoc-sinh
 title: Danh sách học sinh và hồ sơ từng em
-menu: Lớp chủ nhiệm → Học sinh
+menu: Lớp học → Lớp chủ nhiệm → Học sinh
 roles: GVCN
 keywords: hoc sinh, phu huynh, lien he, so dien thoai, lich su diem danh
 ---

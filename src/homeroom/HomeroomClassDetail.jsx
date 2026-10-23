@@ -26,6 +26,7 @@ import {
   splitAttendanceRows,
 } from './attendanceDay';
 import HomeroomRoster from './HomeroomRoster';
+import { ClassLessonLogs } from '../teaching/TeachingViews';
 import { ClassManagePanel } from './HomeroomClassCatalog';
 import { classStatusLabel } from './classCatalog';
 import {
@@ -44,6 +45,7 @@ import {
 const TABS = [
   { key: 'hoc-sinh', label: 'Học sinh', icon: 'users' },
   { key: 'diem-danh', label: 'Điểm danh', icon: 'calendar' },
+  { key: 'so-dau-bai', label: 'Sổ đầu bài', icon: 'file' },
   { key: 'bao-cao', label: 'Báo cáo', icon: 'chart' },
   { key: 'quan-ly', label: 'Quản lý lớp', icon: 'settings', managerOnly: true },
 ];
@@ -95,6 +97,8 @@ export default function HomeroomClassDetail({ classId, tab, initialDate = '', se
       <HomeroomViewErrorBoundary resetKey={current} onBack={() => nav.openClass(classId)} backLabel="Về danh sách lớp">
         {current === 'diem-danh' ? (
           <AttendanceTab classId={classId} initialDate={initialDate} nav={nav} />
+        ) : current === 'so-dau-bai' ? (
+          <ClassLessonLogs classId={classId} />
         ) : current === 'bao-cao' ? (
           <ReportsTab classId={classId} detail={detail} />
         ) : current === 'quan-ly' ? (

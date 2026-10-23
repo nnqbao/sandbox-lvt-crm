@@ -1,7 +1,7 @@
 ---
 id: cn-diem-danh-lop
 title: Điểm danh của lớp trong ngày — đánh dấu vắng không phép
-menu: Lớp chủ nhiệm → Điểm danh
+menu: Lớp học → Lớp chủ nhiệm → Điểm danh
 roles: GVCN
 keywords: vang khong phep, co phep, diem danh lop, ghi chu, ly do
 ---

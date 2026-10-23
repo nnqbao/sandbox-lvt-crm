@@ -75,6 +75,7 @@ export function validateSchoolYearInput(args: {
   startDate: string;
   endDate: string;
   attendanceUploadDueTime?: string;
+  semester2StartDate?: string;
 }) {
   const name = normalizeSchoolYearName(args.name);
   if (!name || name.length > 40) throw new Error("INVALID_NAME");
@@ -82,8 +83,18 @@ export function validateSchoolYearInput(args: {
   if (compareYmd(args.startDate, args.endDate) > 0) throw new Error("END_BEFORE_START");
   const attendanceUploadDueTime = args.attendanceUploadDueTime || DEFAULT_ATTENDANCE_UPLOAD_DUE_TIME;
   if (!isHm(attendanceUploadDueTime)) throw new Error("INVALID_TIME");
-  return { name, startDate: args.startDate, endDate: args.endDate, attendanceUploadDueTime };
+  const semester2StartDate = args.semester2StartDate?.trim() || undefined;
+  if (semester2StartDate) {
+    if (!isYmd(semester2StartDate)) throw new Error("INVALID_DATE");
+    // Học kỳ II phải bắt đầu sau ngày đầu năm và không muộn hơn ngày cuối năm học.
+    if (compareYmd(semester2StartDate, args.startDate) <= 0 || compareYmd(semester2StartDate, args.endDate) > 0) {
+      throw new Error(SEMESTER2_OUTSIDE_YEAR);
+    }
+  }
+  return { name, startDate: args.startDate, endDate: args.endDate, attendanceUploadDueTime, semester2StartDate };
 }
+
+export const SEMESTER2_OUTSIDE_YEAR = "SEMESTER2_OUTSIDE_YEAR";
 
 export function findOverlappingActiveYear(
   years: SchoolYearRow[],
@@ -117,6 +128,10 @@ export const SCHOOL_YEAR_USAGE_TABLES = [
   "studentRosterImportUploads",
   "attendanceClassDays",
   "supervisorAttendanceUploads",
+  "teacherYearProfiles",
+  "timetableSlots",
+  "lessonLogs",
+  "gradeEntries",
 ] as const;
 
 /**

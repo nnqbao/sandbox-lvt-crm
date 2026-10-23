@@ -14,6 +14,9 @@ import DutyWorkspaceTabs from './duties/DutyWorkspaceTabs';
 import WorkHub from './work/WorkHub';
 import DocumentTypeSettings from './settings/DocumentTypeSettings';
 import SchoolYearSettings from './settings/SchoolYearSettings';
+import TeacherSettings from './teaching/TeacherSettings';
+import TimetableSettings from './teaching/TimetableSettings';
+import { SubjectSettings, TestTypeSettings } from './teaching/CatalogSettings';
 import DisplaySettings from './settings/DisplaySettings';
 import DesignLibraryView from './settings/DesignLibraryView';
 import UserBulkImport from './settings/UserBulkImport';
@@ -513,6 +516,14 @@ function AppShell({ session }) {
           <DocumentTypeSettings />
         ) : active === 'school-years' && isAdmin ? (
           <SchoolYearSettings />
+        ) : active === 'teachers' && isAdmin ? (
+          <TeacherSettings />
+        ) : active === 'timetable' && isAdmin ? (
+          <TimetableSettings />
+        ) : active === 'subjects' && isAdmin ? (
+          <SubjectSettings />
+        ) : active === 'test-types' && isAdmin ? (
+          <TestTypeSettings />
         ) : active === 'display-settings' && isAdmin ? (
           <DisplaySettings />
         ) : active === 'design-library' && isAdmin ? (

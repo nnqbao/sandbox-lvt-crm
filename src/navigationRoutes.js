@@ -22,6 +22,10 @@ const MENU_PATHS = Object.freeze({
   positions: '/thiet-lap-chuc-vu',
   'document-types': '/thiet-lap-loai-van-ban',
   'school-years': '/thiet-lap-nam-hoc',
+  teachers: '/thiet-lap-giao-vien',
+  timetable: '/thiet-lap-lich-day',
+  subjects: '/thiet-lap-mon-hoc',
+  'test-types': '/thiet-lap-loai-kiem-tra',
   'display-settings': '/thiet-lap-hien-thi',
   'design-library': '/thu-vien-giao-dien',
 });
@@ -33,7 +37,7 @@ const PRIMARY_MENUS = Object.freeze([
   ['chat', 'Trao đổi'],
   ['duties', 'Lịch công tác'],
   ['work', 'Công việc'],
-  ['homeroom', 'Lớp chủ nhiệm'],
+  ['homeroom', 'Lớp học'],
   ['attendance', 'Điểm danh'],
   ['boarding', 'Bán trú'],
   ['people-review', 'Đánh giá nhân sự'],
@@ -48,6 +52,10 @@ const SUPREME_SETTINGS = Object.freeze([
   ['positions', 'Thiết lập chức vụ'],
   ['document-types', 'Thiết lập loại văn bản'],
   ['school-years', 'Thiết lập năm học'],
+  ['teachers', 'Thiết lập giáo viên'],
+  ['timetable', 'Thiết lập lịch dạy'],
+  ['subjects', 'Thiết lập môn học'],
+  ['test-types', 'Thiết lập loại kiểm tra'],
   ['display-settings', 'Thiết lập hiển thị'],
   ['design-library', 'Thư viện giao diện'],
 ]);
@@ -124,7 +132,35 @@ function normalizePathname(pathname) {
   return `/${raw.replace(/^\/+|\/+$/g, '')}`;
 }
 
+/** Settings pages with their own sub-pages (/thiet-lap-giao-vien/..., /thiet-lap-lich-day/...). */
+const SETTINGS_WITH_SUBROUTES = Object.freeze(['teachers', 'timetable']);
+
+export function settingsSubPathname(menu, ...parts) {
+  const base = MENU_PATHS[menu];
+  const rest = parts.filter(Boolean).map((part) => encodeURIComponent(part));
+  return rest.length ? `${base}/${rest.join('/')}` : base;
+}
+
+/** Path segments after the settings base path (decoded). */
+export function settingsSubPath(menu, pathname) {
+  const base = MENU_PATHS[menu];
+  const normalized = normalizePathname(pathname);
+  if (!base || (normalized !== base && !normalized.startsWith(`${base}/`))) return [];
+  return normalized.slice(base.length).split('/').filter(Boolean).map((part) => decodeURIComponent(part));
+}
+
+/** Lớp học tabs: /lop-chu-nhiem/{tab}. Path keeps the old prefix so existing links keep working. */
+export const HOMEROOM_TABS = Object.freeze({
+  homeroom: 'chu-nhiem',
+  teaching: 'giang-day',
+  schedule: 'lich-day',
+  gradebook: 'hoc-ba',
+});
+
 export function homeroomPathname(args = {}) {
+  if (args.gradebookStudentId) return `/lop-chu-nhiem/hoc-ba/hoc-sinh/${encodeURIComponent(args.gradebookStudentId)}`;
+  if (args.gradebookClassId) return `/lop-chu-nhiem/hoc-ba/lop/${encodeURIComponent(args.gradebookClassId)}`;
+  if (args.section && HOMEROOM_TABS[args.section]) return `/lop-chu-nhiem/${HOMEROOM_TABS[args.section]}`;
   if (args.studentId) return `/lop-chu-nhiem/hoc-sinh/${encodeURIComponent(args.studentId)}`;
   if (args.manageClasses) return '/lop-chu-nhiem/quan-ly-lop';
   if (args.classId && args.tab) {
@@ -187,6 +223,9 @@ export function routeForPathname(pathname) {
       dutyPath: parsed?.dutyPath || DUTY_MENU_PATH,
     };
   }
+  for (const menu of SETTINGS_WITH_SUBROUTES) {
+    if (normalized.startsWith(`${MENU_PATHS[menu]}/`)) return { menu, reportSection: undefined };
+  }
   const alias = HIDDEN_MENU_ALIASES[normalized];
   if (alias) {
     return {
@@ -239,6 +278,10 @@ const GUIDE_ANCHORS = Object.freeze({
   positions: 'tl-chuc-vu',
   'document-types': 'tl-loai-van-ban',
   'school-years': 'nh-thiet-lap-nam-hoc',
+  teachers: 'tl-giao-vien',
+  timetable: 'tl-lich-day',
+  subjects: 'tl-mon-hoc',
+  'test-types': 'tl-loai-kiem-tra',
   'display-settings': 'tl-hien-thi',
   'design-library': 'menu-thiet-lap',
 });
