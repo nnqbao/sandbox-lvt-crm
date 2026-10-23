@@ -185,3 +185,15 @@ test('timetable only schedules a teacher in their Lớp giảng dạy; quick pic
   const page = read('src/teaching/TeacherSettings.jsx');
   assert.match(page, /schedule\.teachingClassIds\.includes\(row\._id\)/, 'Thêm lịch dạy lists only Lớp giảng dạy');
 });
+
+test('Lớp giảng dạy needs Môn giảng dạy; multi-subject teachers pick a subject per tiết', () => {
+  const teachers = read('convex/teachers.ts');
+  assert.match(teachers, /if \(classIds\.length && !subjectIds\.length\) throw new Error\(TEACHER_SUBJECTS_REQUIRED\)/);
+  const page = read('src/teaching/TeacherSettings.jsx');
+  assert.match(page, /Vui lòng chọn môn giảng dạy trước\./);
+  const editor = read('src/teaching/TimetableEditor.jsx');
+  assert.match(editor, /— Chọn môn —/);
+  assert.match(editor, /missingSubject > 0/, 'save is blocked until every ticked tiết has a subject');
+  const timetable = read('convex/timetable.ts');
+  assert.match(timetable, /info\.subjectIds\.length === 1 \? info\.subjectIds\[0\] : ""/, 'server requires a subject for multi-subject teachers');
+});

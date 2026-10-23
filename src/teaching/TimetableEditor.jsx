@@ -52,10 +52,8 @@ function Editor({ data, mode, teacherId }) {
   const [draft, setDraft] = useState(() => new Map());
   const subjectNames = useMemo(() => new Map(data.subjects.map((row) => [row._id, row.name])), [data.subjects]);
   const teacher = data.teachers.find((row) => row._id === teacherId);
-  const [teacherSubject, setTeacherSubject] = useState(() => {
-    const used = data.slots.find((slot) => slot.teacherId === teacherId)?.subjectId;
-    return used && teacher?.subjectIds.includes(used) ? used : teacher?.subjectIds[0] || '';
-  });
+  // Giáo viên một môn: tự gán môn. Nhiều môn: mỗi tiết tick phải chọn môn riêng.
+  const singleSubject = teacher?.subjectIds.length === 1 ? teacher.subjectIds[0] : '';
 
   const baseline = useMemo(() => {
     const map = new Map();
@@ -79,6 +77,7 @@ function Editor({ data, mode, teacherId }) {
     const base = baseline.get(key);
     return (base?.teacherId || '') !== (next?.teacherId || '') || (next && base?.subjectId !== next.subjectId);
   });
+  const missingSubject = changes.filter(([, next]) => next && !next.subjectId).length;
   const locked = year.locked || data.class.status === 'archived';
   const remainingDays = countTeachingDays(effectiveFrom, year, holidays);
 
@@ -145,18 +144,14 @@ function Editor({ data, mode, teacherId }) {
               <h3>{teacher.name}</h3>
               <p className="hr-muted">Tick các tiết giáo viên dạy ở {classLabel(data.class.name, { lower: true })}. Ô màu xám đã có giáo viên khác hoặc trùng giờ với lớp khác.</p>
             </div>
-            {teacher.subjectIds.length > 1 ? (
-              <label className="hr-field">
-                <span>Môn dạy ở lớp này</span>
-                <select value={teacherSubject} onChange={(event) => setTeacherSubject(event.target.value)}>
-                  {teacher.subjectIds.map((id) => (
-                    <option key={id} value={id}>{subjectNames.get(id) || 'Môn học'}</option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <span className="tc-chip tc-chip--teal">{subjectNames.get(teacher.subjectIds[0]) || 'Môn học'}</span>
-            )}
+            <div className="hr-stack hr-stack--tight">
+              <span className="tc-chip-list">
+                {teacher.subjectIds.map((id) => (
+                  <span key={id} className="tc-chip tc-chip--teal">{subjectNames.get(id) || 'Môn học'}</span>
+                ))}
+              </span>
+              {teacher.subjectIds.length > 1 ? <span className="hr-sub">Giáo viên dạy nhiều môn: chọn môn cho từng tiết đã tick.</span> : null}
+            </div>
           </div>
         </div>
       ) : null}
@@ -205,8 +200,11 @@ function Editor({ data, mode, teacherId }) {
                           otherClass={busyAt.get(`${teacherId}|${key}`)}
                           otherTeacherName={value && value.teacherId !== teacherId ? teacherNames.get(value.teacherId) || value.teacherName || 'Giáo viên khác' : ''}
                           subjectName={value ? subjectNames.get(value.subjectId) || '' : ''}
+                          subjectId={value?.subjectId || ''}
+                          subjectOptions={teacher.subjectIds.length > 1 ? teacher.subjectIds.map((id) => ({ id, name: subjectNames.get(id) || 'Môn học' })) : null}
                           label={`${WEEKDAY_LABELS[weekday]}, tiết ${period} ${SESSION_LABELS[session].toLowerCase()}`}
-                          onToggle={(checked) => setCell(key, checked ? { teacherId, subjectId: teacherSubject } : null)}
+                          onToggle={(checked) => setCell(key, checked ? { teacherId, subjectId: singleSubject } : null)}
+                          onSubject={(subjectId) => setCell(key, { teacherId, subjectId })}
                         />
                       )}
                     </td>
@@ -235,13 +233,17 @@ function Editor({ data, mode, teacherId }) {
           />
         </label>
         <div className="hr-row hr-row--wrap">
-          <span className="hr-muted">{changes.length ? `${changes.length} tiết thay đổi` : 'Chưa có thay đổi'}</span>
+          <span className={missingSubject ? 'tc-conflict' : 'hr-muted'}>
+            {missingSubject
+              ? `Chọn môn cho ${missingSubject} tiết đã tick`
+              : changes.length ? `${changes.length} tiết thay đổi` : 'Chưa có thay đổi'}
+          </span>
           {changes.length ? (
             <button type="button" className="hr-button hr-button--ghost" disabled={task.pending} onClick={() => setDraft(new Map())}>
               Hoàn tác
             </button>
           ) : null}
-          <button type="button" className="primary-button" disabled={locked || task.pending || !changes.length} onClick={() => void save()}>
+          <button type="button" className="primary-button" disabled={locked || task.pending || !changes.length || missingSubject > 0} onClick={() => void save()}>
             <Icon name="check" size={15} /> {task.pending ? 'Đang lưu…' : 'Lưu lịch dạy'}
           </button>
         </div>
@@ -288,7 +290,20 @@ function ClassCell({ cellKeyValue, value, changed, disabled, teachers, subjects,
   );
 }
 
-function TeacherCell({ value, changed, disabled, teacherId, otherClass, otherTeacherName, subjectName, label, onToggle }) {
+function TeacherCell({
+  value,
+  changed,
+  disabled,
+  teacherId,
+  otherClass,
+  otherTeacherName,
+  subjectName,
+  subjectId,
+  subjectOptions,
+  label,
+  onToggle,
+  onSubject,
+}) {
   if (otherTeacherName) {
     return (
       <div className="tc-cell is-blocked">
@@ -309,8 +324,23 @@ function TeacherCell({ value, changed, disabled, teacherId, otherClass, otherTea
     <div className={`tc-cell${checked ? ' is-mine' : ''}${changed ? ' is-changed' : ''}`}>
       <label>
         <input type="checkbox" checked={checked} disabled={disabled} aria-label={label} onChange={(event) => onToggle(event.target.checked)} />
-        <span>{checked ? subjectName || 'Dạy' : 'Không dạy'}</span>
+        <span>{checked ? (subjectOptions ? 'Dạy' : subjectName || 'Dạy') : 'Không dạy'}</span>
       </label>
+      {checked && subjectOptions ? (
+        <select
+          aria-label={`${label}: môn dạy`}
+          aria-invalid={!subjectId}
+          className={!subjectId ? 'is-missing' : undefined}
+          value={subjectId}
+          disabled={disabled}
+          onChange={(event) => onSubject(event.target.value)}
+        >
+          <option value="">— Chọn môn —</option>
+          {subjectOptions.map((option) => (
+            <option key={option.id} value={option.id}>{option.name}</option>
+          ))}
+        </select>
+      ) : null}
     </div>
   );
 }

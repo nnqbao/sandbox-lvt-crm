@@ -160,6 +160,7 @@ function TeacherList({ yearState, catalog, subjectNames }) {
                           tone="blue"
                           label={`Lớp giảng dạy của ${row.name}`}
                           disabled={locked}
+                          blockedReason={!row.subjectIds.length && !row.teachingClasses.length ? 'Vui lòng chọn môn giảng dạy trước.' : ''}
                           onEdit={() => setPicking({ kind: 'teaching', teacher: row })}
                         />
                       </td>
@@ -219,21 +220,27 @@ function ChipList({ items, tone = '', empty }) {
 }
 
 /** Lớp giảng dạy / Lớp chủ nhiệm: chips + nút (+) khi trống, nút sửa khi đã có. */
-function ClassCell({ items, tone = '', label, disabled, onEdit }) {
+function ClassCell({ items, tone = '', label, disabled, onEdit, blockedReason = '' }) {
   const empty = !items.length;
+  const [hint, setHint] = useState(false);
   return (
-    <div className="hr-row hr-row--wrap">
-      {empty ? null : <ChipList items={items.map((item) => item.name)} tone={tone} empty="—" />}
-      <button
-        type="button"
-        className={`hr-icon-button${empty ? ' tc-add-button' : ''}`}
-        onClick={onEdit}
-        disabled={disabled}
-        aria-label={`${empty ? 'Thêm' : 'Sửa'} ${label.charAt(0).toLowerCase()}${label.slice(1)}`}
-        title={empty ? 'Chọn nhanh' : 'Sửa'}
-      >
-        <Icon name={empty ? 'plus' : 'edit'} size={15} />
-      </button>
+    <div className="hr-stack hr-stack--tight">
+      <div className="hr-row hr-row--wrap">
+        {empty ? null : <ChipList items={items.map((item) => item.name)} tone={tone} empty="—" />}
+        <button
+          type="button"
+          className={`hr-icon-button${empty ? ' tc-add-button' : ''}${blockedReason ? ' is-blocked' : ''}`}
+          // Vẫn bấm được để hiện lý do (nút disabled thật không hiện được thông báo).
+          onClick={blockedReason ? () => setHint(true) : onEdit}
+          disabled={disabled}
+          aria-disabled={blockedReason ? 'true' : undefined}
+          aria-label={`${empty ? 'Thêm' : 'Sửa'} ${label.charAt(0).toLowerCase()}${label.slice(1)}`}
+          title={blockedReason || (empty ? 'Chọn nhanh' : 'Sửa')}
+        >
+          <Icon name={empty ? 'plus' : 'edit'} size={15} />
+        </button>
+      </div>
+      {blockedReason && hint ? <span className="tc-cell-hint" role="status">{blockedReason}</span> : null}
     </div>
   );
 }

@@ -24,6 +24,7 @@ import { slotCoversDate, slotReachesDate } from "./teachingPolicy";
 export const TEACHER_SUBJECT_IN_USE = "TEACHER_SUBJECT_IN_USE";
 export const TEACHER_SCHEDULE_FORBIDDEN = "TEACHER_SCHEDULE_FORBIDDEN";
 export const TEACHER_CLASS_IN_USE = "TEACHER_CLASS_IN_USE";
+export const TEACHER_SUBJECTS_REQUIRED = "TEACHER_SUBJECTS_REQUIRED";
 
 /** Previous school year by start date — Môn giảng dạy of a new year defaults to it. */
 async function previousYearId(ctx: any, year: { _id: unknown; startDate: string }) {
@@ -184,16 +185,19 @@ export const setTeachingClasses = mutation({
     }
     const now = Date.now();
     const existing = await profileFor(ctx, args.schoolYearId, args.userId);
+    // Phải có Môn giảng dạy (của năm, hoặc kế thừa năm trước) trước khi nhận lớp.
+    const prevYearId = existing ? "" : await previousYearId(ctx, year);
+    const inheritedSubjects = prevYearId ? (await profileFor(ctx, prevYearId, args.userId))?.subjectIds || [] : [];
+    const subjectIds = existing ? existing.subjectIds : inheritedSubjects;
+    if (classIds.length && !subjectIds.length) throw new Error(TEACHER_SUBJECTS_REQUIRED);
     if (existing) {
       await ctx.db.patch(existing._id, { teachingClassIds: classIds, updatedBy: String(admin._id), updatedAt: now });
     } else {
       // Hồ sơ năm mới: giữ Môn giảng dạy kế thừa từ năm trước.
-      const prevId = await previousYearId(ctx, year);
-      const previous = prevId ? await profileFor(ctx, prevId, args.userId) : null;
       await ctx.db.insert("teacherYearProfiles", {
         schoolYearId: args.schoolYearId,
         userId: args.userId,
-        subjectIds: previous?.subjectIds || [],
+        subjectIds,
         teachingClassIds: classIds,
         updatedBy: String(admin._id),
         createdAt: now,

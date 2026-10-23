@@ -9,7 +9,7 @@ Danh sách giáo viên theo phòng ban, kèm Môn giảng dạy, Lớp giảng d
 
 1. Dùng mũi tên ‹ › ở trên cùng để chuyển năm học (mặc định là năm học mặc định trong Thiết lập năm học).
 2. Bấm biểu tượng bút ở cột **Môn giảng dạy** để chọn môn rồi **Lưu**. Năm học mới tự lấy môn của năm trước (thẻ **Từ năm trước**).
-3. Ở cột **Lớp giảng dạy**, bấm dấu **(+)** (hoặc bút nếu đã có lớp) và tick các lớp giáo viên dạy, rồi **Lưu**.
+3. Ở cột **Lớp giảng dạy**, bấm dấu **(+)** (hoặc bút nếu đã có lớp) và tick các lớp giáo viên dạy, rồi **Lưu**. Giáo viên chưa có Môn giảng dạy thì nút **(+)** mờ: chọn môn trước.
 4. Ở cột **Lớp chủ nhiệm**, bấm **(+)** và chọn một lớp. Giáo viên làm GVCN từ hôm nay; nếu lớp đang có GVCN khác thì GVCN đó kết thúc từ hôm qua.
 5. Bấm **Xem lịch** để mở lịch dạy cả năm (Danh sách, Tuần, Tháng, Quý, Năm), rồi **Thêm lịch dạy**: chỉ hiện các Lớp giảng dạy đã chọn. Chọn lớp, tick các tiết (Thứ 2 – Thứ 6, 5 tiết sáng + 5 tiết chiều; không cần tick đủ), chọn **Áp dụng từ ngày** và bấm **Lưu lịch dạy**.
 

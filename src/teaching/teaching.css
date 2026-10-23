@@ -145,3 +145,6 @@ button.tc-score:hover { border-color: var(--lvt-teal); background: var(--lvt-suc
 .tc-pick input { width: 18px; height: 18px; accent-color: var(--lvt-teal); }
 .tc-pick span { display: grid; gap: 2px; }
 .tc-pick small { color: var(--lvt-muted); font-size: 12px; font-weight: 600; }
+.tc-cell select.is-missing { border-color: var(--lvt-coral); background: var(--lvt-danger-bg); }
+.tc-add-button.is-blocked { color: var(--lvt-muted); border-color: var(--lvt-line); background: var(--lvt-surface-muted); opacity: .6; cursor: not-allowed; }
+.tc-cell-hint { color: var(--lvt-danger-text); font-size: 12px; font-weight: 600; line-height: 1.4; }
