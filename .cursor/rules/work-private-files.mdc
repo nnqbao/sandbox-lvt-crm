@@ -31,7 +31,7 @@ Full text: `CLAUDE.md` sections **Work-document** / **Private file and cache** /
 
 - New uploads = private Convex File Storage (`cvx_<storageId>` in `driveFileId`) via gateway → Convex HTTP `/lvt-files/upload` (re-authorized, staged atomically); legacy Drive ids and `fileId` rows stay readable
 - Never return Drive or Convex Storage URLs to the browser; always `/api/files/:documentId` after auth (gateway reads `cvx_` bytes from `/lvt-files/object`, no `getUrl`)
-- Legacy `fileId` uses the same gateway + 24-hour server cache as Drive
+- Convex-stored files (`cvx_` + legacy `fileId`) are relayed in memory, never written to the gateway disk; only legacy Drive objects use the 24-hour disk cache
 - Authorize before serving shared cache or client local cache; metadata `private, no-store`
 - Version via SHA-256 `fileVersion` when possible; stale local content must not bypass auth/version failure
 - Purpose-scoped cleanup (`work` vs `people-review`); no cross-module auth fallback

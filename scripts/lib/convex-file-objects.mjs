@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { FileHttpError } from './file-http-errors.mjs';
 
 /**
@@ -72,12 +72,14 @@ export async function storeConvexObject({
   return uploaded;
 }
 
-/** Downloads an authorized object into `destination`; rejects empty or checksum-mismatched bytes. */
-export async function fetchConvexObject({
+/**
+ * Reads an authorized object into memory (≤ 20 MiB); rejects empty or checksum-mismatched bytes.
+ * Convex-stored files are never written to the gateway's disk.
+ */
+export async function readConvexObject({
   siteUrl,
   token,
   query,
-  destination,
   expectedChecksum,
   fetchImpl = fetch,
 }) {
@@ -96,5 +98,5 @@ export async function fetchConvexObject({
   if (expectedChecksum && createHash('sha256').update(bytes).digest('hex') !== expectedChecksum) {
     throw new FileHttpError(502, 'FILE_CHECKSUM_MISMATCH');
   }
-  await writeFile(destination, bytes, { mode: 0o600 });
+  return bytes;
 }

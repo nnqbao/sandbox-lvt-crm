@@ -95,9 +95,8 @@
 
 - New work uploads are private Convex Storage objects (`cvx_` keys); a `cvx_` key can be staged only for a fresh (≤10 min), non-empty, ≤20 MiB object no other stage owns (`storedObjectRegistrable`). Convex deletes the object inside the authorized cleanup mutation (staged-upload cleanup / cleanup job), never while an active record references it.
 - Never return Drive links or Convex `storage.getUrl()` to the browser. Preview/download always go through `/api/files/:documentId` after authorization. For `cvx_` objects the gateway fetches bytes from the Convex HTTP route `/lvt-files/object`, which re-runs `authorizeFileDownload` with the user's token; no storage URL is minted.
-- Legacy `fileId` (Convex Storage) uses the same authorized gateway and 24-hour server cache as Drive objects.
+- Files stored in Convex (`cvx_` objects and legacy `fileId` rows) pass through the gateway in memory only and are never written to its disk (no server cache, no upload prewarm); ETag stays the former cache key so client copies remain valid. Only legacy Drive objects still use the 24-hour disk cache.
 - Prefer SHA-256 checksum as `fileVersion`; fallback is Drive identity plus size, or `convex-storage:{fileId}:{size}` for unmigrated files.
-- Upload prewarm copies the already received file into shared server cache. It is best-effort: cache failure must not turn a valid Drive upload/database commit into a failed business operation.
 - Shared cache remains authorize-first, atomic, bounded by TTL/size, single-flight, and concurrency-limited.
 - Do not cache failed, partial, empty, unauthorized, forbidden, or not-found responses.
 - Each web/iOS preview of a private work file must first call the authenticated no-store metadata endpoint and compare `fileVersion`.

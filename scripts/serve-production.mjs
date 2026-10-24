@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
-import { copyFile, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -16,8 +16,8 @@ import { AsyncSemaphore, DriveFileCache, DRIVE_CACHE_TTL_MS, workFileCacheIdenti
 import { retryDriveDownload } from './lib/drive-download-retry.mjs';
 import {
   convexSiteUrl,
-  fetchConvexObject,
   isConvexObjectKey,
+  readConvexObject,
   storeConvexObject,
 } from './lib/convex-file-objects.mjs';
 import { downloadContentPolicy } from './lib/file-content-policy.mjs';
@@ -298,16 +298,6 @@ async function uploadPrivateFile(request, response) {
       driveChecksum,
     };
     await uploadStages.add(cleanupToken, stage);
-    try {
-      await driveFileCache.getOrCreate(
-        workFileCacheIdentity({ driveFileId: uploaded.driveFileId, driveChecksum, fileSize: received }),
-        (destination) => copyFile(temporaryFile, destination),
-      );
-    } catch (cacheError) {
-      console.error('LVT upload prewarm failed', {
-        code: cacheError instanceof Error ? cacheError.message : 'UNKNOWN',
-      });
-    }
 
     response.writeHead(201, {
       'Cache-Control': 'no-store',
@@ -360,33 +350,48 @@ async function downloadDriveFile(destination, file, requestLabel) {
   ));
 }
 
-async function downloadLegacyStorageFile(destination, file) {
+async function readLegacyStorageFile(file) {
   if (!file.storageUrl) throw new Error('WORK_FILE_NOT_FOUND');
   const response = await fetch(file.storageUrl);
   if (!response.ok) throw new Error('WORK_FILE_NOT_FOUND');
   const bytes = Buffer.from(await response.arrayBuffer());
   if (!bytes.length) throw new Error('EMPTY_FILE');
-  await writeFile(destination, bytes);
+  return bytes;
 }
 
+/**
+ * Files stored in Convex (`cvx_` objects and legacy `fileId` rows) pass through memory only: the
+ * gateway never writes school files to its disk. Legacy Drive objects keep the 24-hour disk cache
+ * because `gog` downloads to a file.
+ */
 async function serveAuthorizedDriveFile(request, response, file, requestLabel, convexQuery) {
   const sourceIdentity = workFileCacheIdentity(file);
+  if (!file.driveFileId || isConvexObjectKey(file.driveFileId)) {
+    // Same ETag as the former cache entry, so browser/app copies stay valid.
+    const etag = `"${driveFileCache.keyFor(sourceIdentity)}"`;
+    response.setHeader('Vary', 'Authorization');
+    if (request.headers['if-none-match'] === etag) {
+      applyPrivateDownloadHeaders(response, file.fileName, undefined, etag, 'REVALIDATED');
+      response.writeHead(304);
+      response.end();
+      return;
+    }
+    const bytes = await driveDownloadSemaphore.run(() => (file.driveFileId
+      ? readConvexObject({
+        siteUrl: convexSite,
+        token: bearerToken(request),
+        query: convexQuery,
+        expectedChecksum: file.driveChecksum || null,
+      })
+      : readLegacyStorageFile(file)));
+    applyPrivateDownloadHeaders(response, file.fileName, bytes.length, etag, 'BYPASS');
+    response.writeHead(200);
+    response.end(bytes);
+    return;
+  }
   const entry = await driveFileCache.getOrCreate(
     sourceIdentity,
-    (destination) => {
-      if (isConvexObjectKey(file.driveFileId)) {
-        return fetchConvexObject({
-          siteUrl: convexSite,
-          token: bearerToken(request),
-          query: convexQuery,
-          destination,
-          expectedChecksum: file.driveChecksum || null,
-        });
-      }
-      return file.driveFileId
-        ? downloadDriveFile(destination, file, requestLabel)
-        : downloadLegacyStorageFile(destination, file);
-    },
+    (destination) => downloadDriveFile(destination, file, requestLabel),
   );
   applyPrivateDownloadHeaders(response, file.fileName, entry.size, entry.etag, entry.cacheStatus);
   response.setHeader('Vary', 'Authorization');
