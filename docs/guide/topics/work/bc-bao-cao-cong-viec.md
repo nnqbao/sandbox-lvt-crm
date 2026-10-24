@@ -8,7 +8,7 @@ keywords: bao cao, kpi, dung han, tre han, chat luong, thang, quy, nam
 Xem lịch công việc của mình hoặc của người trong phạm vi được xem, kèm số liệu đúng hạn, trễ hạn.
 
 1. Mở menu **Báo cáo** → **Công việc**.
-2. Chọn người ở cột **Nhân sự** [[1]] (người thường chỉ thấy tổ mình; BGH thấy toàn trường).
+2. Chọn người ở cột **Nhân sự** [[1]] (giáo viên chỉ thấy lịch của mình; tổ trưởng thấy mình và người cấp dưới trong tổ; người có mức **Xem tối cao** ở dòng Báo cáo, thường là BGH, thấy toàn trường).
 3. Chọn **Tuần**, **Tháng**, **Quý** hoặc **Năm** [[2]]; dùng **‹ Hôm nay ›** để đổi kỳ.
 4. Hàng số liệu [[3]]: tổng việc, hoàn thành đúng hạn, hoàn thành trễ, chưa hoàn thành.
 5. Bấm một việc trên lịch [[4]] để xem trạng thái, hạn và **chất lượng (%)**.
