@@ -66,3 +66,32 @@ test('the mock timetable editor order matches the app: effective date first, the
   const lichDay = read('docs/guide/topics/settings/tl-lich-day.md');
   assert.ok(lichDay.indexOf('**trước khi đổi ô**') < lichDay.indexOf('Ở mỗi ô (thứ × tiết)'));
 });
+
+test('narration splits at the pauses that best fit each segment, not just the longest ones', async () => {
+  const { alignSegments } = await import('../scripts/guide-videos/align-voice.mjs');
+  // Three segments of 10, 20 and 10 characters; a long mid-sentence pause sits inside segment 2.
+  const texts = ['a'.repeat(10), 'b'.repeat(20), 'c'.repeat(10)];
+  const pauses = [
+    { start: 0, end: 0.2, length: 0.2 },
+    { start: 2.0, end: 2.5, length: 0.5 }, // end of segment 1
+    { start: 4.0, end: 4.8, length: 0.8 }, // breath inside segment 2 (longest pause!)
+    { start: 6.3, end: 6.8, length: 0.5 }, // end of segment 2
+    { start: 8.9, end: 9.5, length: 0.6 },
+  ];
+  const segments = alignSegments(texts, pauses, 9.5);
+  assert.deepEqual(segments.map((row) => [row.start, row.end]), [[0.2, 2.25], [2.25, 6.55], [6.55, 8.9]]);
+});
+
+test('a video with narration keeps every caption on screen until its voice segment ends', () => {
+  const run = read('scripts/guide-videos/run.mjs');
+  assert.match(run, /if \(step\.caption !== undefined \|\| step\.card \|\| step\.chapter\) await this\.waitForVoice\(\);/);
+  assert.match(run, /this\.speakUntil = this\.seconds \+ this\.voice\[index\] \+ 0\.5;/);
+  assert.match(run, /video có \$\{recorder\.voiceIndex\} câu phụ đề nhưng giọng đọc có/);
+  const voice = JSON.parse(read('scripts/guide-videos/voice/lh-lop-hoc.json'));
+  const texts = JSON.parse(read('scripts/guide-videos/voiceover.json'))['lh-lop-hoc'];
+  assert.equal(voice.segments.length, texts.length);
+  for (const [i, row] of voice.segments.entries()) {
+    assert.ok(row.end > row.start, `segment ${i}`);
+    if (i) assert.equal(row.start, voice.segments[i - 1].end, `segment ${i} follows segment ${i - 1}`);
+  }
+});

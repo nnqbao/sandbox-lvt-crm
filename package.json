@@ -17,7 +17,8 @@
     "convex:deploy": "./scripts/lvt-convex-cloud-env.sh prod ./node_modules/.bin/convex deploy",
     "guide:build": "node scripts/build-guide.mjs",
     "guide:shots": "node scripts/guide-shots/run.mjs",
-    "guide:videos": "node scripts/guide-videos/run.mjs"
+    "guide:videos": "node scripts/guide-videos/run.mjs",
+    "guide:voice": "node scripts/guide-videos/align-voice.mjs"
   },
   "dependencies": {
     "@auth/core": "0.41.3",

@@ -12,7 +12,7 @@
 // highlight, caption) and captures one or more frames with a display duration; ffmpeg
 // turns the list into a constant-frame-rate MP4. Slow, readable pacing is the point.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -63,13 +63,36 @@ export function readTime(text) {
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
 class Recorder {
-  constructor(page, dir) {
+  /** voice: narration segment lengths (seconds) in caption order, or null for a silent video. */
+  constructor(page, dir, voice = null) {
     this.page = page;
     this.dir = dir;
     this.frames = [];
     this.last = null;
     this.state = { step: '', caption: '', cursor: false };
     this.chapters = [];
+    this.voice = voice;
+    this.voiceIndex = 0;
+    this.cues = []; // { index, at }: narration segment `index` starts at `at` seconds
+    this.clicks = []; // seconds of each click (sound effect)
+    this.speakUntil = 0;
+  }
+
+  /** Hold the current frame until the running narration segment (plus a breath) has finished. */
+  async waitForVoice() {
+    const missing = this.speakUntil - this.seconds;
+    if (missing > 0 && this.last) this.last.duration += missing;
+  }
+
+  /** Start the next narration segment now; returns its length (0 when the video has no voice). */
+  speak() {
+    if (!this.voice) return 0;
+    const index = this.voiceIndex;
+    if (index >= this.voice.length) throw new Error(`video: thiếu đoạn giọng đọc số ${index}`);
+    this.voiceIndex += 1;
+    this.cues.push({ index, at: this.seconds });
+    this.speakUntil = this.seconds + this.voice[index] + 0.5;
+    return this.voice[index];
   }
 
   v(call) {
@@ -148,6 +171,7 @@ class Recorder {
   }
 
   async press() {
+    this.clicks.push(this.seconds);
     for (const size of [26, 44, 60]) {
       await this.v(`ripple(${size})`);
       await this.snap(0.07);
@@ -159,6 +183,8 @@ class Recorder {
   }
 
   async run(step, baseUrl) {
+    // A new caption or card waits for the previous narration, so chapters start on a clean cut.
+    if (step.caption !== undefined || step.card || step.chapter) await this.waitForVoice();
     if (step.chapter) this.chapters.push({ title: step.chapter, start: Math.round(this.seconds * 10) / 10 });
     if (step.chapter && Object.keys(step).length === 1) return;
     if (step.scene) {
@@ -169,7 +195,8 @@ class Recorder {
     if (step.card) {
       await this.v(`card(${J(step.card.kicker || '')}, ${J(step.card.title)}, ${J(step.card.text || '')})`);
       await this.v('cursorShow(false)');
-      await this.snap(step.hold ?? 5);
+      const spoken = this.speak();
+      await this.snap(Math.max(step.hold ?? 5, spoken ? spoken + 0.6 : 0));
       await this.v('card()');
       if (this.state.cursor) await this.v('cursorShow(true)');
       return;
@@ -180,12 +207,14 @@ class Recorder {
       if (step.step !== undefined) this.state.step = step.step;
       this.state.caption = step.caption;
       await this.v(`caption(${J(this.state.step)}, ${J(step.caption)})`);
+      const spoken = this.speak();
       if (!step.click && !step.type && !step.fill && !step.choose && !step.highlight && !step.point) {
         await this.v('placeCaption()');
-        await this.snap(step.hold ?? readTime(step.caption));
+        // With narration the next caption waits for the voice (waitForVoice); without it, reading time.
+        await this.snap(step.hold ?? (spoken ? 0.6 : readTime(step.caption)));
         return;
       }
-      await this.snap(readTime(step.caption) * 0.6);
+      await this.snap(spoken ? Math.min(readTime(step.caption) * 0.6, Math.max(0.8, spoken * 0.4)) : readTime(step.caption) * 0.6);
     }
     if (step.clear && step.caption === undefined && !step.highlight && !step.click && !step.type && !step.fill && !step.choose && !step.point) {
       await this.snap(0.2);
@@ -286,6 +315,38 @@ class Recorder {
   }
 }
 
+const CLICK_VOLUME = 0.35;
+
+/** Narration + click sound track for the timeline, muxed into the silent video. */
+function addAudio({ videoFile, outFile, dir, voiceFile, segments, cues, clicks, seconds }) {
+  const inputs = [];
+  const parts = [];
+  for (const [n, cue] of cues.entries()) {
+    const { start, end } = segments[cue.index];
+    const clip = join(dir, `voice-${n}.wav`);
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', String(start), '-to', String(end), '-i', voiceFile, '-ac', '1', '-ar', '48000', clip]);
+    inputs.push('-i', clip);
+    parts.push(`[${n}:a]adelay=${Math.round(cue.at * 1000)}:all=1[v${n}]`);
+  }
+  const click = join(dir, 'click.wav');
+  // A soft "tick": 25 ms of a 1.9 kHz tone with a fast decay.
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'sine=frequency=1900:sample_rate=48000:duration=0.025', '-af', `afade=t=out:st=0:d=0.025,volume=${CLICK_VOLUME}`, click]);
+  const clickInput = cues.length;
+  inputs.push('-i', click);
+  const labels = cues.map((_, n) => `[v${n}]`);
+  if (clicks.length) {
+    parts.push(`[${clickInput}:a]asplit=${clicks.length}${clicks.map((_, n) => `[c${n}]`).join('')}`);
+    for (const [n, at] of clicks.entries()) {
+      parts.push(`[c${n}]adelay=${Math.round(at * 1000)}:all=1[k${n}]`);
+      labels.push(`[k${n}]`);
+    }
+  }
+  parts.push(`${labels.join('')}amix=inputs=${labels.length}:normalize=0:duration=longest,apad=whole_dur=${seconds.toFixed(3)},atrim=0:${seconds.toFixed(3)}[mix]`);
+  const audio = join(dir, 'audio.m4a');
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', parts.join(';'), '-map', '[mix]', '-c:a', 'aac', '-b:a', '96k', audio]);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', videoFile, '-i', audio, '-map', '0:v', '-map', '1:a', '-c', 'copy', '-movflags', '+faststart', '-shortest', outFile]);
+}
+
 function encode(frames, dir, outFile) {
   const list = frames.map((frame) => `file '${frame.file}'\nduration ${frame.duration.toFixed(3)}`);
   list.push(`file '${frames[frames.length - 1].file}'`); // concat demuxer drops the last duration otherwise
@@ -302,8 +363,19 @@ function poster(frameFile, outFile) {
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', frameFile, '-vf', 'scale=1280:-1', '-c:v', 'libwebp', '-quality', '72', outFile], { stdio: 'inherit' });
 }
 
-async function record(page, baseUrl, video, frameDir) {
-  const recorder = new Recorder(page, frameDir);
+/** Narration recorded for this video (npm run guide:voice), or null. */
+function loadVoice(id) {
+  const meta = join(here, 'voice', `${id}.json`);
+  const file = join(here, 'voice', `${id}.m4a`);
+  if (!existsSync(meta) || !existsSync(file)) return null;
+  const { segments } = JSON.parse(readFileSync(meta, 'utf8'));
+  const texts = JSON.parse(readFileSync(join(here, 'voiceover.json'), 'utf8'))[id] || [];
+  if (segments.length !== texts.length) throw new Error(`${id}: ${segments.length} đoạn giọng nhưng voiceover.json có ${texts.length}`);
+  return { file, segments, lengths: segments.map((row) => row.end - row.start) };
+}
+
+async function record(page, baseUrl, video, frameDir, voice) {
+  const recorder = new Recorder(page, frameDir, voice?.lengths || null);
   await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: SCALE, mobile: false });
   const [first, ...rest] = video.scenes;
   await recorder.load(baseUrl, first);
@@ -317,7 +389,11 @@ async function record(page, baseUrl, video, frameDir) {
   await recorder.v('caption()');
   await recorder.v('clearHighlights()');
   await recorder.run({ card: { kicker: 'Hoàn thành', title: video.title, text: video.outro || 'Cảm ơn thầy cô đã theo dõi. Xem thêm hướng dẫn chi tiết bên dưới video.' }, hold: 4 }, baseUrl);
-  return { frames: recorder.frames, posterFrame, seconds: recorder.seconds, chapters: recorder.chapters };
+  await recorder.waitForVoice();
+  if (voice && recorder.voiceIndex !== voice.lengths.length) {
+    throw new Error(`${video.id}: video có ${recorder.voiceIndex} câu phụ đề nhưng giọng đọc có ${voice.lengths.length} đoạn`);
+  }
+  return { frames: recorder.frames, posterFrame, seconds: recorder.seconds, chapters: recorder.chapters, cues: recorder.cues, clicks: recorder.clicks };
 }
 
 async function main() {
@@ -343,9 +419,16 @@ async function main() {
       rmSync(frameDir, { recursive: true, force: true });
       mkdirSync(frameDir, { recursive: true });
       try {
-        const { frames, posterFrame, seconds, chapters } = await record(page, baseUrl, video, frameDir);
+        const voice = loadVoice(video.id);
+        const { frames, posterFrame, seconds, chapters, cues, clicks } = await record(page, baseUrl, video, frameDir, voice);
         const mp4 = join(outDir, `${video.id}.mp4`);
-        encode(frames, frameDir, mp4);
+        if (voice) {
+          const silent = join(frameDir, 'video.mp4');
+          encode(frames, frameDir, silent);
+          addAudio({ videoFile: silent, outFile: mp4, dir: frameDir, voiceFile: voice.file, segments: voice.segments, cues, clicks, seconds });
+        } else {
+          encode(frames, frameDir, mp4);
+        }
         poster(posterFrame, join(outDir, `${video.id}.webp`));
         const size = statSync(mp4).size;
         // Real length of the encoded file (frame-rate rounding makes it differ from the timeline).
@@ -353,7 +436,7 @@ async function main() {
         // Read by scripts/build-guide.mjs: title, length and chapter start times.
         writeFileSync(join(outDir, `${video.id}.json`), `${JSON.stringify({ id: video.id, title: video.title, duration: Math.round(duration || seconds), chapters }, null, 2)}\n`);
         const minutes = `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
-        console.log(`✓ ${video.id.padEnd(22)} ${minutes.padStart(5)}  ${(size / 1024 / 1024).toFixed(2)} MB  ${frames.length} khung  ${((Date.now() - started) / 1000).toFixed(0)} s`);
+        console.log(`✓ ${video.id.padEnd(22)} ${minutes.padStart(5)}  ${(size / 1024 / 1024).toFixed(2)} MB  ${frames.length} khung  ${voice ? `giọng đọc ${cues.length} đoạn, ${clicks.length} tiếng bấm` : 'không tiếng'}  ${((Date.now() - started) / 1000).toFixed(0)} s`);
         const errors = page.consoleMessages.filter((line) => /^(error|exception)/.test(line));
         if (errors.length) console.log(`    console: ${errors.slice(0, 4).join(' | ').slice(0, 600)}`);
       } catch (error) {
