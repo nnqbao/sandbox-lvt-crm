@@ -748,7 +748,7 @@ export default defineSchema({
     .index("by_file", ["fileId", "active"])
     .index("by_target", ["targetUserId", "active"])
     .index("by_file_evaluator", ["fileId", "evaluatorUserId"]),
-  /** Trusted cleanup queue for Drive objects superseded by an atomic metadata update. */
+  /** Trusted cleanup queue for file objects (Convex `cvx_` keys or legacy Drive ids) superseded by an atomic metadata update. */
   driveCleanupJobs: defineTable({
     driveFileId: v.string(),
     purpose: v.string(),
@@ -769,7 +769,8 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_cleanup_token", ["cleanupToken"]),
+    .index("by_cleanup_token", ["cleanupToken"])
+    .index("by_drive_file", ["driveFileId"]),
   /** Idempotency receipts for atomic multi-section personnel-review saves. */
   peopleReviewSaveRequests: defineTable({
     userId: v.string(),

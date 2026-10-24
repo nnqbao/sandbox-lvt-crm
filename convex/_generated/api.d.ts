@@ -44,6 +44,8 @@ import type * as dutyWeekStore from "../dutyWeekStore.js";
 import type * as dutyWeeks from "../dutyWeeks.js";
 import type * as dutyWritePolicy from "../dutyWritePolicy.js";
 import type * as entityCodes from "../entityCodes.js";
+import type * as fileHttp from "../fileHttp.js";
+import type * as fileObjects from "../fileObjects.js";
 import type * as gradebook from "../gradebook.js";
 import type * as groupMessages from "../groupMessages.js";
 import type * as homeroomAlerts from "../homeroomAlerts.js";
@@ -153,6 +155,8 @@ declare const fullApi: ApiFromModules<{
   dutyWeeks: typeof dutyWeeks;
   dutyWritePolicy: typeof dutyWritePolicy;
   entityCodes: typeof entityCodes;
+  fileHttp: typeof fileHttp;
+  fileObjects: typeof fileObjects;
   gradebook: typeof gradebook;
   groupMessages: typeof groupMessages;
   homeroomAlerts: typeof homeroomAlerts;

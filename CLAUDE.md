@@ -89,12 +89,12 @@
 - Superseded Drive files are removed through purpose-scoped cleanup jobs. Keep `work` and `people-review` cleanup authorization separate.
 - Department and individual assignees must be active, assignment deadlines use `YYYY-MM-DD`, and duplicate department assignments are invalid.
 - New files must pass the shared extension allowlist, be non-empty, and remain within the 20 MiB limit.
-- Preserve the legacy Convex Storage compatibility/migration path. New work uploads use private Drive storage, but existing `fileId` records are still valid until explicitly migrated.
+- New work / people-review uploads go to **Convex File Storage** (since 2026-10): the gateway `/api/files/upload` relays the bytes to the Convex HTTP route `/lvt-files/upload` (`convex/fileHttp.ts`) with the user's bearer token; Convex re-authorizes, stores the object and registers its staged-upload row in the same request. Records keep the column `driveFileId` as an opaque object key: `cvx_<storageId>` = Convex object, anything else = legacy Drive object (`convex/fileObjects.ts`). Legacy Drive keys and the older `fileId` records stay valid and readable.
 
 ## Private file and cache invariants
 
-- New work uploads are private Google Drive objects; Convex stores identity/checksum/metadata, not public Drive links.
-- Never return Drive links or Convex `storage.getUrl()` to the browser. Preview/download always go through `/api/files/:documentId` after authorization.
+- New work uploads are private Convex Storage objects (`cvx_` keys); a `cvx_` key can be staged only for a fresh (≤10 min), non-empty, ≤20 MiB object no other stage owns (`storedObjectRegistrable`). Convex deletes the object inside the authorized cleanup mutation (staged-upload cleanup / cleanup job), never while an active record references it.
+- Never return Drive links or Convex `storage.getUrl()` to the browser. Preview/download always go through `/api/files/:documentId` after authorization. For `cvx_` objects the gateway fetches bytes from the Convex HTTP route `/lvt-files/object`, which re-runs `authorizeFileDownload` with the user's token; no storage URL is minted.
 - Legacy `fileId` (Convex Storage) uses the same authorized gateway and 24-hour server cache as Drive objects.
 - Prefer SHA-256 checksum as `fileVersion`; fallback is Drive identity plus size, or `convex-storage:{fileId}:{size}` for unmigrated files.
 - Upload prewarm copies the already received file into shared server cache. It is best-effort: cache failure must not turn a valid Drive upload/database commit into a failed business operation.

@@ -42,5 +42,5 @@ test('work document submit retains committed uploads and retries settlement with
   assertSafeSettlementFlow(management, 'await createDocument({');
   assert.match(management, /uploaded\?\.error \|\| `WORK_UPLOAD_FAILED:/);
   assert.match(management, /workUploadErrorMessage\(error\?\.message\)/);
-  assert.match(source, /UPLOAD_REGISTRATION_FAILED[\s\S]*Tệp đã đến Google Drive/);
+  assert.match(source, /UPLOAD_REGISTRATION_FAILED[\s\S]*Hệ thống chưa thể lưu tệp công văn/);
 });
