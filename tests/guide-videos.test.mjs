@@ -45,6 +45,11 @@ test('every tutorial video ships with a poster and chapter metadata, and the gui
   assert.doesNotMatch(html, /Video “[^”]+” chưa được tạo/);
   assert.match(html, /lh-lop-hoc\.mp4#t=\d/, 'tab topics start the Lớp học video at their chapter');
   assert.ok(existsSync(new URL('../docs/guide/topics/start/video-huong-dan.md', import.meta.url)));
+  // The "?" help panel opens the GUIDE_ANCHORS topic of each page: those must show the video too.
+  for (const [topic, id] of [['menu-lop-chu-nhiem', 'lh-lop-hoc'], ['menu-diem-danh', 'dd-diem-danh'], ['nh-thiet-lap-nam-hoc', 'nh-thiet-lap-nam-hoc'], ['tl-giao-vien', 'tl-giao-vien'], ['tl-lich-day', 'tl-lich-day'], ['tl-mon-hoc', 'tl-mon-hoc'], ['tl-loai-kiem-tra', 'tl-loai-kiem-tra']]) {
+    const article = html.slice(html.indexOf(`<article class="topic" id="${topic}"`), html.indexOf('</article>', html.indexOf(`<article class="topic" id="${topic}"`)));
+    assert.ok(article.includes(`huong-dan/video/${id}.mp4`), `help panel topic ${topic} embeds ${id}`);
+  }
 });
 
 test('captions stay on screen long enough to read', () => {

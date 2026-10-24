@@ -7,6 +7,8 @@ keywords: tra cuu, diem danh, giam thi, vang, excel, menu
 ---
 Giám thị ghi học sinh vắng của từng lớp mỗi sáng; GVCN và Ban Giám hiệu xem kết quả ở **Lớp chủ nhiệm**.
 
+@video(dd-diem-danh)
+
 1. Mở menu **Điểm danh** ở cột trái (trên điện thoại: **☰ → Điểm danh**).
 2. Chọn khối, mở từng lớp, tích học sinh vắng rồi lưu lớp; hoặc nhập cả ngày bằng file Excel.
 
