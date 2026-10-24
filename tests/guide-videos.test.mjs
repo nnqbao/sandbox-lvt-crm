@@ -95,3 +95,17 @@ test('a video with narration keeps every caption on screen until its voice segme
     if (i) assert.equal(row.start, voice.segments[i - 1].end, `segment ${i} follows segment ${i - 1}`);
   }
 });
+
+test('background music and click are original, deterministic and in range', async () => {
+  const { renderClick, renderMusic } = await import('../scripts/guide-videos/sounds.mjs');
+  const music = renderMusic(4);
+  assert.equal(music.length, 4 * 48000);
+  const peak = music.reduce((max, value) => Math.max(max, Math.abs(value)), 0);
+  assert.ok(peak > 0.55 && peak <= 0.6 + 1e-6, `music peak ${peak}`);
+  assert.deepEqual(renderMusic(4).slice(0, 2000), music.slice(0, 2000), 'same bytes every build');
+  const click = renderClick();
+  assert.ok(click.length < 48000 * 0.2);
+  assert.deepEqual(renderClick(), click);
+  const run = read('scripts/guide-videos/run.mjs');
+  assert.match(run, /sidechaincompress=/, 'music ducks under the voice');
+});

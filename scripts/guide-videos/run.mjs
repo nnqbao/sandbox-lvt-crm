@@ -19,6 +19,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createServer } from 'vite';
 import { launchChrome } from '../guide-shots/cdp.mjs';
 import { installVideoOverlay } from './overlay.js';
+import { writeClick, writeMusic } from './sounds.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../..');
@@ -315,10 +316,15 @@ class Recorder {
   }
 }
 
-const CLICK_VOLUME = 0.35;
+const CLICK_VOLUME = 0.55;
+const MUSIC_VOLUME = 0.2;
 
-/** Narration + click sound track for the timeline, muxed into the silent video. */
+/**
+ * Sound track for a narrated video: voice segments at their cues, a mouse click on every press and
+ * the original background loop (sounds.mjs), ducked under the voice; muxed into the silent video.
+ */
 function addAudio({ videoFile, outFile, dir, voiceFile, segments, cues, clicks, seconds }) {
+  const total = seconds.toFixed(3);
   const inputs = [];
   const parts = [];
   for (const [n, cue] of cues.entries()) {
@@ -328,22 +334,32 @@ function addAudio({ videoFile, outFile, dir, voiceFile, segments, cues, clicks, 
     inputs.push('-i', clip);
     parts.push(`[${n}:a]adelay=${Math.round(cue.at * 1000)}:all=1[v${n}]`);
   }
-  const click = join(dir, 'click.wav');
-  // A soft "tick": 25 ms of a 1.9 kHz tone with a fast decay.
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'sine=frequency=1900:sample_rate=48000:duration=0.025', '-af', `afade=t=out:st=0:d=0.025,volume=${CLICK_VOLUME}`, click]);
-  const clickInput = cues.length;
-  inputs.push('-i', click);
-  const labels = cues.map((_, n) => `[v${n}]`);
+  // Voice bus, split: one copy is heard, the other drives the music ducking.
+  parts.push(`${cues.map((_, n) => `[v${n}]`).join('')}amix=inputs=${cues.length}:normalize=0:duration=longest,apad=whole_dur=${total},atrim=0:${total},asplit=2[voice][key]`);
+
+  const music = join(dir, 'music.wav');
+  writeMusic(music, seconds + 1);
+  const musicInput = cues.length;
+  inputs.push('-i', music);
+  const fadeOut = Math.max(0, seconds - 3).toFixed(3);
+  parts.push(`[${musicInput}:a]atrim=0:${total},highpass=f=90,volume=${MUSIC_VOLUME},afade=t=in:st=0:d=2,afade=t=out:st=${fadeOut}:d=3[bed]`);
+  parts.push('[bed][key]sidechaincompress=threshold=0.015:ratio=5:attack=25:release=450:makeup=1[music]');
+
+  const labels = ['[voice]', '[music]'];
   if (clicks.length) {
-    parts.push(`[${clickInput}:a]asplit=${clicks.length}${clicks.map((_, n) => `[c${n}]`).join('')}`);
+    const click = join(dir, 'click.wav');
+    writeClick(click);
+    const clickInput = cues.length + 1;
+    inputs.push('-i', click);
+    parts.push(`[${clickInput}:a]volume=${CLICK_VOLUME},asplit=${clicks.length}${clicks.map((_, n) => `[c${n}]`).join('')}`);
     for (const [n, at] of clicks.entries()) {
       parts.push(`[c${n}]adelay=${Math.round(at * 1000)}:all=1[k${n}]`);
       labels.push(`[k${n}]`);
     }
   }
-  parts.push(`${labels.join('')}amix=inputs=${labels.length}:normalize=0:duration=longest,apad=whole_dur=${seconds.toFixed(3)},atrim=0:${seconds.toFixed(3)}[mix]`);
+  parts.push(`${labels.join('')}amix=inputs=${labels.length}:normalize=0:duration=first,alimiter=limit=0.95[mix]`);
   const audio = join(dir, 'audio.m4a');
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', parts.join(';'), '-map', '[mix]', '-c:a', 'aac', '-b:a', '96k', audio]);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', parts.join(';'), '-map', '[mix]', '-c:a', 'aac', '-b:a', '128k', audio]);
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', videoFile, '-i', audio, '-map', '0:v', '-map', '1:a', '-c', 'copy', '-movflags', '+faststart', '-shortest', outFile]);
 }
 
