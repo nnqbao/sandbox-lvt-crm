@@ -1,0 +1,59 @@
+{
+  "id": "tl-lich-day",
+  "source": "Google AI Studio TTS",
+  "aligned": "faster-whisper small",
+  "segments": [
+    {
+      "start": 0.171833,
+      "end": 9.74
+    },
+    {
+      "start": 9.74,
+      "end": 14.685
+    },
+    {
+      "start": 14.685,
+      "end": 19.011
+    },
+    {
+      "start": 19.011,
+      "end": 22.245
+    },
+    {
+      "start": 22.245,
+      "end": 26.441
+    },
+    {
+      "start": 26.441,
+      "end": 32.389
+    },
+    {
+      "start": 32.389,
+      "end": 42.374
+    },
+    {
+      "start": 42.374,
+      "end": 49.155
+    },
+    {
+      "start": 49.155,
+      "end": 52.556
+    },
+    {
+      "start": 52.556,
+      "end": 58.794
+    },
+    {
+      "start": 58.794,
+      "end": 62.99
+    },
+    {
+      "start": 62.99,
+      "end": 71.14
+    },
+    {
+      "start": 71.14,
+      "end": 76.916708
+    }
+  ]
+}

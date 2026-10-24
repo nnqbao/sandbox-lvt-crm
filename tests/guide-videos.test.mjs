@@ -87,12 +87,15 @@ test('a video with narration keeps every caption on screen until its voice segme
   assert.match(run, /if \(step\.caption !== undefined \|\| step\.card \|\| step\.chapter\) await this\.waitForVoice\(\);/);
   assert.match(run, /this\.speakUntil = this\.seconds \+ this\.voice\[index\] \+ 0\.5;/);
   assert.match(run, /video có \$\{recorder\.voiceIndex\} câu phụ đề nhưng giọng đọc có/);
-  const voice = JSON.parse(read('scripts/guide-videos/voice/lh-lop-hoc.json'));
-  const texts = JSON.parse(read('scripts/guide-videos/voiceover.json'))['lh-lop-hoc'];
-  assert.equal(voice.segments.length, texts.length);
-  for (const [i, row] of voice.segments.entries()) {
-    assert.ok(row.end > row.start, `segment ${i}`);
-    if (i) assert.equal(row.start, voice.segments[i - 1].end, `segment ${i} follows segment ${i - 1}`);
+  const script = JSON.parse(read('scripts/guide-videos/voiceover.json'));
+  for (const id of VIDEOS) {
+    const voice = JSON.parse(read(`scripts/guide-videos/voice/${id}.json`));
+    assert.equal(voice.segments.length, script[id].length, `${id}: one voice segment per caption`);
+    for (const [i, row] of voice.segments.entries()) {
+      assert.ok(row.end > row.start, `${id} segment ${i}`);
+      if (i) assert.equal(row.start, voice.segments[i - 1].end, `${id} segment ${i} follows segment ${i - 1}`);
+    }
+    assert.ok(existsSync(new URL(`../scripts/guide-videos/voice/${id}.m4a`, import.meta.url)), `${id}.m4a`);
   }
 });
 

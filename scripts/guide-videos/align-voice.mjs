@@ -5,8 +5,8 @@
 //
 // The TTS reads every segment of a video in one take with a pause between segments, but it also
 // pauses inside sentences, so the longest pauses alone do not mark segment ends. Dynamic programming
-// picks the boundaries (among detected pauses) whose segment lengths best match each segment's
-// text length, preferring longer pauses. Output:
+// picks the boundaries (among detected pauses) whose lengths best match the text, sentence by
+// sentence (every sentence ends on a pause), preferring longer pauses. Output:
 //   scripts/guide-videos/voice/<id>.m4a   the narration, AAC mono (small enough to commit)
 //   scripts/guide-videos/voice/<id>.json  segment start/end seconds, in voiceover.json order
 // The table it prints flags segments whose length is far from the expected one: listen to those.
@@ -80,6 +80,30 @@ export function alignSegments(texts, pauses, total, { pauseWeight = 2 } = {}) {
   });
 }
 
+/** Sentences of a segment (TTS pauses after each), at least one per segment. */
+export function sentences(text) {
+  const parts = String(text).split(/(?<=[.?!])\s+/).map((part) => part.trim()).filter(Boolean);
+  return parts.length ? parts : [String(text)];
+}
+
+/**
+ * Sentence-level alignment: every sentence must end on a pause, which pins the segment boundaries
+ * far more firmly than segment lengths alone. Returns the same shape as alignSegments.
+ */
+export function alignBySentences(texts, pauses, total, options = {}) {
+  const units = [];
+  texts.forEach((text, segment) => sentences(text).forEach((sentence) => units.push({ segment, text: sentence })));
+  const timed = alignSegments(units.map((unit) => unit.text), pauses, total, { pauseWeight: 0.6, ...options });
+  return texts.map((text, segment) => {
+    const mine = timed.filter((_, k) => units[k].segment === segment);
+    return {
+      start: mine[0].start,
+      end: mine[mine.length - 1].end,
+      expected: Math.round(mine.reduce((sum, row) => sum + row.expected, 0) * 100) / 100,
+    };
+  });
+}
+
 function main() {
   const [id, input] = process.argv.slice(2);
   if (!id || !input) throw new Error('Dùng: npm run guide:voice -- <video-id> <file giọng đọc>');
@@ -87,7 +111,7 @@ function main() {
   if (!texts) throw new Error(`voiceover.json không có video ${id}`);
   const file = resolve(input);
   const total = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], { encoding: 'utf8' }));
-  const segments = alignSegments(texts, detectPauses(file), total);
+  const segments = alignBySentences(texts, detectPauses(file), total);
   let flagged = 0;
   segments.forEach((segment, k) => {
     const length = segment.end - segment.start;

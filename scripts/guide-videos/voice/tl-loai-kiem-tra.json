@@ -1,0 +1,59 @@
+{
+  "id": "tl-loai-kiem-tra",
+  "source": "Google AI Studio TTS",
+  "aligned": "faster-whisper small",
+  "segments": [
+    {
+      "start": 0.357417,
+      "end": 7.282
+    },
+    {
+      "start": 7.282,
+      "end": 12.395
+    },
+    {
+      "start": 12.395,
+      "end": 20.826
+    },
+    {
+      "start": 20.826,
+      "end": 28.428
+    },
+    {
+      "start": 28.428,
+      "end": 34.372
+    },
+    {
+      "start": 34.372,
+      "end": 40.229
+    },
+    {
+      "start": 40.229,
+      "end": 41.422
+    },
+    {
+      "start": 41.422,
+      "end": 46.831
+    },
+    {
+      "start": 46.831,
+      "end": 52.942
+    },
+    {
+      "start": 52.942,
+      "end": 56.09
+    },
+    {
+      "start": 56.09,
+      "end": 64.179
+    },
+    {
+      "start": 64.179,
+      "end": 68.59
+    },
+    {
+      "start": 68.59,
+      "end": 74.963583
+    }
+  ]
+}
