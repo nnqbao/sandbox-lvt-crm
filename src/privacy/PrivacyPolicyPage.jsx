@@ -65,11 +65,11 @@ export default function PrivacyPolicyPage() {
           <div className="privacy-section">
             <h2>4. Bên xử lý thay mặt nhà trường</h2>
             <ul>
-              <li>Hạ tầng lưu trữ và xác thực của hệ thống (máy chủ do nhà trường vận hành).</li>
+              <li>Convex — lưu toàn bộ dữ liệu và tệp công văn trên tài khoản do nhà trường quản lý; tệp chỉ tải được sau khi hệ thống kiểm tra quyền, không có liên kết công khai.</li>
+              <li>VSC (đơn vị kỹ thuật) — vận hành máy chủ chuyển tiếp; không lưu trữ dữ liệu hay tệp của nhà trường.</li>
               <li>Google Firebase Cloud Messaging — chỉ để chuyển thông báo đẩy Android.</li>
               <li>Apple Push Notification service — chỉ để chuyển thông báo đẩy iOS.</li>
-              <li>Google Drive — lưu tệp công văn nội bộ; không chia sẻ liên kết công khai.</li>
-              <li>Gmail API — gửi email mật khẩu tạm khi người dùng yêu cầu.</li>
+              <li>AgentMail — gửi email mật khẩu tạm khi người dùng yêu cầu.</li>
             </ul>
             <p>Các bên này nhận dữ liệu tối thiểu để cung cấp dịch vụ trên, không được dùng cho quảng cáo của {PRIVACY_APP_NAME}.</p>
           </div>
@@ -148,11 +148,11 @@ export default function PrivacyPolicyPage() {
           <div className="privacy-section">
             <h2>4. Processors</h2>
             <ul>
-              <li>The school’s own hosting and authentication infrastructure.</li>
+              <li>Convex — stores all data and official documents in an account managed by the school; files can only be downloaded after an access check and are never published as public links.</li>
+              <li>VSC (technical operator) — runs the relay server; it does not store the school’s data or files.</li>
               <li>Google Firebase Cloud Messaging — Android push delivery only.</li>
               <li>Apple Push Notification service — iOS push delivery only.</li>
-              <li>Google Drive — private storage of official documents; files are not published as public links.</li>
-              <li>Gmail API — sending a temporary password when a user requests a reset.</li>
+              <li>AgentMail — sending a temporary password when a user requests a reset.</li>
             </ul>
             <p>These providers receive only what they need to perform that service. {PRIVACY_APP_NAME} does not use them for advertising.</p>
           </div>
