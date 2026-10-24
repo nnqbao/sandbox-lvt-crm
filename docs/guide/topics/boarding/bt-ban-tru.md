@@ -10,8 +10,8 @@ Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem d
 | Ai | Thấy / làm được gì |
 |---|---|
 | Văn thư (Moderator), Administrator | Tab **Kỳ bán trú**: thêm, sửa, xóa kỳ. Tab **Danh sách tham gia**: toàn trường |
-| Menu **Báo cáo** ở mức **Xem tối cao** (thường là Ban Giám hiệu) | Danh sách tham gia của toàn trường |
-| Menu **Báo cáo** ở mức **Xem** | Danh sách giáo viên tham gia trong **phòng ban của mình** |
+| Dòng **Bán trú** trong nhóm quyền ở mức **Xem tối cao** (thường là Ban Giám hiệu) | Danh sách tham gia của toàn trường |
+| Dòng **Bán trú** trong nhóm quyền ở mức **Xem** | Danh sách giáo viên tham gia trong **phòng ban của mình** |
 
 Menu **Bán trú** hiện theo dòng **Bán trú** trong nhóm quyền (nhóm cũ theo mức **Báo cáo**). Danh sách tham gia cũng mở được từ **Báo cáo → Bán trú**.
 
@@ -31,7 +31,7 @@ Trong biểu mẫu:
 
 ![Biểu mẫu Thêm kỳ bán trú: 1 học kỳ, 2 năm học, 3 Thêm giáo viên, 4 Tạo kỳ bán trú](bt-them-ky)
 
-Trong hộp chọn giáo viên, gõ tên, email hoặc phòng ban vào ô tìm kiếm [[1]], tích từng người [[2]] (hoặc **Chọn tất cả**), rồi bấm **Hoàn thành** [[3]].
+Trong hộp chọn giáo viên, gõ tên, email hoặc phòng ban vào ô tìm kiếm [[1]], tích từng người [[2]] (hoặc **Chọn tất cả**; khi đang tìm kiếm, nút đổi thành **Chọn … người đang hiện** và chỉ chọn những người trong kết quả), rồi bấm **Hoàn thành** [[3]].
 
 ![Hộp chọn giáo viên: 1 ô tìm kiếm, 2 người đã tích, 3 Hoàn thành](bt-chon-giao-vien)
 
