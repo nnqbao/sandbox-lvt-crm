@@ -24,6 +24,8 @@
 //   ![Caption, without "Hình N."](image-id)        figure; image-id.webp|svg|png in public/huong-dan
 //   ![Caption](image-id-mobile)                      ids ending in -mobile = 2x phone shot, shown narrow
 //   consecutive figure lines                          side-by-side row
+//   @video(video-id)  or  @video(video-id "Chương")   tutorial video from public/huong-dan/video
+//                                                     (npm run guide:videos), optionally from a chapter
 //   ::: tip|warn|danger|note [Tiêu đề]  ...  :::      boxes
 //   ### Câu hỏi thường gặp, then "??? Question" + answer lines (until a blank line)
 //   | a | b | tables, - bullets, `code`, [link](#topic-id)
@@ -36,6 +38,7 @@ const guideDir = join(repoRoot, 'docs/guide');
 const imageDir = join(repoRoot, 'public/huong-dan');
 const outFile = join(repoRoot, 'public/huong-dan-su-dung.html');
 const IMAGE_URL = 'huong-dan';
+const videoDir = join(imageDir, 'video');
 
 const problems = [];
 const warn = (message) => problems.push(message);
@@ -147,6 +150,34 @@ function renderFigure(line, ctx) {
   return `<figure class="${classes}" id="hinh-${n}"><button type="button" class="figure-zoom" aria-label="Phóng to hình ${n}"><img src="${IMAGE_URL}/${image.name}" width="${Math.round(size.width / scale)}" height="${Math.round(size.height / scale)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"></button><figcaption><b>Hình ${n}.</b> ${inline(caption, ctx)}</figcaption></figure>`;
 }
 
+const VIDEO_RE = /^@video\(([a-z0-9-]+)(?:\s+"([^"]*)")?\)\s*$/;
+
+const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
+
+/** Tutorial video recorded by scripts/guide-videos; `chapter` starts playback at that chapter. */
+function renderVideo(line, ctx) {
+  const [, id, chapter] = line.match(VIDEO_RE);
+  const metaFile = join(videoDir, `${id}.json`);
+  if (!existsSync(metaFile) || !existsSync(join(videoDir, `${id}.mp4`))) {
+    warn(`${ctx.topicId}: thiếu video "${id}" (npm run guide:videos)`);
+    return `<figure class="guide-video is-missing"><div class="figure-missing">Video “${escapeHtml(id)}” chưa được tạo</div></figure>`;
+  }
+  const meta = JSON.parse(readFileSync(metaFile, 'utf8'));
+  const chapters = meta.chapters || [];
+  const from = chapter ? chapters.find((row) => row.title === chapter) : null;
+  if (chapter && !from) warn(`${ctx.topicId}: video "${id}" không có chương "${chapter}"`);
+  ctx.usedVideos.add(id);
+  const start = from ? from.start : 0;
+  const src = `${IMAGE_URL}/video/${id}.mp4${start ? `#t=${start}` : ''}`;
+  const chapterButtons = chapters.length > 1
+    ? `<div class="video-chapters" aria-label="Các phần của video">${chapters
+      .map((row) => `<button type="button" data-seek="${row.start}"${row === from ? ' aria-current="true"' : ''}><span>${clock(row.start)}</span>${escapeHtml(row.title)}</button>`)
+      .join('')}</div>`
+    : '';
+  const label = from ? ` · bắt đầu từ phần “${escapeHtml(from.title)}”` : '';
+  return `<figure class="guide-video"><video controls playsinline preload="none" width="1280" height="720" poster="${IMAGE_URL}/video/${id}.webp" src="${src}" aria-label="Video hướng dẫn: ${escapeHtml(meta.title)}"></video><figcaption><b>Video hướng dẫn:</b> ${escapeHtml(meta.title)} (${clock(meta.duration)})${label}. Bấm ▶ để xem; có thể tua, tạm dừng và xem toàn màn hình.</figcaption>${chapterButtons}</figure>`;
+}
+
 function renderTable(lines, ctx) {
   const rows = lines.map((line) => line.trim().replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim()));
   const [head, , ...body] = rows;
@@ -202,6 +233,11 @@ function renderBlocks(lines, ctx) {
       i += 1;
       continue;
     }
+    if (VIDEO_RE.test(line)) {
+      html.push(renderVideo(line, ctx));
+      i += 1;
+      continue;
+    }
     if (FIGURE_RE.test(line)) {
       const figures = [];
       while (i < lines.length && FIGURE_RE.test(lines[i])) figures.push(renderFigure(lines[i++], ctx));
@@ -249,6 +285,7 @@ function renderBlocks(lines, ctx) {
       !isBlank(lines[i]) &&
       !/^(:::|\?\?\? |#{3,4}\s|\s*(\d+\.|[-*])\s)/.test(lines[i]) &&
       !FIGURE_RE.test(lines[i]) &&
+      !VIDEO_RE.test(lines[i]) &&
       !lines[i].trim().startsWith('|')
     ) paragraph.push(lines[i++].trim());
     if (paragraph.length) html.push(`<p>${inline(paragraph.join(' '), ctx)}</p>`);
@@ -279,7 +316,7 @@ function renderTopic(topic, ctx) {
   let i = 0;
   while (i < lines.length && !lines[i].trim()) i += 1;
   const lead = [];
-  while (i < lines.length && lines[i].trim() && !/^(:::|\?\?\? |#|\s*(\d+\.|[-*])\s|!\[|\|)/.test(lines[i])) lead.push(lines[i++].trim());
+  while (i < lines.length && lines[i].trim() && !/^(:::|\?\?\? |#|\s*(\d+\.|[-*])\s|!\[|@video\(|\|)/.test(lines[i])) lead.push(lines[i++].trim());
   ctx.topicId = topic.id;
   const body = renderBlocks(lines.slice(i), ctx);
   const chips = [
@@ -334,7 +371,7 @@ function build() {
     parts.push({ id: 'chua-xep', title: 'Chưa xếp mục', intro: 'Các chủ đề chưa được đưa vào outline.json.', topics: orphans });
   }
 
-  const ctx = { figureCount: { n: 0 }, usedImages: new Set(), links: [], topicId: '' };
+  const ctx = { figureCount: { n: 0 }, usedImages: new Set(), usedVideos: new Set(), links: [], topicId: '' };
   const toc = [];
   const sections = [];
   parts.forEach((part, index) => {
@@ -373,7 +410,9 @@ ${rendered}
     .replace('{{FIGURE_COUNT}}', () => String(ctx.figureCount.n));
 
   const unusedImages = readdirSync(imageDir).filter((name) => /\.(webp|svg|png)$/.test(name) && !ctx.usedImages.has(name));
-  return { html, figureCount: ctx.figureCount.n, topicCount: topics.size, unusedImages };
+  const videos = existsSync(videoDir) ? readdirSync(videoDir).filter((name) => name.endsWith('.mp4')).map((name) => name.slice(0, -4)) : [];
+  for (const id of videos) if (!ctx.usedVideos.has(id)) warn(`video không được dùng: ${id}`);
+  return { html, figureCount: ctx.figureCount.n, topicCount: topics.size, unusedImages, videoCount: ctx.usedVideos.size };
 }
 
 const check = process.argv.includes('--check');
@@ -390,5 +429,6 @@ if (check) {
 } else {
   writeFileSync(outFile, result.html);
   const imageBytes = readdirSync(imageDir).filter((name) => /\.(webp|svg|png)$/.test(name)).reduce((sum, name) => sum + statSync(join(imageDir, name)).size, 0);
-  console.log(`Đã ghi public/huong-dan-su-dung.html: ${result.topicCount} chủ đề, ${result.figureCount} hình, ${(Buffer.byteLength(result.html) / 1024).toFixed(0)} KB HTML, ảnh ${(imageBytes / 1024 / 1024).toFixed(2)} MB.`);
+  const videoBytes = existsSync(videoDir) ? readdirSync(videoDir).filter((name) => name.endsWith('.mp4')).reduce((sum, name) => sum + statSync(join(videoDir, name)).size, 0) : 0;
+  console.log(`Đã ghi public/huong-dan-su-dung.html: ${result.topicCount} chủ đề, ${result.figureCount} hình, ${result.videoCount} video, ${(Buffer.byteLength(result.html) / 1024).toFixed(0)} KB HTML, ảnh ${(imageBytes / 1024 / 1024).toFixed(2)} MB, video ${(videoBytes / 1024 / 1024).toFixed(2)} MB.`);
 }

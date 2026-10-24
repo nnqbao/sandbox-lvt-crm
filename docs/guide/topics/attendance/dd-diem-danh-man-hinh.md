@@ -7,6 +7,8 @@ keywords: diem danh, vang, giam thi, khoi, luu lop, hoc sinh vang
 ---
 Đánh dấu học sinh vắng của từng lớp trong buổi sáng, rồi lưu từng lớp.
 
+@video(dd-diem-danh)
+
 1. Mở menu **Điểm danh**. Đầu trang ghi ngày hôm nay và năm học.
 2. Chọn tab khối **Lớp 6**, **Lớp 7**, **Lớp 8** hoặc **Lớp 9** [[1]]. Số `2/5` cạnh tab nghĩa là đã lưu 2 trên 5 lớp của khối.
 3. Bấm vào tên lớp cần điểm danh [[2]], ví dụ **Lớp 6/3** (đang ghi **Chưa điểm danh**).

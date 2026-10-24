@@ -7,6 +7,8 @@ keywords: lop chu nhiem, gvcn, si so, chuyen can, vang hom nay
 ---
 Mỗi sáng, xem lớp mình có bao nhiêu học sinh vắng và mở lớp để xử lý.
 
+@video(lh-lop-hoc "Lớp chủ nhiệm")
+
 1. Mở menu **Lớp học** → tab **Lớp chủ nhiệm** (số 2 trong hình dưới). Kiểm tra **Năm học** [[1]] (thường để mặc định).
 
 ![Các tab của menu Lớp học: Lớp chủ nhiệm ở số 2](lh-cac-tab)

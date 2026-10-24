@@ -390,6 +390,41 @@ ul.bullets li::marker { color: var(--lvt-teal); }
 .figure-row .figure.is-phone { flex: 0 1 280px; }
 .figure-missing { padding: 32px; text-align: center; color: var(--lvt-danger-text); background: var(--lvt-danger-bg); border-radius: 12px; }
 
+/* tutorial videos (npm run guide:videos) */
+.guide-video { margin: 16px 0 22px; }
+.guide-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--lvt-line);
+  border-radius: 12px;
+  background: var(--lvt-navy);
+  box-shadow: 0 4px 16px rgba(20, 53, 95, .08);
+}
+.guide-video figcaption { margin-top: 8px; font-size: 13px; line-height: 1.5; color: var(--lvt-muted); }
+.guide-video figcaption b { color: var(--lvt-ink-soft); }
+.video-chapters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.video-chapters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--lvt-line);
+  border-radius: 999px;
+  background: var(--lvt-surface);
+  color: var(--lvt-ink-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.video-chapters button span { color: var(--lvt-muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+.video-chapters button[aria-current] { border-color: var(--lvt-ink-soft); box-shadow: inset 0 0 0 1px var(--lvt-ink-soft); }
+.video-chapters button:focus-visible { outline: 3px solid var(--lvt-ink-soft); outline-offset: 2px; }
+@media print { .guide-video video, .video-chapters { display: none; } }
+
 /* boxes */
 .callout {
   border-radius: 12px;

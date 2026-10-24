@@ -120,6 +120,8 @@ function PageHelpPanel({ anchor, label, onClose }) {
             className={loaded ? 'is-loaded' : ''}
             src={guideEmbedUrl(anchor)}
             title={`Hướng dẫn: ${label}`}
+            allow="fullscreen"
+            allowFullScreen
             onLoad={() => setLoaded(true)}
           />
         </div>

@@ -1,0 +1,31 @@
+{
+  "id": "lh-lop-hoc",
+  "title": "Menu Lớp học",
+  "duration": 295,
+  "chapters": [
+    {
+      "title": "Mở menu Lớp học",
+      "start": 5
+    },
+    {
+      "title": "Tổng quan",
+      "start": 24
+    },
+    {
+      "title": "Lớp chủ nhiệm",
+      "start": 54.5
+    },
+    {
+      "title": "Lớp giảng dạy · Sổ đầu bài",
+      "start": 106.6
+    },
+    {
+      "title": "Lịch dạy",
+      "start": 159
+    },
+    {
+      "title": "Học bạ · Nhập điểm",
+      "start": 203.3
+    }
+  ]
+}

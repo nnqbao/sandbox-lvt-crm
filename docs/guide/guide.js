@@ -110,6 +110,29 @@
     if (event.target === dialog || event.target.closest('.lightbox-close')) dialog.close();
   });
 
+  // ---------- tutorial videos: chapter buttons seek and play ----------
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.video-chapters button[data-seek]');
+    if (!button) return;
+    const figure = button.closest('.guide-video');
+    const video = figure.querySelector('video');
+    const seek = () => {
+      video.currentTime = Number(button.dataset.seek) || 0;
+      video.play().catch(() => {});
+    };
+    for (const other of figure.querySelectorAll('.video-chapters button')) other.toggleAttribute('aria-current', other === button);
+    if (video.readyState >= 1) seek();
+    else {
+      video.addEventListener('loadedmetadata', seek, { once: true });
+      video.load();
+    }
+  });
+  // Only one video plays at a time.
+  document.addEventListener('play', (event) => {
+    if (!(event.target instanceof HTMLVideoElement)) return;
+    for (const other of document.querySelectorAll('.guide-video video')) if (other !== event.target) other.pause();
+  }, true);
+
   // ---------- print: open every FAQ, show every topic ----------
   let reopen = [];
   window.addEventListener('beforeprint', () => {

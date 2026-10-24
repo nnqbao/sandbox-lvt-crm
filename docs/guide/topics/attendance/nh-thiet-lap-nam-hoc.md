@@ -7,6 +7,8 @@ keywords: nam hoc, ngay nghi, le, tet, hoc bu, mac dinh, khoa
 ---
 Tạo năm học, đánh dấu các đợt nghỉ lễ và ngày học bù để điểm danh, báo cáo tính đúng ngày học.
 
+@video(nh-thiet-lap-nam-hoc)
+
 1. Vào **Thiết lập tối cao → Thiết lập năm học**.
 2. Bấm **+ Thêm** [[1]] để tạo năm học mới; danh sách bên trái [[2]] có nhãn **Mặc định**, **Đang diễn ra**, **Đã khóa**.
 3. Ô thống kê [[3]] cho biết số ngày học, ngày nghỉ lễ, ngày học bù và giờ nhắc điểm danh.

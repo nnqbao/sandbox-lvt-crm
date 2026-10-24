@@ -7,6 +7,8 @@ keywords: vang khong phep, co phep, diem danh lop, ghi chu, ly do
 ---
 Xem học sinh nào vắng (Giám thị đã ghi) và đánh dấu em nào **vắng không phép**.
 
+@video(dd-diem-danh "Giáo viên chủ nhiệm")
+
 1. Mở lớp, chọn tab **Điểm danh** [[1]].
 2. Chọn ngày bằng mũi tên ‹ › [[2]] (mặc định hôm nay). Dòng trên cùng cho biết Giám thị lưu lúc nào.
 3. Phần **Vắng** luôn nằm **trên cùng** [[3]], bên dưới là các em **Có mặt**.

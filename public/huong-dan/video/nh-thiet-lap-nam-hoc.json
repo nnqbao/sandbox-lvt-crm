@@ -1,0 +1,27 @@
+{
+  "id": "nh-thiet-lap-nam-hoc",
+  "title": "Thiết lập năm học",
+  "duration": 213,
+  "chapters": [
+    {
+      "title": "Tổng quan",
+      "start": 12.4
+    },
+    {
+      "title": "Tạo năm học",
+      "start": 36.4
+    },
+    {
+      "title": "Học kỳ II",
+      "start": 92.8
+    },
+    {
+      "title": "Ngày nghỉ lễ",
+      "start": 111.7
+    },
+    {
+      "title": "Học bù",
+      "start": 166.3
+    }
+  ]
+}
