@@ -63,6 +63,14 @@ function statusLabel(status) {
     overdue: 'Quá hạn chưa hoàn thành',
   })[status] || 'Đang thực hiện';
 }
+/**
+ * Badge of one calendar event. `pending` means "công văn chờ duyệt" only for a document; for a
+ * work item or personal task it means the assignee has not finished yet.
+ */
+export function eventStatusLabel(event) {
+  if (event.status === 'pending' && event.kind !== 'document') return 'Chưa hoàn thành';
+  return statusLabel(event.status);
+}
 function statusSummary(status, scope) {
   const labels = {
     approved: 'Công văn đã duyệt', pending: scope === 'all' ? 'Công văn chờ duyệt' : 'Chưa hoàn thành',
@@ -191,7 +199,7 @@ function EventDetail({ event, personName, onClose }) {
   if (!event) return null;
   return <aside className="report-event-detail">
     <button type="button" className="report-detail-close" onClick={onClose} aria-label="Đóng chi tiết">×</button>
-    <span className={`report-detail-status status-${event.status}`}>{statusLabel(event.status)}</span>
+    <span className={`report-detail-status status-${event.status}`}>{eventStatusLabel(event)}</span>
     <h3 className="report-work-document-name" title={event.content}>{event.content}</h3>
     <dl>
       <div><dt>Nhân sự</dt><dd>{personName}</dd></div>

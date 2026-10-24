@@ -71,8 +71,13 @@ function TeacherPicker({ users, selectedIds, onComplete, onClose }) {
             placeholder="Tìm theo tên, email, phòng ban…"
           />
           <div>
-            <button type="button" onClick={() => setDraftIds(users.map((user) => user._id))}>Chọn tất cả</button>
-            <button type="button" onClick={() => setDraftIds([])}>Bỏ chọn</button>
+            {/* With a search, both act on the people shown only and keep the other selections. */}
+            <button type="button" onClick={() => setDraftIds([...new Set([...draftIds, ...filteredUsers.map((user) => user._id)])])}>
+              {search.trim() ? `Chọn ${filteredUsers.length} người đang hiện` : 'Chọn tất cả'}
+            </button>
+            <button type="button" onClick={() => setDraftIds(search.trim() ? draftIds.filter((id) => !filteredUsers.some((user) => user._id === id)) : [])}>
+              {search.trim() ? 'Bỏ chọn người đang hiện' : 'Bỏ chọn'}
+            </button>
           </div>
         </div>
         <div className="boarding-teacher-grid">
