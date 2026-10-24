@@ -18,8 +18,8 @@ import {
 } from '../convex/fileObjects.ts';
 import {
   convexSiteUrl,
-  fetchConvexObject,
   isConvexObjectKey,
+  readConvexObject,
   storeConvexObject,
 } from '../scripts/lib/convex-file-objects.mjs';
 
@@ -133,15 +133,12 @@ test('gateway stores through Convex with the user token and verifies the receipt
 });
 
 test('gateway downloads re-authorize in Convex and reject empty or tampered bytes', async () => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'lvt-cvx-'));
-  const destination = path.join(directory, 'out.bin');
   const bytes = Buffer.from('hello');
   let seen;
-  await fetchConvexObject({
+  const got = await readConvexObject({
     siteUrl: 'https://x.convex.site',
     token: 'tok',
     query: { purpose: 'work', documentId: 'doc1' },
-    destination,
     expectedChecksum: sha(bytes),
     fetchImpl: async (url, init) => {
       seen = { url, init };
@@ -150,23 +147,33 @@ test('gateway downloads re-authorize in Convex and reject empty or tampered byte
   });
   assert.equal(seen.url, 'https://x.convex.site/lvt-files/object?purpose=work&documentId=doc1');
   assert.equal(seen.init.headers.Authorization, 'Bearer tok');
-  assert.equal((await readFile(destination)).toString(), 'hello');
+  assert.equal(got.toString(), 'hello');
 
   const base = { siteUrl: 'https://x.convex.site', token: 'tok', query: { purpose: 'work', documentId: 'd' } };
   await assert.rejects(
-    fetchConvexObject({ ...base, destination: path.join(directory, 'a'), expectedChecksum: sha('other'),
-      fetchImpl: async () => new Response(bytes) }),
+    readConvexObject({ ...base, expectedChecksum: sha('other'), fetchImpl: async () => new Response(bytes) }),
     (error) => error.code === 'FILE_CHECKSUM_MISMATCH',
   );
   await assert.rejects(
-    fetchConvexObject({ ...base, destination: path.join(directory, 'b'), fetchImpl: async () => new Response('') }),
+    readConvexObject({ ...base, fetchImpl: async () => new Response('') }),
     /EMPTY_FILE/,
   );
   await assert.rejects(
-    fetchConvexObject({ ...base, destination: path.join(directory, 'c'),
+    readConvexObject({ ...base,
       fetchImpl: async () => new Response('{"error":"FILE_ACCESS_DENIED"}', { status: 403 }) }),
     (error) => error.status === 403,
   );
+});
+
+test('Convex-stored files never touch the gateway disk', async () => {
+  const server = await read('scripts/serve-production.mjs');
+  const serve = server.slice(server.indexOf('async function serveAuthorizedDriveFile('), server.indexOf('async function downloadPeopleReviewFile('));
+  const memoryPath = serve.slice(0, serve.indexOf('const entry = await driveFileCache.getOrCreate('));
+  assert.match(memoryPath, /if \(!file\.driveFileId \|\| isConvexObjectKey\(file\.driveFileId\)\)/);
+  assert.match(memoryPath, /readConvexObject\(/);
+  assert.match(memoryPath, /readLegacyStorageFile\(file\)/);
+  assert.match(memoryPath, /return;\n  \}\n  $/, 'Convex path returns before the disk cache');
+  assert.doesNotMatch(server, /copyFile|writeFile/, 'no upload prewarm or legacy download to disk');
 });
 
 test('new uploads go to Convex Storage, never to Drive or a storage URL', async () => {
