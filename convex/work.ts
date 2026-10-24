@@ -36,10 +36,12 @@ import {
   claimDriveUploadCleanup,
   commitDriveUploadStage,
   completeDriveUploadCleanup,
+  deleteConvexObject,
   finalizeDriveUploadStage,
   registerDriveUploadStage,
   releaseDriveUploadCleanup,
 } from "./driveUploadStages";
+import { storageProviderForKey } from "./fileObjects";
 import {
   applyWorkApproval,
   applyWorkRejection,
@@ -1063,6 +1065,7 @@ export const completeDriveCleanupJob = mutation({
     if (references.some((document: any) => document.active)) {
       throw new Error("WORK_FILE_STILL_REFERENCED");
     }
+    await deleteConvexObject(ctx, job.driveFileId);
     const now = Date.now();
     await ctx.db.patch(args.cleanupJobId, {
       active: false,
@@ -1340,7 +1343,7 @@ export const createDocument = mutation({
       fileId: args.fileId,
       driveFileId: args.driveFileId,
       driveChecksum: args.driveChecksum,
-      storageProvider: args.driveFileId ? "google_drive" : "convex",
+      storageProvider: args.driveFileId ? storageProviderForKey(args.driveFileId) : "convex",
       fileName: file.fileName,
       fileType: file.fileType,
       fileSize: hasFile ? args.fileSize || 0 : 0,
@@ -1523,7 +1526,7 @@ export const updateDocument = mutation({
             fileId: undefined,
             driveFileId: replacement.driveFileId,
             driveChecksum: replacement.driveChecksum,
-            storageProvider: "google_drive",
+            storageProvider: storageProviderForKey(replacement.driveFileId),
             fileName: replacement.fileName,
             fileType: replacement.fileType,
             fileSize: replacement.fileSize,

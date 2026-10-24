@@ -1,3 +1,5 @@
+import { storageIdFromObjectKey, storedObjectRegistrable } from "./fileObjects";
+
 const STAGED = "staged";
 const COMMITTED = "committed";
 const CLEANUP_CLAIMED = "cleanup_claimed";
@@ -19,6 +21,17 @@ export async function registerDriveUploadStage(
   if (!/^[a-zA-Z0-9_-]+$/.test(args.driveFileId)) throw new Error("INVALID_UPLOAD");
   if (await stageByToken(ctx, args.cleanupToken)) throw new Error("UPLOAD_TOKEN_EXISTS");
   const now = Date.now();
+  const storageId = storageIdFromObjectKey(args.driveFileId);
+  if (storageId) {
+    // Only a just-stored, unclaimed Convex object can be staged: a caller can't adopt (and later
+    // delete through cleanup) an object that belongs to someone else's record.
+    const object = await ctx.db.system.get("_storage", storageId).catch(() => null);
+    const alreadyStaged = Boolean(await ctx.db
+      .query("driveUploadStages")
+      .withIndex("by_drive_file", (q: any) => q.eq("driveFileId", args.driveFileId))
+      .first());
+    if (!storedObjectRegistrable(object, now, alreadyStaged)) throw new Error("INVALID_UPLOAD");
+  }
   await ctx.db.insert("driveUploadStages", {
     cleanupToken: args.cleanupToken,
     driveFileId: args.driveFileId,
@@ -92,7 +105,16 @@ export async function completeDriveUploadCleanup(
   if (stage.status !== CLEANUP_CLAIMED || stage.claimId !== args.claimId) {
     throw new Error("UPLOAD_CLEANUP_CLAIM_LOST");
   }
+  await deleteConvexObject(ctx, stage.driveFileId);
   await ctx.db.delete(stage._id);
+}
+
+/** Deletes the Convex Storage object behind a `cvx_` key (no-op for Drive keys / missing objects). */
+export async function deleteConvexObject(ctx: any, key: string) {
+  const storageId = storageIdFromObjectKey(key);
+  if (!storageId) return;
+  const object = await ctx.db.system.get("_storage", storageId).catch(() => null);
+  if (object) await ctx.storage.delete(storageId);
 }
 
 export async function releaseDriveUploadCleanup(

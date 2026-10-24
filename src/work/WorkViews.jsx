@@ -59,10 +59,10 @@ const ACCEPTED_EXTENSIONS = ['pdf', 'docx', 'xlsx', 'xls', 'png', 'jpg', 'jpeg']
 
 function workUploadErrorMessage(code) {
   if (code === 'UPLOAD_REGISTRATION_FAILED') {
-    return 'Tệp đã đến Google Drive nhưng hệ thống chưa thể đăng ký công văn. Vui lòng liên hệ quản trị viên và cung cấp thời điểm xảy ra lỗi.';
+    return 'Hệ thống chưa thể lưu tệp công văn. Vui lòng thử lại; nếu vẫn lỗi, liên hệ quản trị viên và cung cấp thời điểm xảy ra lỗi.';
   }
-  if (code === 'DRIVE_UPLOAD_FAILED') {
-    return 'Google Drive chưa nhận được tệp công văn. Vui lòng thử lại sau.';
+  if (code === 'FILE_TEMPORARILY_UNAVAILABLE') {
+    return 'Kho lưu trữ tệp tạm thời chưa phản hồi. Vui lòng thử lại sau ít phút.';
   }
   if (code === 'FILE_ACCESS_DENIED') {
     return 'Bạn không có quyền tải tệp công văn lên.';

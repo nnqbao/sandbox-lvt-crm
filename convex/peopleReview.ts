@@ -14,6 +14,7 @@ import {
   claimDriveUploadCleanup,
   commitDriveUploadStage,
   completeDriveUploadCleanup,
+  deleteConvexObject,
   finalizeDriveUploadStage,
   registerDriveUploadStage,
   releaseDriveUploadCleanup,
@@ -1373,6 +1374,20 @@ export const completeDriveCleanupJob = mutation({
     const job = await ctx.db.get(args.cleanupJobId);
     if (!job?.active) return;
     if (String(job.createdBy) !== String(access.user._id)) throw new Error("DRIVE_CLEANUP_FORBIDDEN");
+    const [faults, evaluations] = await Promise.all([
+      ctx.db
+        .query("personnelFaults")
+        .withIndex("by_drive_file", (q: any) => q.eq("driveFileId", job.driveFileId))
+        .collect(),
+      ctx.db
+        .query("personnelEvaluationFiles")
+        .withIndex("by_drive_file", (q: any) => q.eq("driveFileId", job.driveFileId))
+        .collect(),
+    ]);
+    // Never delete a stored object that an active record still points at.
+    if (![...faults, ...evaluations].some((row: any) => row.active)) {
+      await deleteConvexObject(ctx, job.driveFileId);
+    }
     await ctx.db.patch(args.cleanupJobId, { active: false, updatedAt: Date.now() });
   },
 });
