@@ -32,13 +32,19 @@ export const RP_NAME = "CRM Lê Văn Tám";
  * Origins accepted in WebAuthn clientDataJSON:
  * - iOS native passkeys report the web origin of the associated domain;
  * - Android native passkeys report `android:apk-key-hash:<base64url SHA-256 of the signing cert>`.
- * The Android hash below is the release/upload certificate (public). Google Play app-signing
- * certificates are added through PASSKEY_EXTRA_ORIGINS (comma separated) without a code change.
+ * Hashes (public): the release/upload certificate (sideloaded builds) and the Google Play
+ * app-signing certificates from Play Console (deployment_cert.der + hybrid_classical_cert.der,
+ * downloaded 2026-10-24) used for builds installed from Google Play. More can be added through
+ * PASSKEY_EXTRA_ORIGINS (comma separated) without a code change.
  */
 export const ANDROID_RELEASE_ORIGIN = "android:apk-key-hash:NKTWMaWP6td8UkHgw4yXSYoGAcHAfj2aDjkLhPKUmEQ";
+export const ANDROID_PLAY_ORIGINS = Object.freeze([
+  "android:apk-key-hash:csUIB_MoajAjqP-ZHi0nqGNFBZVmH193sPSzFGP8Pvg", // Play app signing (deployment)
+  "android:apk-key-hash:UsZtzleT1svZrMbKd1xgwl3X8fBLQwXiTzLThGazn7A", // Play hybrid classical
+]);
 
 export function passkeyOrigins(rpId: string, extra = ""): string[] {
-  const list = [`https://${rpId}`, ANDROID_RELEASE_ORIGIN];
+  const list = [`https://${rpId}`, ANDROID_RELEASE_ORIGIN, ...ANDROID_PLAY_ORIGINS];
   for (const item of String(extra || "").split(",")) {
     const origin = item.trim();
     if (origin && /^(https:\/\/[a-z0-9.-]+|android:apk-key-hash:[A-Za-z0-9_-]{43})$/.test(origin)) list.push(origin);
