@@ -37,6 +37,7 @@ test('passkey origins: web origin + Android release hash; extra origins validate
   const list = policy.passkeyOrigins('lvt.vscgroup.io.vn', `android:apk-key-hash:${'A'.repeat(43)}, javascript:alert(1), https://evil.example`);
   assert.ok(list.includes('https://lvt.vscgroup.io.vn'));
   assert.ok(list.includes(policy.ANDROID_RELEASE_ORIGIN));
+  for (const origin of policy.ANDROID_PLAY_ORIGINS) assert.ok(list.includes(origin), 'Play-installed builds');
   assert.ok(list.includes(`android:apk-key-hash:${'A'.repeat(43)}`));
   assert.ok(!list.includes('javascript:alert(1)'));
   assert.ok(list.includes('https://evil.example'), 'explicit https origins configured by the operator are allowed');
@@ -47,7 +48,8 @@ test('domain association files for iOS and Android passkeys', () => {
   const links = assetLinks('ab:'.repeat(31) + 'ab, junk');
   assert.ok(links[0].relation.includes('delegate_permission/common.get_login_creds'));
   assert.equal(links[0].target.package_name, 'lvt.crm');
-  assert.equal(links[0].target.sha256_cert_fingerprints.length, 2);
+  assert.equal(links[0].target.sha256_cert_fingerprints.length, 4);
+  assert.ok(links[0].target.sha256_cert_fingerprints.includes('72:C5:08:07:F3:28:6A:30:23:A8:FF:99:1E:2D:27:A8:63:45:05:95:66:1F:5F:77:B0:F4:B3:14:63:FC:3E:F8'), 'Play app-signing key');
   assert.equal(wellKnownResponse('/.well-known/nothing'), null);
   assert.match(read('scripts/serve-production.mjs'), /wellKnownResponse\(pathname\)/);
 });
