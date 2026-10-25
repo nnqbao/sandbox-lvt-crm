@@ -7,8 +7,10 @@ keywords: cong viec, giao viec, nop bang chung, hoan thanh, han chot, loai van b
 ---
 Nhận việc nhà trường giao, làm xong thì nộp file bằng chứng để người giao duyệt.
 
+@video(cv-viec-duoc-giao)
+
 1. Mở menu **Công việc**, tab **Công việc** [[1]].
-2. Mục **Việc của tôi** chia 4 tab [[2]]: **Việc cần làm**, **Đang chờ duyệt**, **Quá hạn**, **Đã duyệt hoàn thành**. Số đỏ là số việc trong tab.
+2. Mục **Việc được giao** chia 4 tab [[2]]: **Việc cần làm**, **Đang chờ duyệt**, **Quá hạn**, **Đã duyệt hoàn thành**. Số đỏ là số việc trong tab.
 3. Mỗi thẻ [[3]] có hạn chót, nội dung, phòng ban/người nhận và file công văn đính kèm. Bấm **›** để xem chi tiết, mở hoặc tải file.
 4. Làm xong, bấm **Nộp bằng chứng hoàn thành** [[4]].
 5. Công tắc bên phải [[5]] bật **nhắc nhở** riêng cho việc này.

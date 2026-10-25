@@ -7,6 +7,8 @@ keywords: duyet lich, tra lai, bgh sua, lich su chinh sua, hieu truong
 ---
 Duyệt lịch tuần Văn thư đã nộp, hoặc sửa ngay một công tác mà không cần trả về.
 
+@video(ct-tao-va-duyet "Ban Giám hiệu duyệt lịch tuần")
+
 1. Mở **Lịch công tác chung**. Tuần chờ duyệt có nhãn **Chờ duyệt** [[1]].
 2. Xem các thay đổi **Thêm / Sửa** [[2]] và các dòng tô vàng trong bảng [[5]].
 3. Bấm **Duyệt lịch tuần** [[3]] — giáo viên thấy lịch và nhận thông báo ngay.

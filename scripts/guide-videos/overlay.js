@@ -142,6 +142,17 @@ export function installVideoOverlay() {
         const free = bottom - top;
         scroll = r.height > free ? r.top - top : r.top - (top + (free - r.height) / 2);
       }
+      // A target inside a fixed layer (modal, drawer) does not move when the window scrolls.
+      let fixed = false;
+      for (let p = target; p && p !== document.body; p = p.parentElement) {
+        if (p === scroller) break;
+        if (getComputedStyle(p).position === 'fixed') fixed = true;
+      }
+      if (fixed && !scroller) scroll = 0;
+      // Never aim past what the container can actually scroll (targets near the page end).
+      const current = scroller ? scroller.scrollTop : window.scrollY;
+      const max = scroller ? scroller.scrollHeight - scroller.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
+      scroll = Math.max(-current, Math.min(scroll, Math.max(0, max - current)));
       const x = anchor === 'left' ? r.left + Math.min(24, r.width / 2) : r.left + r.width / 2;
       const y = r.top + r.height / 2 - scroll;
       return { x: Math.round(x), y: Math.round(y), scroll: Math.round(scroll) };

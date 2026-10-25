@@ -7,6 +7,8 @@ keywords: lich chung, toan truong, pdf, in lich, tuan, thang
 ---
 Xem lịch công tác toàn trường theo đúng mẫu văn bản của nhà trường, tải PDF để in.
 
+@video(ct-lich-cong-tac "Lịch công tác chung · Tải PDF")
+
 1. Mở **Lịch công tác**, chọn tab **Lịch công tác chung** [[1]].
 2. Dùng **‹ Hôm nay ›** [[2]] để chuyển tuần.
 3. Chọn **Tuần** hoặc **Tháng** [[3]].

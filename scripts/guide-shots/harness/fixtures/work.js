@@ -18,9 +18,12 @@ const person = (id, status) => {
   return { _id: u._id, name: u.name, email: u.email, status, departmentName: departmentById(u.departmentId)?.name || '', positionName: positionById(u.positionId)?.name || '' };
 };
 
-/** Work items assigned to the signed-in teacher (Nguyễn Văn A). */
-function myTasks() {
-  return [
+/**
+ * Work items assigned to the signed-in teacher (Nguyễn Văn A).
+ * Videos: state.workSubmitted shows wi1 after "Nộp" (waiting for the creator's review).
+ */
+function myTasks(state = {}) {
+  const rows = [
     {
       _id: 'wi1', type: 'department', content: 'Nộp kế hoạch dạy học môn Toán học kỳ I', deadline: '2026-10-25',
       departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', status: 'pending_task', collectiveStatus: 'in_progress',
@@ -56,6 +59,14 @@ function myTasks() {
       completion: { status: 'approved', note: '' }, qualityPercent: 95, rejectionReason: '', members: [], pendingMembers: [],
     },
   ];
+  if (state.workSubmitted) {
+    const wi1 = rows[0];
+    wi1.status = 'pending_completion';
+    wi1.completion = { status: 'pending_approval', note: state.workSubmitted === true ? 'Gửi kế hoạch dạy học đã họp tổ thống nhất.' : String(state.workSubmitted) };
+    wi1.members = [person('u_teacher', 'pending_completion'), person('u_leader', 'pending_completion'), person('u_t5', 'completed')];
+    wi1.pendingMembers = [person('u_teacher', 'pending_completion'), person('u_leader', 'pending_completion')];
+  }
+  return rows;
 }
 
 const PENDING_REVIEWS = [
@@ -105,7 +116,7 @@ function clerkDocuments() {
     {
       // Released: both approvers approved → locked, assignees working.
       _id: 'doc1', title: 'Kế hoạch dạy học học kỳ I', fileName: 'ke-hoach-day-hoc-hk1.docx', fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', fileSize: 48230,
-      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp kế hoạch dạy học môn học kỳ I', deadline: '2026-10-25', workStatus: 'in_progress',
+      fileUrl: null, privateFile: true, documentTypeId: 'dt_kh', documentTypeName: 'Kế hoạch', content: 'Nộp kế hoạch dạy học môn học kỳ I', deadline: '2026-10-25', workStatus: 'in_progress',
       departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, createdAt: T0 - 5 * DAY, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh', 'approved', 100), approverRow('u_pht', 'approved', 98)], { status: 'approved', submittedHoursAgo: 120 }),
       // Members already submitted / completed → read-only for everyone.
@@ -120,7 +131,7 @@ function clerkDocuments() {
     {
       // Returned by the Hiệu trưởng before anyone approved → editable, waiting for resubmission.
       _id: 'doc10', title: 'Kế hoạch tổ chức Ngày hội đọc sách', fileName: 'ke-hoach-ngay-hoi-doc-sach.pdf', fileType: 'application/pdf', fileSize: 96400,
-      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Chuẩn bị gian sách của tổ', deadline: '2026-10-30', workStatus: 'approval_returned',
+      fileUrl: null, privateFile: true, documentTypeId: 'dt_kh', documentTypeName: 'Kế hoạch', content: 'Chuẩn bị gian sách của tổ', deadline: '2026-10-30', workStatus: 'approval_returned',
       departmentId: 'dep_van', departmentName: 'Tổ Ngữ văn', assignmentCount: 2, createdAt: T0 - 2 * DAY, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh', 'rejected', 3, RETURN_REASON), approverRow('u_pht')], { status: 'rejected', submittedHoursAgo: 26, returnReason: RETURN_REASON }),
       archived: false, canEdit: true, canDelete: true, taskCount: 4,
@@ -146,7 +157,7 @@ function clerkDocuments() {
     {
       // Waiting: Phó Hiệu trưởng approved, Hiệu trưởng not yet → already locked, still hidden from assignees.
       _id: 'doc11', title: 'Kế hoạch ôn tập kiểm tra giữa kỳ I', fileName: 'de-cuong-on-tap-gk1.docx', fileType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', fileSize: 35100,
-      fileUrl: null, privateFile: true, documentTypeName: 'Kế hoạch', content: 'Nộp đề cương ôn tập', deadline: '2026-10-30', workStatus: 'awaiting_approval',
+      fileUrl: null, privateFile: true, documentTypeId: 'dt_kh', documentTypeName: 'Kế hoạch', content: 'Nộp đề cương ôn tập', deadline: '2026-10-30', workStatus: 'awaiting_approval',
       departmentId: 'dep_toan', departmentName: 'Tổ Toán – Tin', assignmentCount: 2, createdAt: T0 - 5 * HOUR, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh'), approverRow('u_pht', 'approved', 1)], { status: 'pending', submittedHoursAgo: 5 }),
       archived: false, canEdit: false, canDelete: false, taskCount: 0,
@@ -167,7 +178,7 @@ function clerkDocuments() {
       ],
     },
     {
-      _id: 'doc9', title: 'Báo cáo sơ kết tháng 9', fileName: 'bao-cao-thang-9.pdf', fileType: 'application/pdf', fileSize: 210400, fileUrl: null, privateFile: true, documentTypeName: 'Báo cáo',
+      _id: 'doc9', title: 'Báo cáo sơ kết tháng 9', fileName: 'bao-cao-thang-9.pdf', fileType: 'application/pdf', fileSize: 210400, fileUrl: null, privateFile: true, documentTypeId: 'dt_bc', documentTypeName: 'Báo cáo',
       content: 'Báo cáo sơ kết', deadline: '2026-10-05', workStatus: 'completed', departmentId: '', departmentName: 'Cá nhân',
       assignmentCount: 1, createdAt: T0 - 25 * DAY, createdBy: 'u_clerk',
       ...approvalFields([approverRow('u_bgh', 'approved', 24 * 24)], { status: 'approved', submittedHoursAgo: 25 * 24 }),
@@ -228,7 +239,7 @@ function approvalsFor(persona) {
     .sort((a, b) => Number(b.awaitingMyDecision) - Number(a.awaitingMyDecision) || b.submittedAt - a.submittedAt);
 }
 
-function listMine(_args, { persona }) {
+function listMine(_args, { persona, state = {} }) {
   const ops = isOps(persona);
   const lv = level(persona);
   const canCreate = ops || lv >= 2; // canCreateWorkDocuments: level 1 uses Việc của tôi only
@@ -243,7 +254,7 @@ function listMine(_args, { persona }) {
     departmentWorks: [],
     personalTasks: [],
     // Only released work reaches assignees; Ban giám hiệu has no assigned work in these examples.
-    myTasks: ops || lv >= 4 ? [] : myTasks(),
+    myTasks: ops || lv >= 4 ? [] : myTasks(state),
     documentTypes: DOC_TYPES,
     // Reviews go to the person who created the work (Văn thư in these examples).
     pendingCompletionReviews: ops ? PENDING_REVIEWS : [],
@@ -297,6 +308,21 @@ const TODOS = {
   completed: [todo('td5', 'Gửi danh sách đội tuyển Toán cho tổ trưởng', '', -30, -32, -26)],
 };
 
+/**
+ * Videos: state.todoAdded = { title, note, dueOffsetH, remindOffsetH } appends a just-added to-do;
+ * state.todoDone = ['td2', …] shows those to-dos ticked (moved to "Đã hoàn thành gần đây").
+ */
+function todosFor(state = {}) {
+  let open = [...TODOS.open];
+  if (state.todoAdded) {
+    const a = state.todoAdded;
+    open = [...open, todo('td_new', a.title, a.note || '', a.dueOffsetH ?? null, a.remindOffsetH ?? null)];
+  }
+  const done = new Set(state.todoDone || []);
+  const ticked = open.filter((row) => done.has(row._id)).map((row) => ({ ...row, completedAt: T0 + 0.1 * HOUR }));
+  return { open: open.filter((row) => !done.has(row._id)), completed: [...ticked, ...TODOS.completed] };
+}
+
 /* ---------------------------------------------------------- Báo cáo công việc */
 function workCalendar(args, { persona }) {
   const canViewAll = isOps(persona) || level(persona) >= 4;
@@ -334,7 +360,7 @@ export const queries = {
     documents: adminDocuments(persona), documentTypes: DOC_TYPES, pendingCompletionReviews: isOps(persona) ? PENDING_REVIEWS : [],
   }),
   'work:formOptions': formOptions,
-  'personalTodos:listMine': () => TODOS,
+  'personalTodos:listMine': (_args, { state }) => todosFor(state),
   'reports:workCalendar': workCalendar,
 };
 

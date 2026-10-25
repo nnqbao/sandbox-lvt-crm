@@ -7,6 +7,8 @@ keywords: loai van ban, ke hoach, bien ban, bao cao
 ---
 Danh sách loại văn bản để chọn khi đính kèm file công việc hoặc nộp bằng chứng.
 
+@video(tl-loai-van-ban)
+
 1. Trong **Thêm loại văn bản** [[1]], nhập tên và mã rồi bấm **+ Thêm loại văn bản**.
 2. Dùng **Sửa** [[2]] hoặc **Xóa** trên từng thẻ.
 

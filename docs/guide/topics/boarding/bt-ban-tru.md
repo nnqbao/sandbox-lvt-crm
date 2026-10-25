@@ -7,6 +7,8 @@ keywords: ban tru, ky ban tru, hoc ky, giao vien tham gia, trong trua, an trua, 
 ---
 Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem danh sách đó theo phòng ban.
 
+@video(bt-ban-tru)
+
 | Ai | Thấy / làm được gì |
 |---|---|
 | Văn thư (Moderator), Administrator | Tab **Kỳ bán trú**: thêm, sửa, xóa kỳ. Tab **Danh sách tham gia**: toàn trường |

@@ -7,6 +7,8 @@ keywords: import nguoi dung, excel, hang loat, xuat danh sach, xlsx
 ---
 Tạo nhiều tài khoản giáo viên một lần, hoặc xuất danh sách đang hoạt động ra Excel.
 
+@video(tl-nguoi-dung "Import và xuất Excel")
+
 1. Bấm **Tải file nhập liệu mẫu** [[1]].
 2. Điền các cột `ho_ten`, `email`, `ma_phong_ban`, `ma_chuc_vu`, `ma_nhom_quyen`, `mat_khau_tam_thoi` (mã phải khớp mã đã tạo trong hệ thống).
 3. Bấm **Import file nhập liệu** [[2]] và chọn file `.xlsx` (tối đa 2 MB).

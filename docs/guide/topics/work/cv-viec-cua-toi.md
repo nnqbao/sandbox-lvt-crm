@@ -7,6 +7,8 @@ keywords: viec cua toi, to do, ghi chu, nhac nho, han chot, viec rieng
 ---
 Sổ tay việc riêng: chỉ mình thầy cô thấy, không cần ai duyệt.
 
+@video(cv-viec-duoc-giao "Việc của tôi")
+
 1. Mở **Công việc**, chọn tab **Việc của tôi** [[1]].
 2. Nhập **Tên việc** [[2]] (bắt buộc), thêm ghi chú nếu cần.
 3. Chọn **Hạn chót** [[3]] và **Nhắc lúc** [[4]] — đến giờ đó hệ thống gửi thông báo cho thầy cô.

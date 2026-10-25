@@ -7,6 +7,8 @@ keywords: tra ve, chua duyet, tu choi hoan thanh, nop lai, ly do
 ---
 Đọc lý do người giao chưa duyệt, bổ sung rồi nộp lại.
 
+@video(cv-viec-duoc-giao "Bài nộp bị trả về")
+
 1. Tìm việc có nhãn **Bị từ chối hoàn thành** (thường ở tab **Việc cần làm** hoặc **Quá hạn** [[1]]).
 2. Bấm **›** để mở chi tiết; khung đỏ **Lý do chưa duyệt** [[2]] ghi điều cần sửa.
 3. Hoàn thiện lại rồi bấm **Nộp lại bằng chứng hoàn thành** [[3]].

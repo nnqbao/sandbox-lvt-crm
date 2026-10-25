@@ -12,6 +12,7 @@ export default [
   {
     id: 'ct-ca-nhan',
     scenario: 'teacher',
+    state: { strictDutyPeople: true }, // teachers see only themselves, like reports:dutyCalendar
     path: '/cong-tac',
     height: 1000,
     callouts: [
@@ -27,6 +28,7 @@ export default [
   {
     id: 'ct-chi-tiet',
     scenario: 'teacher',
+    state: { strictDutyPeople: true }, // teachers see only themselves, like reports:dutyCalendar
     path: '/cong-tac',
     height: 1000,
     actions: [{ click: { css: '.lct-table tbody tr', text: 'Dự giờ tiết Toán lớp 7/2' }, after: 400 }],
@@ -39,6 +41,7 @@ export default [
   {
     id: 'ct-ca-nhan-mobile',
     scenario: 'teacher',
+    state: { strictDutyPeople: true }, // teachers see only themselves, like reports:dutyCalendar
     path: '/cong-tac',
     width: 390,
     height: 844,

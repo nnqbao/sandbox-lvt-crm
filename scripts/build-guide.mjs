@@ -24,6 +24,7 @@
 //   ![Caption, without "Hình N."](image-id)        figure; image-id.webp|svg|png in public/huong-dan
 //   ![Caption](image-id-mobile)                      ids ending in -mobile = 2x phone shot, shown narrow
 //   consecutive figure lines                          side-by-side row
+//   @video-index                                      table of every embedded video (title, length)
 //   @video(video-id)  or  @video(video-id "Chương")   tutorial video from public/huong-dan/video
 //                                                     (npm run guide:videos), optionally from a chapter
 //   ::: tip|warn|danger|note [Tiêu đề]  ...  :::      boxes
@@ -151,6 +152,8 @@ function renderFigure(line, ctx) {
 }
 
 const VIDEO_RE = /^@video\(([a-z0-9-]+)(?:\s+"([^"]*)")?\)\s*$/;
+const VIDEO_INDEX_RE = /^@video-index\s*$/;
+const VIDEO_INDEX_MARK = '<!--VIDEO_INDEX-->';
 
 const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.round(seconds % 60)).padStart(2, '0')}`;
 
@@ -167,6 +170,9 @@ function renderVideo(line, ctx) {
   const from = chapter ? chapters.find((row) => row.title === chapter) : null;
   if (chapter && !from) warn(`${ctx.topicId}: video "${id}" không có chương "${chapter}"`);
   ctx.usedVideos.add(id);
+  // The index links each video to the first topic that shows it from the start (else any).
+  const known = ctx.videoTopics.get(id);
+  if (!known || (known.chapter && !from)) ctx.videoTopics.set(id, { topicId: ctx.topicId, title: meta.title, duration: meta.duration, chapters: chapters.length, chapter: Boolean(from) });
   const start = from ? from.start : 0;
   const src = `${IMAGE_URL}/video/${id}.mp4${start ? `#t=${start}` : ''}`;
   const chapterButtons = chapters.length > 1
@@ -233,6 +239,11 @@ function renderBlocks(lines, ctx) {
       i += 1;
       continue;
     }
+    if (VIDEO_INDEX_RE.test(line)) {
+      html.push(VIDEO_INDEX_MARK);
+      i += 1;
+      continue;
+    }
     if (VIDEO_RE.test(line)) {
       html.push(renderVideo(line, ctx));
       i += 1;
@@ -286,6 +297,7 @@ function renderBlocks(lines, ctx) {
       !/^(:::|\?\?\? |#{3,4}\s|\s*(\d+\.|[-*])\s)/.test(lines[i]) &&
       !FIGURE_RE.test(lines[i]) &&
       !VIDEO_RE.test(lines[i]) &&
+      !VIDEO_INDEX_RE.test(lines[i]) &&
       !lines[i].trim().startsWith('|')
     ) paragraph.push(lines[i++].trim());
     if (paragraph.length) html.push(`<p>${inline(paragraph.join(' '), ctx)}</p>`);
@@ -316,7 +328,7 @@ function renderTopic(topic, ctx) {
   let i = 0;
   while (i < lines.length && !lines[i].trim()) i += 1;
   const lead = [];
-  while (i < lines.length && lines[i].trim() && !/^(:::|\?\?\? |#|\s*(\d+\.|[-*])\s|!\[|@video\(|\|)/.test(lines[i])) lead.push(lines[i++].trim());
+  while (i < lines.length && lines[i].trim() && !/^(:::|\?\?\? |#|\s*(\d+\.|[-*])\s|!\[|@video|\|)/.test(lines[i])) lead.push(lines[i++].trim());
   ctx.topicId = topic.id;
   const body = renderBlocks(lines.slice(i), ctx);
   const chips = [
@@ -371,7 +383,7 @@ function build() {
     parts.push({ id: 'chua-xep', title: 'Chưa xếp mục', intro: 'Các chủ đề chưa được đưa vào outline.json.', topics: orphans });
   }
 
-  const ctx = { figureCount: { n: 0 }, usedImages: new Set(), usedVideos: new Set(), links: [], topicId: '' };
+  const ctx = { figureCount: { n: 0 }, usedImages: new Set(), usedVideos: new Set(), videoTopics: new Map(), links: [], topicId: '' };
   const toc = [];
   const sections = [];
   parts.forEach((part, index) => {
@@ -386,6 +398,10 @@ function build() {
 ${rendered}
 </section>`);
   });
+
+  const videoRows = [...ctx.videoTopics.entries()].map(([, row]) => `<tr><td><a href="#${row.topicId}">${escapeHtml(row.title)}</a></td><td>${clock(row.duration)}</td><td>${row.chapters > 1 ? `${row.chapters} phần` : '—'}</td></tr>`);
+  const videoIndex = `<div class="table-wrap"><table><thead><tr><th scope="col">Video</th><th scope="col">Thời lượng</th><th scope="col">Chia phần</th></tr></thead><tbody>${videoRows.join('')}</tbody></table></div>`;
+  for (let k = 0; k < sections.length; k += 1) sections[k] = sections[k].replace(VIDEO_INDEX_MARK, () => videoIndex);
 
   const allIds = new Set([...topics.keys(), ...parts.map((part) => part.id)]);
   for (const link of ctx.links) {

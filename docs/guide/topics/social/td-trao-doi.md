@@ -7,6 +7,8 @@ keywords: tin nhan, chat, trao doi, nhom, thu hoi, gui tin
 ---
 Nhắn tin với đồng nghiệp ngay trong CRM, gắn với từng công việc, công tác hoặc nhóm.
 
+@video(td-trao-doi)
+
 1. Bấm biểu tượng tin nhắn [[1]] ở góc phải. Số đỏ là tin chưa đọc.
 2. Lọc danh sách bằng **Tất cả / Công tác / Công việc / Nhóm** [[2]], hoặc gõ vào ô tìm kiếm.
 3. Bấm một cuộc trò chuyện [[3]] để mở.

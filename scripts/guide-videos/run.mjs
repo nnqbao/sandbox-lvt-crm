@@ -61,6 +61,10 @@ export function readTime(text) {
   return Math.min(9, Math.max(3, 1.8 + String(text).length * 0.06));
 }
 
+/** Step keys that act on the page; a caption or `clear` combined with any of them runs it too. */
+const ACTION_KEYS = ['top', 'highlight', 'point', 'click', 'type', 'fill', 'choose', 'js', 'act'];
+const hasAction = (step) => ACTION_KEYS.some((key) => step[key] !== undefined);
+
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
 class Recorder {
@@ -209,7 +213,7 @@ class Recorder {
       this.state.caption = step.caption;
       await this.v(`caption(${J(this.state.step)}, ${J(step.caption)})`);
       const spoken = this.speak();
-      if (!step.click && !step.type && !step.fill && !step.choose && !step.highlight && !step.point) {
+      if (!hasAction(step)) {
         await this.v('placeCaption()');
         // With narration the next caption waits for the voice (waitForVoice); without it, reading time.
         await this.snap(step.hold ?? (spoken ? 0.6 : readTime(step.caption)));
@@ -217,7 +221,7 @@ class Recorder {
       }
       await this.snap(spoken ? Math.min(readTime(step.caption) * 0.6, Math.max(0.8, spoken * 0.4)) : readTime(step.caption) * 0.6);
     }
-    if (step.clear && step.caption === undefined && !step.highlight && !step.click && !step.type && !step.fill && !step.choose && !step.point) {
+    if (step.clear && step.caption === undefined && !hasAction(step)) {
       await this.snap(0.2);
       return;
     }
@@ -328,9 +332,9 @@ function addAudio({ videoFile, outFile, dir, voiceFile, segments, cues, clicks, 
   const inputs = [];
   const parts = [];
   for (const [n, cue] of cues.entries()) {
-    const { start, end } = segments[cue.index];
+    const { start, end, file } = segments[cue.index];
     const clip = join(dir, `voice-${n}.wav`);
-    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', String(start), '-to', String(end), '-i', voiceFile, '-ac', '1', '-ar', '48000', clip]);
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', String(start), '-to', String(end), '-i', file || voiceFile, '-ac', '1', '-ar', '48000', clip]);
     inputs.push('-i', clip);
     parts.push(`[${n}:a]adelay=${Math.round(cue.at * 1000)}:all=1[v${n}]`);
   }
@@ -387,7 +391,18 @@ function loadVoice(id) {
   const { segments } = JSON.parse(readFileSync(meta, 'utf8'));
   const texts = JSON.parse(readFileSync(join(here, 'voiceover.json'), 'utf8'))[id] || [];
   if (segments.length !== texts.length) throw new Error(`${id}: ${segments.length} đoạn giọng nhưng voiceover.json có ${texts.length}`);
-  return { file, segments, lengths: segments.map((row) => row.end - row.start) };
+  // A single re-recorded segment (voice/<id>-NN.m4a or .wav) replaces that part of the take.
+  const patched = segments.map((row, index) => {
+    for (const ext of ['m4a', 'wav']) {
+      const patch = join(here, 'voice', `${id}-${String(index).padStart(2, '0')}.${ext}`);
+      if (existsSync(patch)) {
+        const length = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', patch], { encoding: 'utf8' }));
+        return { file: patch, start: 0, end: length };
+      }
+    }
+    return row;
+  });
+  return { file, segments: patched, lengths: patched.map((row) => row.end - row.start) };
 }
 
 async function record(page, baseUrl, video, frameDir, voice) {

@@ -7,6 +7,8 @@ keywords: dat lai mat khau, khoa, mo khoa, mo khoa dang nhap, phien, xoa tai kho
 ---
 Hỗ trợ thầy cô khi quên mật khẩu, bị khóa đăng nhập hoặc nghỉ công tác.
 
+@video(tl-nguoi-dung "Sửa, mật khẩu và khóa")
+
 Trong danh sách người dùng, mỗi dòng [[1]] có các nút:
 
 - **Sửa** [[2]]: đổi họ tên, vai trò, phòng ban, chức vụ, nhóm quyền (email không đổi được).

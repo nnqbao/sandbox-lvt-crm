@@ -7,6 +7,8 @@ keywords: tra cuu, bao cao, cong viec, ban tru, menu
 ---
 Số liệu tổng hợp: công việc theo người và theo kỳ, danh sách giáo viên tham gia bán trú.
 
+@video(bc-bao-cao)
+
 1. Mở menu **Báo cáo** [[1]] ở cột trái. Khi đang mở, bên dưới hiện hai mục con **Công việc** [[2]] và **Bán trú** [[3]].
 2. Chọn mục cần xem.
 

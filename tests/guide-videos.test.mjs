@@ -46,6 +46,18 @@ test('every tutorial video ships with a poster and chapter metadata, and the gui
   assert.match(html, /lh-lop-hoc\.mp4#t=\d/, 'tab topics start the Lớp học video at their chapter');
   assert.ok(existsSync(new URL('../docs/guide/topics/start/video-huong-dan.md', import.meta.url)));
   // The "?" help panel opens the GUIDE_ANCHORS topic of each page: those must show the video too.
+  // Every menu's "?" (GUIDE_ANCHORS) opens a topic with a video; account pages and the design library excluded.
+  const routes = read('src/navigationRoutes.js');
+  const anchorBlock = routes.slice(routes.indexOf('const GUIDE_ANCHORS'), routes.indexOf('});', routes.indexOf('const GUIDE_ANCHORS')));
+  const anchors = Object.fromEntries([...anchorBlock.matchAll(/^\s+'?([a-z-]+)'?: '([a-z0-9-]+)',$/gm)].map((m) => [m[1], m[2]]));
+  const noVideo = new Set(['profile', 'settings', 'change-password', 'devices', 'design-library']);
+  const helpTopics = Object.entries(anchors).filter(([menu]) => !noVideo.has(menu)).map(([, topic]) => topic);
+  assert.ok(helpTopics.length >= 20, `found ${helpTopics.length} help anchors`);
+  for (const topic of helpTopics) {
+    const start = html.indexOf(`<article class="topic" id="${topic}"`);
+    const article = html.slice(start, html.indexOf('</article>', start));
+    assert.ok(start >= 0 && /huong-dan\/video\/[a-z0-9-]+\.mp4/.test(article), `help panel topic ${topic} embeds a video`);
+  }
   for (const [topic, id] of [['menu-lop-chu-nhiem', 'lh-lop-hoc'], ['menu-diem-danh', 'dd-diem-danh'], ['nh-thiet-lap-nam-hoc', 'nh-thiet-lap-nam-hoc'], ['tl-giao-vien', 'tl-giao-vien'], ['tl-lich-day', 'tl-lich-day'], ['tl-mon-hoc', 'tl-mon-hoc'], ['tl-loai-kiem-tra', 'tl-loai-kiem-tra']]) {
     const article = html.slice(html.indexOf(`<article class="topic" id="${topic}"`), html.indexOf('</article>', html.indexOf(`<article class="topic" id="${topic}"`)));
     assert.ok(article.includes(`huong-dan/video/${id}.mp4`), `help panel topic ${topic} embeds ${id}`);

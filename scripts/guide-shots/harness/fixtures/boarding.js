@@ -8,6 +8,14 @@ const PERIODS = [
   { _id: 'bp_2526_1', semester: 1, schoolYear: '2025-2026', participantUserIds: ['u_t5', 'u_gvcn', 'u_t6'] },
 ].map((row) => ({ ...row, active: true, createdBy: 'u_clerk', updatedBy: 'u_clerk', createdAt: T0 - 40 * DAY, updatedAt: T0 - 40 * DAY, _creationTime: T0 - 40 * DAY }));
 
+// Videos show a period right after "Tạo kỳ bán trú" through state.extraBoardingPeriods
+// ([{ _id, semester, schoolYear, participantUserIds }]); newest first like convex/boarding.ts.
+function periodsFor(state = {}) {
+  const extra = (state.extraBoardingPeriods || []).map((row) => ({ active: true, createdBy: 'u_clerk', updatedBy: 'u_clerk', createdAt: T0, updatedAt: T0, _creationTime: T0, ...row }));
+  if (!extra.length) return PERIODS;
+  return [...PERIODS, ...extra].sort((a, b) => b.schoolYear.localeCompare(a.schoolYear) || b.semester - a.semester);
+}
+
 const slim = (user) => ({
   _id: user._id,
   name: user.name,
@@ -18,7 +26,8 @@ const slim = (user) => ({
 
 const isOps = (user) => user.role === 'admin' || user.role === 'moderator';
 
-function listAdmin() {
+function listAdmin(_args, { state } = {}) {
+  const PERIODS = periodsFor(state);
   const users = USERS.filter((u) => u.status === 'active').map(slim).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
   return {
     users,
@@ -29,7 +38,8 @@ function listAdmin() {
   };
 }
 
-function report(args, { persona }) {
+function report(args, { persona, state }) {
+  const PERIODS = periodsFor(state);
   const access = menuAccessFor(persona);
   const canViewAll = isOps(persona) || access.reports === 'view_all';
   const visible = USERS.filter((u) => u.status === 'active' && (canViewAll || u.departmentId === persona.departmentId));
