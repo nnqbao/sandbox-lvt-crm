@@ -421,9 +421,10 @@ function AppShell({ session }) {
     const stop = onAppMessage((message) => {
       if (message.type === 'open-notification' && message.item?.sourceId) openFromNotificationRef.current(message.item);
     });
-    postToApp({ type: 'ready' });
+    // The app checks the account: storage left by another account is signed out, never shown.
+    postToApp({ type: 'ready', userId: String(user._id) });
     return stop;
-  }, []);
+  }, [user._id]);
 
   return (
     <OwnAvatarProvider user={user}>
@@ -2516,19 +2517,25 @@ function AppHandoffView() {
       return undefined;
     }
     void (async () => {
-      const code = await requestAppHandoff();
-      if (cancelled) return;
-      if (code) {
+      // Network trouble: try again a few times, then let the app offer Thử lại (never sign out).
+      for (let attempt = 0; attempt < 4 && !cancelled; attempt += 1) {
+        if (attempt) await new Promise((resolve) => window.setTimeout(resolve, 1500 * attempt));
+        const result = await requestAppHandoff();
+        if (cancelled) return;
+        if (result.signedOut) {
+          setLeaving(true);
+          postToApp({ type: 'signed-out' });
+          return;
+        }
+        if (!result.code) continue;
         try {
-          await signIn('app-handoff', { code });
+          await signIn('app-handoff', { code: result.code });
           return;
         } catch (error) {
           console.error('App sign-in handoff failed', error);
         }
       }
-      if (cancelled) return;
-      setLeaving(true);
-      postToApp({ type: 'signed-out' });
+      if (!cancelled) postToApp({ type: 'handoff-error' });
     })();
     return () => {
       cancelled = true;
