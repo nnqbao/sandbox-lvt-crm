@@ -1,0 +1,27 @@
+{
+  "id": "bc-bao-cao",
+  "title": "Báo cáo",
+  "duration": 222,
+  "chapters": [
+    {
+      "title": "Mở menu Báo cáo",
+      "start": 11.8
+    },
+    {
+      "title": "Chọn người và kỳ xem",
+      "start": 46.2
+    },
+    {
+      "title": "Đọc số liệu và chi tiết",
+      "start": 99.7
+    },
+    {
+      "title": "Ai xem được gì",
+      "start": 163.9
+    },
+    {
+      "title": "Báo cáo Bán trú",
+      "start": 189.3
+    }
+  ]
+}
