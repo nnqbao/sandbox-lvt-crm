@@ -23,6 +23,10 @@ Bấm **+ Thêm đánh giá** sẽ mở hộp tải file: chọn kỳ, bấm **U
 Khi Ban Giám hiệu đã ghi nhận xét cho một kỳ, file kỳ đó **bị khóa**, không tải lại được.
 :::
 
+::: note
+Nhận xét do Văn thư ghi thay Ban Giám hiệu chỉ hiện trong hồ sơ của thầy cô sau khi một thành viên Ban Giám hiệu duyệt. Khi có lỗi mới được ghi nhận, thầy cô nhận thông báo **Ghi nhận lỗi mới**.
+:::
+
 ### Câu hỏi thường gặp
 ??? Số liệu công việc ở đây lấy từ đâu?
 Từ các công việc được giao trong menu **Công việc** và kết quả người giao đã duyệt (đúng hạn, trễ, % chất lượng).

@@ -3,6 +3,7 @@ import { useMutation } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { openNotification } from './openNotification.js';
 import { isDutyWeekNotification } from '../duties/dutyWeekApproval.js';
+import { peopleNotificationLabel } from './useNotificationFocus.js';
 
 function formatDueAt(value) {
   if (!value) return '—';
@@ -17,26 +18,29 @@ function formatDueAt(value) {
   }).format(new Date(value));
 }
 
+const REJECTION_SOURCE_TYPES = new Set(['completion_rejected', 'work_returned', 'evaluation_text_returned']);
+
 function NotificationItem({ item, onOpen, onDismiss, canDelete, pending }) {
+  const rejection = REJECTION_SOURCE_TYPES.has(item.sourceType);
   return (
     <article
-      className={`notification-card ${item.read ? 'is-read' : 'is-unread'} milestone-${item.milestoneHours}${item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? ' is-rejection' : ''}`}
+      className={`notification-card ${item.read ? 'is-read' : 'is-unread'} milestone-${item.milestoneHours}${rejection ? ' is-rejection' : ''}`}
     >
       <button
         type="button"
         className="notification-card-main"
-        title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
+        title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : item.kind === 'people' ? `Mở ${peopleNotificationLabel(item)}` : 'Mở công việc này'}
         onClick={() => onOpen(item)}
         disabled={pending === item.key}
       >
         <span className="notification-icon" aria-hidden="true">
-          {item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? '!' : item.kind === 'duty' ? '◷' : '✓'}
+          {rejection || item.sourceType === 'staff_fault' ? '!' : item.kind === 'duty' ? '◷' : item.kind === 'people' ? '★' : '✓'}
         </span>
         <span className="notification-copy">
           <span className="notification-meta">
             <strong>{item.milestoneLabel}</strong>
             <small>
-              {item.sourceType === 'work_chat' || item.sourceType === 'duty_chat' || item.sourceType === 'group_chat' || isDutyWeekNotification(item)
+              {item.sourceType === 'work_chat' || item.sourceType === 'duty_chat' || item.sourceType === 'group_chat' || item.kind === 'people' || isDutyWeekNotification(item)
                 ? `Lúc ${formatDueAt(item.dueAt)}`
                 : `Hạn ${formatDueAt(item.dueAt)}`}
             </small>
@@ -67,7 +71,7 @@ function NotificationSection({ kind, title, subtitle, items, onOpen, onDismiss, 
     <section className={`notification-category category-${kind}`}>
       <header>
         <div>
-          <span>{kind === 'duty' ? 'CÔNG TÁC' : kind === 'group' ? 'NHÓM' : 'CÔNG VIỆC'}</span>
+          <span>{kind === 'duty' ? 'CÔNG TÁC' : kind === 'group' ? 'NHÓM' : kind === 'people' ? 'NHÂN SỰ' : 'CÔNG VIỆC'}</span>
           <h3>{title}</h3>
           <p>{subtitle}</p>
         </div>
@@ -110,6 +114,8 @@ export default function NotificationsView({ data, onOpenItem }) {
   // "Việc của tôi" reminders sit with Công việc.
   const workItems = data.items.filter((item) => item.kind === 'work' || item.kind === 'todo');
   const groupItems = data.items.filter((item) => item.kind === 'group');
+  // Ghi nhận lỗi + Đánh giá nhân sự (BGH approval of văn thư comments).
+  const peopleItems = data.items.filter((item) => item.kind === 'people');
   const unreadKeys = data.items.filter((item) => !item.read).map((item) => item.key);
 
   const openOne = async (item) => {
@@ -175,6 +181,18 @@ export default function NotificationsView({ data, onOpenItem }) {
             title="Trao đổi nhóm"
             subtitle="Tin nhắn mới trong nhóm bạn tham gia."
             items={groupItems}
+            onOpen={openOne}
+            onDismiss={dismissOne}
+            canDelete={data.canDelete}
+            pending={pending}
+          />
+        ) : null}
+        {peopleItems.length ? (
+          <NotificationSection
+            kind="people"
+            title="Đánh giá & ghi nhận lỗi"
+            subtitle="Lỗi được ghi nhận cho bạn và nhận xét BGH cần duyệt."
+            items={peopleItems}
             onOpen={openOne}
             onDismiss={dismissOne}
             canDelete={data.canDelete}

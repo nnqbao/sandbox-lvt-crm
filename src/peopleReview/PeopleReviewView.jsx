@@ -4,6 +4,8 @@ import { useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import './peopleReview.css';
 import { boardingPeriodLabel } from '../boarding/boardingLabels.js';
+import { messageFor } from '../lib/appErrorMessage';
+import { PEOPLE_NOTIFICATION_FOCUS_TYPES, useNotificationFocus } from '../notifications/useNotificationFocus';
 
 const ACCEPTED = ['pdf', 'png', 'jpg', 'jpeg'];
 
@@ -156,7 +158,7 @@ function FaultList({ faults }) {
   return (
     <div className="pr-fault-list">
       {faults.map((fault) => (
-        <article className="pr-fault-card" key={fault._id}>
+        <article className="pr-fault-card" key={fault._id} data-focus-id={String(fault._id)}>
           <header>
             <strong>{formatDate(fault.violationDate)}</strong>
             <span>Ghi bởi {fault.recordedByName}</span>
@@ -196,6 +198,171 @@ function WorkKpiPanel({ workKpi }) {
   );
 }
 
+const TEXT_STATUS_LABELS = { pending: 'Chờ BGH duyệt', returned: 'Bị trả lại' };
+
+/** "Chờ BGH duyệt" / "Bị trả lại" for comments văn thư wrote on behalf of BGH. */
+export function TextStatusBadge({ status }) {
+  if (!TEXT_STATUS_LABELS[status]) return null;
+  return <span className={`pr-text-status is-${status}`}>{TEXT_STATUS_LABELS[status]}</span>;
+}
+
+function textAuthorLine(text) {
+  if (text.status === 'approved' && text.writtenOnBehalf) {
+    return `${text.reviewedByName || text.evaluatorName} duyệt — viết bởi Văn thư ${text.writerName}`;
+  }
+  if (text.writtenOnBehalf) return `Văn thư ${text.writerName} viết thay BGH`;
+  return null;
+}
+
+/**
+ * One "BGH đánh giá". Pending/returned ones only reach the writer, admin/mod and
+ * eligible BGH approvers (server-filtered); every action is re-checked server-side.
+ */
+export function EvaluationTextCard({ text }) {
+  const review = useMutation(anyApi.peopleReview.reviewEvaluationText);
+  const resubmit = useMutation(anyApi.peopleReview.resubmitEvaluationText);
+  const [mode, setMode] = useState('');
+  const [reason, setReason] = useState('');
+  const [draft, setDraft] = useState(text.content);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const authorLine = textAuthorLine(text);
+
+  const run = async (action) => {
+    setBusy(true);
+    setError('');
+    try {
+      await action();
+      setMode('');
+      setReason('');
+    } catch (actionError) {
+      setError(messageFor(actionError));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <article className={`pr-text-card is-${text.status}`} data-focus-id={String(text._id)}>
+      <header>
+        <span>{text.status === 'approved' ? text.evaluatorName : text.writerName}</span>
+        <TextStatusBadge status={text.status} />
+        <time>{formatDateTime(text.submittedAt || text.createdAt)}</time>
+      </header>
+      {authorLine ? <small className="pr-muted">{authorLine}</small> : null}
+      {mode === 'edit' ? (
+        <textarea rows={3} maxLength={5000} value={draft} onChange={(event) => setDraft(event.target.value)} />
+      ) : (
+        <p>{text.content}</p>
+      )}
+      {text.status === 'returned' && text.returnReason ? (
+        <div className="pr-feedback error">
+          {text.reviewedByName ? `${text.reviewedByName} trả lại` : 'Bị trả lại'}: {text.returnReason}
+        </div>
+      ) : null}
+      {text.reviewBlockedAlreadyEvaluated ? (
+        <small className="pr-muted">Bạn đã có BGH đánh giá cho kỳ này — một thành viên BGH khác sẽ duyệt.</small>
+      ) : null}
+      {mode === 'return' ? (
+        <label className="pr-field-label">
+          Lý do trả lại
+          <textarea rows={2} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
+        </label>
+      ) : null}
+      {error ? <div className="pr-feedback error">{error}</div> : null}
+      {text.canReview || text.canEdit ? (
+        <div className="pr-text-actions">
+          {text.canReview && mode === '' ? (
+            <>
+              <button
+                type="button"
+                className="pr-mini-button primary"
+                disabled={busy}
+                onClick={() => void run(() => review({ textId: text._id, decision: 'approve', submittedAt: text.submittedAt }))}
+              >
+                Duyệt
+              </button>
+              <button type="button" className="pr-mini-button" disabled={busy} onClick={() => setMode('return')}>
+                Trả lại
+              </button>
+            </>
+          ) : null}
+          {mode === 'return' ? (
+            <>
+              <button type="button" className="pr-mini-button" disabled={busy} onClick={() => setMode('')}>Hủy</button>
+              <button
+                type="button"
+                className="pr-mini-button primary"
+                disabled={busy || !reason.trim()}
+                onClick={() => void run(() => review({
+                  textId: text._id,
+                  decision: 'return',
+                  reason: reason.trim(),
+                  submittedAt: text.submittedAt,
+                }))}
+              >
+                Gửi trả lại
+              </button>
+            </>
+          ) : null}
+          {text.canEdit && mode === '' ? (
+            <button
+              type="button"
+              className="pr-mini-button"
+              disabled={busy}
+              onClick={() => {
+                setDraft(text.content);
+                setMode('edit');
+              }}
+            >
+              {text.status === 'returned' ? 'Sửa & gửi duyệt lại' : 'Sửa'}
+            </button>
+          ) : null}
+          {mode === 'edit' ? (
+            <>
+              <button type="button" className="pr-mini-button" disabled={busy} onClick={() => setMode('')}>Hủy</button>
+              <button
+                type="button"
+                className="pr-mini-button primary"
+                disabled={busy || !draft.trim()}
+                onClick={() => void run(() => resubmit({ textId: text._id, content: draft.trim() }))}
+              >
+                Gửi BGH duyệt
+              </button>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+/** "Nhận xét chờ BGH duyệt": BGH approve here; văn thư track and fix returned ones. */
+function EvaluationReviewQueue() {
+  const queue = useQuery(anyApi.peopleReview.evaluationReviewQueue, {});
+  if (!queue?.items?.length) return null;
+  return (
+    <section className="pr-section pr-review-queue">
+      <header className="pr-section-head">
+        <h3>Nhận xét chờ BGH duyệt</h3>
+        <p>BGH đánh giá do Văn thư viết thay chỉ có hiệu lực sau khi một thành viên Ban Giám hiệu duyệt.</p>
+      </header>
+      <div className="pr-text-list">
+        {queue.items.map((item) => (
+          <div className="pr-review-item" key={item._id}>
+            <div className="pr-review-item-head">
+              <strong>{item.targetName}</strong>
+              <small>{item.departmentName} · {item.periodLabel}</small>
+              <PrivateFileButton kind="evaluation" fileId={item.fileId} fileName={item.fileName} />
+            </div>
+            <EvaluationTextCard text={item} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function EvalBlock({ title, options, value, onChange, file }) {
   return (
     <section className="pr-eval-block">
@@ -219,16 +386,8 @@ function EvalBlock({ title, options, value, onChange, file }) {
           </small>
           {file.texts.length ? (
             <div className="pr-text-list">
-              <strong>{file.texts.length} BGH đánh giá</strong>
-              {file.texts.map((text) => (
-                <article key={text._id}>
-                  <header>
-                    <span>{text.evaluatorName}</span>
-                    <time>{formatDateTime(text.createdAt)}</time>
-                  </header>
-                  <p>{text.content}</p>
-                </article>
-              ))}
+              <strong>{file.texts.filter((text) => text.status === 'approved').length} BGH đánh giá</strong>
+              {file.texts.map((text) => <EvaluationTextCard key={text._id} text={text} />)}
             </div>
           ) : (
             <small className="pr-muted">Chưa có BGH đánh giá.</small>
@@ -579,6 +738,7 @@ function EvaluationModal({ person, boardingOptions, existingEvaluations, onClose
                 <article className="pr-mini-text" key={text._id}>
                   <strong>{text.evaluatorName}</strong>
                   <span>{formatDateTime(text.createdAt)}</span>
+                  <TextStatusBadge status={text.status} />
                   <p>{text.content}</p>
                 </article>
               ))}
@@ -611,6 +771,7 @@ function EvaluationModal({ person, boardingOptions, existingEvaluations, onClose
                 <article className="pr-mini-text" key={text._id}>
                   <strong>{text.evaluatorName}</strong>
                   <span>{formatDateTime(text.createdAt)}</span>
+                  <TextStatusBadge status={text.status} />
                   <p>{text.content}</p>
                 </article>
               ))}
@@ -648,6 +809,7 @@ function EvaluationModal({ person, boardingOptions, existingEvaluations, onClose
                   <article className="pr-mini-text" key={text._id}>
                     <strong>{text.evaluatorName}</strong>
                     <span>{formatDateTime(text.createdAt)}</span>
+                    <TextStatusBadge status={text.status} />
                     <p>{text.content}</p>
                   </article>
                 ))}
@@ -767,10 +929,17 @@ function EvalTargetModal({ person, onClose }) {
   );
 }
 
-export default function PeopleReviewView() {
+export default function PeopleReviewView({ focusTarget = null }) {
   const overview = useQuery(anyApi.peopleReview.overview);
   const [selectedId, setSelectedId] = useState('');
   const [evalTarget, setEvalTarget] = useState(null);
+  // Bell items: a fault opens "Hồ sơ của tôi"; review items land on the queue panel.
+  useNotificationFocus(focusTarget, {
+    acceptSourceTypes: PEOPLE_NOTIFICATION_FOCUS_TYPES,
+    onMatch: (target) => {
+      if (target.sourceType === 'staff_fault') setSelectedId('');
+    },
+  });
 
   const groups = useMemo(() => {
     if (!overview?.people?.length) return [];
@@ -791,6 +960,7 @@ export default function PeopleReviewView() {
 
   return (
     <section className="pr-view">
+      {isSelfMode ? null : <EvaluationReviewQueue />}
       {isSelfMode ? (
         <PersonDashboard
           userId={overview.self._id}

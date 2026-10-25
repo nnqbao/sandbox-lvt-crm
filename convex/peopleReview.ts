@@ -9,6 +9,7 @@ import {
   getWorkAssignerMode,
 } from "./lib";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import {
   claimDriveUploadCleanup,
@@ -21,6 +22,20 @@ import {
 } from "./driveUploadStages";
 import { canAddStaffFault, canSeeStaffFaultRecord, STAFF_FAULTS_MENU_ID } from "./staffFaultsPolicy";
 import { moderatorDepartmentScope, opsTargetInScope } from "./moderatorScope";
+import {
+  canSeeEvaluationText,
+  canWriteEvaluationTextRule,
+  countedEvaluatorId,
+  evaluationFileTextLocked,
+  evaluationPeriodLabel,
+  evaluationReviewPushText,
+  evaluationTextReviewError,
+  evaluationTextStatus,
+  evaluationTextWriteDecision,
+  hasCountedEvaluation,
+  isBghReviewer,
+  staffFaultPushText,
+} from "./peopleReviewPolicy";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const SCHOOL_YEAR_RE = /^\d{4}-\d{4}$/;
@@ -267,24 +282,15 @@ function canUploadEvaluationFile(actor: ActorCtx, target: any) {
 
 function canWriteEvaluationText(actor: ActorCtx, target: any) {
   const targetIsOps = isOperationalManagerRole(target.role);
-  const targetLevel = targetLevelOf(target, actor.positions, targetIsOps);
-  if (String(actor.user._id) === String(target._id)) return false; // never self-text
-  if (!targetIsOps && targetLevel === 5) return false; // nobody texts principal
-
-  if (targetIsOps) {
-    // Only L4/L5 text-evaluate Admin/Mod.
-    return actor.level === 4 || actor.level === 5;
-  }
-
-  if (targetLevel === 4) {
-    return actor.level === 5;
-  }
-
-  if (targetLevel >= 1 && targetLevel <= 3) {
-    return opsReaches(actor, target) || actor.level === 4 || actor.level === 5;
-  }
-
-  return false;
+  return canWriteEvaluationTextRule({
+    actorUserId: String(actor.user._id),
+    actorIsOps: actor.isOps,
+    actorLevel: actor.level,
+    actorReachesTarget: opsReaches(actor, target),
+    targetUserId: String(target._id),
+    targetIsOps,
+    targetLevel: targetLevelOf(target, actor.positions, targetIsOps),
+  });
 }
 
 function canViewTarget(actor: ActorCtx, target: any) {
@@ -455,51 +461,114 @@ async function boardingParticipationKeys(ctx: any, userId: string) {
     );
 }
 
-async function loadEvaluationBundle(ctx: any, targetUserId: string) {
+/** BGH member who may approve/return a pending comment for `target` (existing write rule). */
+function isEligibleTextReviewer(actor: ActorCtx, target: any) {
+  return isBghReviewer(actor) && canWriteEvaluationText(actor, target);
+}
+
+/** One comment as `actor` may see it; null when it must stay hidden (pending/returned). */
+function mapEvaluationTextForViewer(
+  actor: ActorCtx,
+  target: any,
+  text: any,
+  fileTexts: any[],
+  usersById: Map<string, any>,
+) {
+  const viewerIsEligibleReviewer = isEligibleTextReviewer(actor, target);
+  const visible = canSeeEvaluationText({
+    text,
+    viewerUserId: String(actor.user._id),
+    targetUserId: String(target._id),
+    viewerOpsInScope: opsReaches(actor, target),
+    viewerIsEligibleReviewer,
+  });
+  if (!visible) return null;
+  const status = evaluationTextStatus(text);
+  const isWriter = String(text.evaluatorUserId) === String(actor.user._id);
+  const counted = countedEvaluatorId(text);
+  const writerName = personLabel(usersById.get(String(text.evaluatorUserId)));
+  const reviewerName = text.reviewedByUserId
+    ? personLabel(usersById.get(String(text.reviewedByUserId)))
+    : null;
+  const reviewError = status === "pending"
+    ? evaluationTextReviewError({
+        text,
+        reviewerUserId: String(actor.user._id),
+        reviewerIsOps: actor.isOps,
+        reviewerLevel: actor.level,
+        reviewerCanWriteForTarget: viewerIsEligibleReviewer,
+        fileTexts,
+        decision: "approve",
+      })
+    : "EVALUATION_TEXT_NOT_PENDING";
+  return {
+    _id: text._id,
+    content: text.content,
+    status,
+    writtenOnBehalf: Boolean(text.writtenOnBehalf),
+    // The BGH member the comment counts for once approved; the writer otherwise.
+    evaluatorUserId: counted || String(text.evaluatorUserId),
+    evaluatorName: counted ? personLabel(usersById.get(counted)) : writerName,
+    writerName,
+    reviewedByName: reviewerName,
+    reviewedAt: text.reviewedAt ?? null,
+    submittedAt: text.submittedAt ?? text.createdAt,
+    // The return reason is for the writer and the managers, never the evaluated person.
+    returnReason: status === "returned" ? text.returnReason || "" : null,
+    canReview: reviewError === null,
+    // Eligible BGH member who already has a comment counted on this file: another BGH member approves.
+    reviewBlockedAlreadyEvaluated: viewerIsEligibleReviewer && reviewError === "EVALUATION_TEXT_ALREADY_SUBMITTED",
+    canEdit: isWriter && status !== "approved" && canWriteEvaluationText(actor, target),
+    createdAt: text.createdAt,
+    updatedAt: text.updatedAt,
+  };
+}
+
+async function loadEvaluationBundle(ctx: any, target: any, actor: ActorCtx) {
+  const targetUserId = String(target._id);
   const [files, texts, users] = await Promise.all([
     ctx.db.query("personnelEvaluationFiles").withIndex("by_target", (q: any) =>
-      q.eq("targetUserId", String(targetUserId)).eq("active", true),
+      q.eq("targetUserId", targetUserId).eq("active", true),
     ).collect(),
     ctx.db.query("personnelEvaluationTexts").withIndex("by_target", (q: any) =>
-      q.eq("targetUserId", String(targetUserId)).eq("active", true),
+      q.eq("targetUserId", targetUserId).eq("active", true),
     ).collect(),
     ctx.db.query("users").collect(),
   ]);
-  const usersById = new Map(users.map((user: any) => [String(user._id), user]));
-  const textsByFile = new Map<string, any[]>();
+  const usersById = new Map<string, any>(users.map((user: any) => [String(user._id), user]));
+  const rowsByFile = new Map<string, any[]>();
   for (const text of texts) {
-    const list = textsByFile.get(String(text.fileId)) || [];
-    list.push({
-      _id: text._id,
-      content: text.content,
-      evaluatorUserId: text.evaluatorUserId,
-      evaluatorName: personLabel(usersById.get(String(text.evaluatorUserId))),
-      createdAt: text.createdAt,
-      updatedAt: text.updatedAt,
-    });
-    textsByFile.set(String(text.fileId), list);
+    const list = rowsByFile.get(String(text.fileId)) || [];
+    list.push(text);
+    rowsByFile.set(String(text.fileId), list);
   }
   return files
-    .map((file: any) => ({
-      _id: file._id,
-      kind: file.kind,
-      year: file.year ?? null,
-      quarter: file.quarter ?? null,
-      schoolYear: file.schoolYear ?? null,
-      semester: file.semester ?? null,
-      periodKey: file.periodKey,
-      fileName: file.fileName,
-      fileType: file.fileType,
-      fileSize: file.fileSize,
-      versionCount: file.versionCount,
-      lastUploadedAt: file.lastUploadedAt,
-      uploadedByUserId: file.uploadedByUserId,
-      uploadedByName: personLabel(usersById.get(String(file.uploadedByUserId))),
-      textLocked: (textsByFile.get(String(file._id)) || []).length > 0,
-      texts: (textsByFile.get(String(file._id)) || []).sort(
-        (a, b) => a.createdAt - b.createdAt,
-      ),
-    }))
+    .map((file: any) => {
+      const fileTexts = rowsByFile.get(String(file._id)) || [];
+      const visibleTexts = fileTexts
+        .map((text: any) => mapEvaluationTextForViewer(actor, target, text, fileTexts, usersById))
+        .filter((text: any): text is NonNullable<typeof text> => text !== null)
+        .sort((a: any, b: any) => a.createdAt - b.createdAt);
+      return {
+        _id: file._id,
+        kind: file.kind,
+        year: file.year ?? null,
+        quarter: file.quarter ?? null,
+        schoolYear: file.schoolYear ?? null,
+        semester: file.semester ?? null,
+        periodKey: file.periodKey,
+        fileName: file.fileName,
+        fileType: file.fileType,
+        fileSize: file.fileSize,
+        versionCount: file.versionCount,
+        lastUploadedAt: file.lastUploadedAt,
+        uploadedByUserId: file.uploadedByUserId,
+        uploadedByName: personLabel(usersById.get(String(file.uploadedByUserId))),
+        // Only approved BGH comments lock the file.
+        textLocked: evaluationFileTextLocked(fileTexts),
+        texts: visibleTexts,
+      };
+    })
     .sort((a: any, b: any) => b.lastUploadedAt - a.lastUploadedAt);
 }
 
@@ -749,7 +818,7 @@ export const myDashboard = query({
       }));
 
     const workKpi = await computeWorkKpi(ctx, access.user, workFrom, workTo);
-    const evaluations = await loadEvaluationBundle(ctx, String(access.user._id));
+    const evaluations = await loadEvaluationBundle(ctx, access.user, access);
     const boardingOptions = await boardingParticipationKeys(ctx, String(access.user._id));
 
     return {
@@ -831,7 +900,7 @@ export const personDetail = query({
       workTo,
       faults: faultRows,
       workKpi: await computeWorkKpi(ctx, target, workFrom, workTo),
-      evaluations: await loadEvaluationBundle(ctx, String(target._id)),
+      evaluations: await loadEvaluationBundle(ctx, target, access),
       boardingOptions: await boardingParticipationKeys(ctx, String(target._id)),
     };
   },
@@ -987,6 +1056,19 @@ export const recordFault = mutation({
       details: JSON.stringify({ id, violationDate, fileName: meta.fileName }),
       at: now,
     });
+    // Tell the person the fault is about (never the recorder themself). Lock
+    // screens show push text, so the body carries the date only, never the reason.
+    if (String(target._id) !== String(access.user._id)) {
+      const push = staffFaultPushText(violationDate);
+      await ctx.scheduler.runAfter(0, internal.pushActions.sendToUsers, {
+        userIds: [String(target._id)],
+        title: push.title,
+        body: push.body,
+        kind: "people",
+        sourceType: "staff_fault",
+        sourceId: String(id),
+      });
+    }
     return id;
   },
 });
@@ -1043,7 +1125,7 @@ export const upsertEvaluationFile = mutation({
           .query("personnelEvaluationTexts")
           .withIndex("by_file", (q: any) => q.eq("fileId", String(existing._id)).eq("active", true))
           .collect();
-        if (texts.length) throw new Error("EVALUATION_FILE_LOCKED");
+        if (evaluationFileTextLocked(texts)) throw new Error("EVALUATION_FILE_LOCKED");
       }
       const previousDriveFileId = existing.active ? existing.driveFileId : null;
       await ctx.db.patch(existing._id, {
@@ -1121,6 +1203,121 @@ export const upsertEvaluationFile = mutation({
   },
 });
 
+async function activeFileTexts(ctx: any, fileId: string) {
+  return await ctx.db
+    .query("personnelEvaluationTexts")
+    .withIndex("by_file", (q: any) => q.eq("fileId", String(fileId)).eq("active", true))
+    .collect();
+}
+
+/**
+ * Create or (for a pending/returned on-behalf comment) edit the actor's comment.
+ * Admin/mod-written comments go to `pending` and need Ban giám hiệu approval;
+ * BGH-written ones are approved at once (`evaluationTextWriteDecision`).
+ * Callers have already checked `canWriteEvaluationText`.
+ */
+async function writeEvaluationText(
+  ctx: any,
+  access: ActorCtx,
+  file: any,
+  target: any,
+  content: string,
+  now: number,
+) {
+  if (!file?.active) throw new Error("EVALUATION_FILE_NOT_FOUND");
+  const texts = await activeFileTexts(ctx, String(file._id));
+  const own = await ctx.db
+    .query("personnelEvaluationTexts")
+    .withIndex("by_file_evaluator", (q: any) =>
+      q.eq("fileId", String(file._id)).eq("evaluatorUserId", String(access.user._id)),
+    )
+    .unique();
+  const decision = evaluationTextWriteDecision({
+    actorUserId: String(access.user._id),
+    actorIsOps: access.isOps,
+    texts,
+    own,
+  });
+  if (!decision.ok) throw new Error(decision.error);
+  const fields = {
+    content,
+    status: decision.status,
+    writtenOnBehalf: decision.writtenOnBehalf,
+    submittedAt: now,
+    // A resubmission clears the previous decision.
+    reviewedByUserId: undefined,
+    reviewedAt: undefined,
+    returnReason: undefined,
+    active: true,
+    updatedBy: access.user._id,
+    updatedAt: now,
+  };
+  if (own) {
+    await ctx.db.patch(own._id, fields);
+    return { id: own._id, mode: "update" as const, status: decision.status };
+  }
+  const id = await ctx.db.insert("personnelEvaluationTexts", {
+    ...fields,
+    fileId: String(file._id),
+    targetUserId: String(target._id),
+    evaluatorUserId: String(access.user._id),
+    createdBy: access.user._id,
+    createdAt: now,
+  });
+  return { id, mode: "create" as const, status: decision.status };
+}
+
+/** Active BGH members (people-review visible) who may approve a comment on `file` for `target`. */
+async function eligibleTextReviewerIds(ctx: any, file: any, target: any) {
+  const [users, positions, fileTexts] = await Promise.all([
+    ctx.db.query("users").collect(),
+    ctx.db.query("positions").collect(),
+    activeFileTexts(ctx, String(file._id)),
+  ]);
+  const targetIsOps = isOperationalManagerRole(target.role);
+  const targetLevel = targetLevelOf(target, positions, targetIsOps);
+  const ids: string[] = [];
+  for (const user of users) {
+    if (user.status !== "active" || user.mustChangePassword) continue;
+    if (isOperationalManagerRole(user.role)) continue;
+    const level = activePositionLevel(user, positions);
+    if (level < 4) continue;
+    const canWrite = canWriteEvaluationTextRule({
+      actorUserId: String(user._id),
+      actorIsOps: false,
+      actorLevel: level,
+      actorReachesTarget: false,
+      targetUserId: String(target._id),
+      targetIsOps,
+      targetLevel,
+    });
+    if (!canWrite || hasCountedEvaluation(fileTexts, String(user._id))) continue;
+    const menuAccess = await resolveUserMenuAccess(ctx, user);
+    if (menuAccess["people-review"] === "hidden") continue;
+    ids.push(String(user._id));
+  }
+  return ids;
+}
+
+/** Bell is derived from the pending row; this only sends the push "Nhận xét chờ duyệt". */
+async function notifyTextReviewers(ctx: any, file: any, target: any, textId: string) {
+  const userIds = await eligibleTextReviewerIds(ctx, file, target);
+  if (!userIds.length) return;
+  const push = evaluationReviewPushText({
+    kind: "submitted",
+    targetName: personLabel(target),
+    periodLabel: evaluationPeriodLabel(file),
+  });
+  await ctx.scheduler.runAfter(0, internal.pushActions.sendToUsers, {
+    userIds,
+    title: push.title,
+    body: push.body,
+    kind: "people",
+    sourceType: "evaluation_text_review",
+    sourceId: String(textId),
+  });
+}
+
 export const submitEvaluationText = mutation({
   args: {
     fileId: v.id("personnelEvaluationFiles"),
@@ -1134,36 +1331,20 @@ export const submitEvaluationText = mutation({
     if (!target || target.status !== "active") throw new Error("USER_NOT_FOUND");
     if (!canWriteEvaluationText(access, target)) throw new Error("PEOPLE_REVIEW_TEXT_FORBIDDEN");
     const content = assertText(args.content);
-
-    const existing = await ctx.db
-      .query("personnelEvaluationTexts")
-      .withIndex("by_file_evaluator", (q: any) =>
-        q.eq("fileId", String(file._id)).eq("evaluatorUserId", String(access.user._id)),
-      )
-      .unique();
-    if (existing?.active) throw new Error("EVALUATION_TEXT_ALREADY_SUBMITTED");
-
     const now = Date.now();
-    const id = await ctx.db.insert("personnelEvaluationTexts", {
-      fileId: String(file._id),
-      targetUserId: String(target._id),
-      evaluatorUserId: String(access.user._id),
-      content,
-      active: true,
-      createdBy: access.user._id,
-      updatedBy: access.user._id,
-      createdAt: now,
-      updatedAt: now,
-    });
+    const written = await writeEvaluationText(ctx, access, file, target, content, now);
     await ctx.db.insert("auditLogs", {
       actorUserId: access.user._id,
       targetUserId: target._id,
       targetEmail: target.email,
-      action: "people_review.evaluation_text.create",
-      details: JSON.stringify({ id, fileId: file._id, kind: file.kind, periodKey: file.periodKey }),
+      action: written.mode === "create"
+        ? "people_review.evaluation_text.create"
+        : "people_review.evaluation_text.resubmit",
+      details: JSON.stringify({ id: written.id, fileId: file._id, kind: file.kind, periodKey: file.periodKey, status: written.status }),
       at: now,
     });
-    return id;
+    if (written.status === "pending") await notifyTextReviewers(ctx, file, target, String(written.id));
+    return written.id;
   },
 });
 
@@ -1234,14 +1415,22 @@ export const saveEvaluationBatch = mutation({
             .withIndex("by_file", (q: any) => q.eq("fileId", String(existing._id)).eq("active", true))
             .collect()
         : [];
-      if (section.upload && existing?.active && texts.length) throw new Error("EVALUATION_FILE_LOCKED");
+      if (section.upload && existing?.active && evaluationFileTextLocked(texts)) {
+        throw new Error("EVALUATION_FILE_LOCKED");
+      }
       if (section.content?.trim() && !section.upload && !existing?.active) {
         throw new Error("EVALUATION_FILE_REQUIRED");
       }
-      if (section.content?.trim() && texts.some(
-        (text: any) => text.active && String(text.evaluatorUserId) === String(access.user._id),
-      )) {
-        throw new Error("EVALUATION_TEXT_ALREADY_SUBMITTED");
+      if (section.content?.trim()) {
+        // Same rule as the write itself, checked before any upload is committed.
+        const own = texts.find((text: any) => String(text.evaluatorUserId) === String(access.user._id)) || null;
+        const decision = evaluationTextWriteDecision({
+          actorUserId: String(access.user._id),
+          actorIsOps: access.isOps,
+          texts,
+          own,
+        });
+        if (!decision.ok) throw new Error(decision.error);
       }
       prepared.push({
         section,
@@ -1254,6 +1443,7 @@ export const saveEvaluationBatch = mutation({
 
     const now = Date.now();
     const cleanupJobIds: Id<"driveCleanupJobs">[] = [];
+    const pendingTexts: Array<{ file: any; textId: string }> = [];
     for (const item of prepared) {
       if (!item.meta || !item.section.upload) continue;
       await commitDriveUploadStage(
@@ -1324,25 +1514,19 @@ export const saveEvaluationBatch = mutation({
           });
         }
       }
+      let textStatus: string | null = null;
       if (content && fileId) {
-        await ctx.db.insert("personnelEvaluationTexts", {
-          fileId: String(fileId),
-          targetUserId: String(target._id),
-          evaluatorUserId: String(access.user._id),
-          content,
-          active: true,
-          createdBy: access.user._id,
-          updatedBy: access.user._id,
-          createdAt: now,
-          updatedAt: now,
-        });
+        const file = await ctx.db.get(fileId as Id<"personnelEvaluationFiles">);
+        const written = await writeEvaluationText(ctx, access, file, target, content, now);
+        textStatus = written.status;
+        if (written.status === "pending") pendingTexts.push({ file, textId: String(written.id) });
       }
       await ctx.db.insert("auditLogs", {
         actorUserId: access.user._id,
         targetUserId: target._id,
         targetEmail: target.email,
         action: "people_review.evaluation_batch.save",
-        details: JSON.stringify({ fileId, kind: section.kind, periodKey, hasUpload: Boolean(meta), hasText: Boolean(content) }),
+        details: JSON.stringify({ fileId, kind: section.kind, periodKey, hasUpload: Boolean(meta), hasText: Boolean(content), textStatus }),
         at: now,
       });
     }
@@ -1352,7 +1536,161 @@ export const saveEvaluationBatch = mutation({
       cleanupJobIds: cleanupJobIds.map(String),
       createdAt: now,
     });
+    for (const item of pendingTexts) await notifyTextReviewers(ctx, item.file, target, item.textId);
     return { cleanupJobIds };
+  },
+});
+
+/** Ban giám hiệu approves or returns a comment văn thư (admin/mod) wrote on their behalf. */
+export const reviewEvaluationText = mutation({
+  args: {
+    textId: v.id("personnelEvaluationTexts"),
+    decision: v.union(v.literal("approve"), v.literal("return")),
+    reason: v.optional(v.string()),
+    /** `submittedAt` the reviewer saw: an edit after that must be re-read first. */
+    submittedAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const access = await requirePeopleReviewAccess(ctx);
+    const text = await ctx.db.get(args.textId);
+    if (!text?.active) throw new Error("EVALUATION_TEXT_NOT_FOUND");
+    const file = await ctx.db.get(text.fileId as Id<"personnelEvaluationFiles">);
+    if (!file?.active) throw new Error("EVALUATION_FILE_NOT_FOUND");
+    const target = await ctx.db.get(text.targetUserId as Id<"users">);
+    if (!target || target.status !== "active") throw new Error("USER_NOT_FOUND");
+    const fileTexts = await activeFileTexts(ctx, String(file._id));
+    const error = evaluationTextReviewError({
+      text,
+      reviewerUserId: String(access.user._id),
+      reviewerIsOps: access.isOps,
+      reviewerLevel: access.level,
+      reviewerCanWriteForTarget: canWriteEvaluationText(access, target),
+      fileTexts,
+      decision: args.decision,
+      reason: args.reason,
+    });
+    if (error) throw new Error(error);
+    if (Number(text.submittedAt ?? text.createdAt) !== args.submittedAt) {
+      throw new Error("EVALUATION_TEXT_CHANGED");
+    }
+    const now = Date.now();
+    const approve = args.decision === "approve";
+    await ctx.db.patch(text._id, {
+      status: approve ? "approved" : "returned",
+      reviewedByUserId: String(access.user._id),
+      reviewedAt: now,
+      returnReason: approve ? undefined : String(args.reason || "").trim(),
+      updatedBy: access.user._id,
+      updatedAt: now,
+    });
+    await ctx.db.insert("auditLogs", {
+      actorUserId: access.user._id,
+      targetUserId: target._id,
+      targetEmail: target.email,
+      action: approve ? "people_review.evaluation_text.approve" : "people_review.evaluation_text.return",
+      details: JSON.stringify({ id: text._id, fileId: file._id, kind: file.kind, periodKey: file.periodKey }),
+      at: now,
+    });
+    const writer = await ctx.db.get(text.evaluatorUserId as Id<"users">);
+    if (writer?.status === "active") {
+      const push = evaluationReviewPushText({
+        kind: approve ? "approved" : "returned",
+        targetName: personLabel(target),
+        periodLabel: evaluationPeriodLabel(file),
+      });
+      await ctx.scheduler.runAfter(0, internal.pushActions.sendToUsers, {
+        userIds: [String(writer._id)],
+        title: push.title,
+        body: push.body,
+        kind: "people",
+        sourceType: approve ? "evaluation_text_approved" : "evaluation_text_returned",
+        sourceId: String(text._id),
+      });
+    }
+  },
+});
+
+/** The writer edits a pending or returned on-behalf comment and sends it to BGH again. */
+export const resubmitEvaluationText = mutation({
+  args: {
+    textId: v.id("personnelEvaluationTexts"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const access = await requirePeopleReviewAccess(ctx);
+    const text = await ctx.db.get(args.textId);
+    if (!text?.active) throw new Error("EVALUATION_TEXT_NOT_FOUND");
+    if (String(text.evaluatorUserId) !== String(access.user._id)) {
+      throw new Error("PEOPLE_REVIEW_TEXT_FORBIDDEN");
+    }
+    if (evaluationTextStatus(text) === "approved") throw new Error("EVALUATION_TEXT_ALREADY_SUBMITTED");
+    const file = await ctx.db.get(text.fileId as Id<"personnelEvaluationFiles">);
+    if (!file?.active) throw new Error("EVALUATION_FILE_NOT_FOUND");
+    const target = await ctx.db.get(text.targetUserId as Id<"users">);
+    if (!target || target.status !== "active") throw new Error("USER_NOT_FOUND");
+    if (!canWriteEvaluationText(access, target)) throw new Error("PEOPLE_REVIEW_TEXT_FORBIDDEN");
+    const content = assertText(args.content);
+    const now = Date.now();
+    const written = await writeEvaluationText(ctx, access, file, target, content, now);
+    await ctx.db.insert("auditLogs", {
+      actorUserId: access.user._id,
+      targetUserId: target._id,
+      targetEmail: target.email,
+      action: "people_review.evaluation_text.resubmit",
+      details: JSON.stringify({ id: written.id, fileId: file._id, kind: file.kind, periodKey: file.periodKey, status: written.status }),
+      at: now,
+    });
+    if (written.status === "pending") await notifyTextReviewers(ctx, file, target, String(written.id));
+    return written.id;
+  },
+});
+
+/**
+ * "Nhận xét chờ duyệt" panel: pending comments the actor may see (BGH approvers,
+ * in-scope admin/mod, the writer) plus the writer's / managers' returned ones.
+ * Never includes comments about the actor themself.
+ */
+export const evaluationReviewQueue = query({
+  args: {},
+  handler: async (ctx) => {
+    const access = await requirePeopleReviewAccess(ctx);
+    if (!access.isOps && !isBghReviewer(access)) return { items: [] as any[] };
+    const [pending, returned, users, departments] = await Promise.all([
+      ctx.db.query("personnelEvaluationTexts").withIndex("by_status", (q: any) =>
+        q.eq("status", "pending").eq("active", true),
+      ).collect(),
+      access.isOps
+        ? ctx.db.query("personnelEvaluationTexts").withIndex("by_status", (q: any) =>
+            q.eq("status", "returned").eq("active", true),
+          ).collect()
+        : Promise.resolve([] as any[]),
+      ctx.db.query("users").collect(),
+      ctx.db.query("departments").collect(),
+    ]);
+    const usersById = new Map<string, any>(users.map((user: any) => [String(user._id), user]));
+    const items: any[] = [];
+    for (const text of [...pending, ...returned]) {
+      const target = usersById.get(String(text.targetUserId));
+      if (!target || target.status !== "active") continue;
+      const file = await ctx.db.get(text.fileId as Id<"personnelEvaluationFiles">);
+      if (!file?.active) continue;
+      const fileTexts = await activeFileTexts(ctx, String(file._id));
+      const mapped = mapEvaluationTextForViewer(access, target, text, fileTexts, usersById);
+      if (!mapped) continue;
+      items.push({
+        ...mapped,
+        fileId: file._id,
+        fileName: file.fileName,
+        periodLabel: evaluationPeriodLabel(file),
+        targetUserId: String(target._id),
+        targetName: personLabel(target),
+        departmentName: departmentNameOf(target, departments),
+      });
+    }
+    items.sort((a, b) =>
+      (a.status === b.status ? 0 : a.status === "returned" ? -1 : 1) || b.submittedAt - a.submittedAt,
+    );
+    return { items };
   },
 });
 

@@ -198,7 +198,9 @@ test('server modules enforce the moderator scope (not just the UI)', () => {
   const peopleReview = read('convex/peopleReview.ts');
   assert.match(peopleReview, /if \(!opsReaches\(actor, target\)\) return false;/);
   assert.match(peopleReview, /if \(actor\.isOps\) return opsReaches\(actor, target\);/);
-  assert.match(peopleReview, /return opsReaches\(actor, target\) \|\| actor\.level === 4/);
+  // "BGH đánh giá" write rule lives in the pure policy; the scope is fed in here.
+  assert.match(peopleReview, /actorReachesTarget: opsReaches\(actor, target\)/);
+  assert.match(read('convex/peopleReviewPolicy.ts'), /\(args\.actorIsOps && args\.actorReachesTarget\) \|\| args\.actorLevel === 4/);
   assert.match(peopleReview, /departmentScope: moderatorDepartmentScope\(user\)/);
   assert.match(peopleReview, /\.filter\(\(user: any\) => !access\.isOps \|\| opsReaches\(access, user\)\)/);
 
