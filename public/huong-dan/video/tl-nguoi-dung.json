@@ -1,0 +1,23 @@
+{
+  "id": "tl-nguoi-dung",
+  "title": "Thiết lập người dùng",
+  "duration": 307,
+  "chapters": [
+    {
+      "title": "Tổng quan",
+      "start": 11
+    },
+    {
+      "title": "Tạo tài khoản",
+      "start": 41.7
+    },
+    {
+      "title": "Sửa, mật khẩu và khóa",
+      "start": 119.6
+    },
+    {
+      "title": "Import và xuất Excel",
+      "start": 225.4
+    }
+  ]
+}

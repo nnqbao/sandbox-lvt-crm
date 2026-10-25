@@ -1,0 +1,23 @@
+{
+  "id": "bt-ban-tru",
+  "title": "Bán trú",
+  "duration": 213,
+  "chapters": [
+    {
+      "title": "Thêm kỳ bán trú",
+      "start": 9.5
+    },
+    {
+      "title": "Sửa, xóa kỳ",
+      "start": 95.4
+    },
+    {
+      "title": "Danh sách tham gia",
+      "start": 119.9
+    },
+    {
+      "title": "Ban Giám hiệu, giáo viên xem",
+      "start": 152.1
+    }
+  ]
+}
