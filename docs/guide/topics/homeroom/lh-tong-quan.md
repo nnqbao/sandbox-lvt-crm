@@ -7,6 +7,8 @@ keywords: tong quan, tiet day hom nay, hoc sinh vang, lop hoc
 ---
 Mỗi sáng mở **Lớp học → Tổng quan** để biết hôm nay dạy tiết nào và lớp chủ nhiệm có bao nhiêu em vắng.
 
+@video(lh-lop-hoc)
+
 **Bước 1. Mở menu Lớp học.** Bấm **Lớp học** ở cột trái (trên điện thoại: **☰ → Lớp học**). Phía trên có các tab:
 
 ![Các tab của menu Lớp học: 1 Tổng quan, 2 Lớp chủ nhiệm, 3 Lớp giảng dạy, 4 Lịch dạy, 5 Học bạ, 6 chọn năm học](lh-cac-tab)

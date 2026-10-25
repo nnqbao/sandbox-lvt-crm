@@ -7,6 +7,8 @@ keywords: import, excel, nhap hang loat, file mau, lich tuan, dia diem
 ---
 Nhập cả tuần lịch công tác một lần từ file Excel.
 
+@video(ct-tao-va-duyet "Import Excel")
+
 1. Bấm **Import Excel** ở góc phải trang Lịch công tác.
 2. Bấm **Tải file nhập liệu mẫu** [[1]] nếu chưa có file mẫu.
 3. Điền mỗi dòng một công tác, rồi bấm **Import file nhập liệu** [[2]] và chọn file.

@@ -7,6 +7,8 @@ keywords: lich day, thoi khoa bieu, tuan, thang, quy, nam
 ---
 Xem toàn bộ lịch dạy của mình trong năm học, theo nhiều cách.
 
+@video(lh-lop-hoc "Lịch dạy")
+
 **Bước 1. Mở Lớp học → Lịch dạy.** Dạng **Danh sách** hiện các tiết theo từng ngày.
 
 ![Lịch dạy dạng Danh sách: 1 chọn dạng xem, 2 chuyển tháng, 3 các tiết trong một ngày](lh-lich-day-danh-sach)

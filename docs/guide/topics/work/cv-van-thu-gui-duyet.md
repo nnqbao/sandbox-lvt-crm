@@ -7,6 +7,8 @@ keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho d
 ---
 Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám hiệu duyệt rồi mới đến tay người nhận. Riêng việc chỉ giao cho chính mình thì giao ngay, không cần duyệt.
 
+@video(cv-cong-viec "Văn thư gửi duyệt")
+
 1. Trong **Công việc**, kéo xuống mục **Việc tôi tạo**, bấm **+ Tạo công việc**.
 2. Nhập **Tên công việc** [[1]].
 3. Đính kèm công văn [[2]] nếu có (không bắt buộc), rồi chọn **Loại văn bản**.
@@ -75,7 +77,7 @@ Khi đã có người nộp kết quả, công việc **chỉ xem** với mọi 
 :::
 
 #### Sau khi công việc đã giao
-Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ [[2]] để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
+Mục **Việc tôi tạo** có 4 tab như phần Việc được giao. Bấm **›** trên thẻ [[2]] để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
 
 ![Việc tôi tạo: 1 Tạo công việc, 2 tiến độ từng người, 3 đã có người nộp, chỉ xem](cv-viec-toi-tao)
 

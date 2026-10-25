@@ -52,7 +52,13 @@ const IMPORT_ERRORS = [
 ];
 
 export const queries = {
-  'documentTypes:list': () => ({ documentTypes: DOCUMENT_TYPES }),
+  // state.extraDocumentTypes (videos): rows added after "+ Thêm loại văn bản".
+  'documentTypes:list': (_args, { state }) => ({ documentTypes: [...DOCUMENT_TYPES, ...(state.extraDocumentTypes || [])] }),
+  // "Phiên" drawer in Thiết lập người dùng (admin view of another user's sessions).
+  'sessions:listForUser': () => [
+    { sessionId: 'ses_u1', deviceName: 'Chrome trên Windows', platformLabel: 'Web · Windows', clientKind: 'web', lastActiveAt: T0 - 40 * 60 * 1000, createdAt: T0 - 6 * DAY, isCurrent: false },
+    { sessionId: 'ses_u2', deviceName: 'iPhone', platformLabel: 'iOS · Ứng dụng LVT CRM', clientKind: 'ios', lastActiveAt: T0 - 26 * 60 * 60 * 1000, createdAt: T0 - 30 * DAY, isCurrent: false },
+  ],
   'settings:displaySettings': (_args, { state }) => ({
     dutyAttendanceConfirmationEnabled: state.attendanceConfirmation !== false,
     workVisibilityMode: state.workVisibilityMode || 'school',

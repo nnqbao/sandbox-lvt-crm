@@ -7,6 +7,8 @@ keywords: duyet cong viec, cho toi duyet, tra lai, ly do, ban giam hieu, van thu
 ---
 Công việc Văn thư tạo chỉ được giao sau khi mọi người duyệt được chọn bấm **Duyệt**.
 
+@video(cv-cong-viec "Ban Giám hiệu duyệt")
+
 1. Mở **Công việc**. Mục **Chờ tôi duyệt** nằm đầu trang; số đỏ cạnh menu đã tính cả các việc này. Nút **?** [[1]] cạnh tên trang mở hướng dẫn này.
 2. Mỗi thẻ [[2]] ghi Văn thư gửi, giờ gửi, tệp đính kèm, người nhận, nội dung và hạn.
 3. Khung **Ban giám hiệu duyệt x/y** [[3]] cho biết ai đã duyệt, ai còn chờ.

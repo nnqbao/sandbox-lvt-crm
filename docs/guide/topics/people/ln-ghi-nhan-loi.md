@@ -7,6 +7,8 @@ keywords: ghi nhan loi, vi pham, bien ban, nhac nho
 ---
 Xem các lỗi mình bị ghi nhận; người có quyền thì ghi nhận lỗi cho cấp dưới kèm bằng chứng.
 
+@video(ln-ghi-nhan-loi)
+
 1. Mở menu **Ghi nhận lỗi**.
 2. **Lỗi của tôi** [[1]]: những lần thầy cô bị ghi nhận (trống thì hiện mặt cười “Không có lỗi nào được ghi nhận”).
 3. **Lỗi do tôi ghi nhận** [[2]]: những lỗi thầy cô đã ghi cho người khác.

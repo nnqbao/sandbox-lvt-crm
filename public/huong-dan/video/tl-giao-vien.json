@@ -1,0 +1,27 @@
+{
+  "id": "tl-giao-vien",
+  "title": "Thiết lập giáo viên",
+  "duration": 195,
+  "chapters": [
+    {
+      "title": "Tổng quan",
+      "start": 18.5
+    },
+    {
+      "title": "Môn giảng dạy",
+      "start": 34.1
+    },
+    {
+      "title": "Lớp giảng dạy",
+      "start": 60.4
+    },
+    {
+      "title": "Lớp chủ nhiệm",
+      "start": 80.9
+    },
+    {
+      "title": "Thêm lịch dạy",
+      "start": 103.4
+    }
+  ]
+}

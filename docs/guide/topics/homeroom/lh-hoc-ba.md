@@ -7,6 +7,8 @@ keywords: hoc ba, nhap diem, diem trung binh, hoc ky, he so
 ---
 Nhập điểm môn mình dạy và xem điểm trung bình của học sinh qua các khối 6–9.
 
+@video(lh-lop-hoc "Học bạ · Nhập điểm")
+
 **Bước 1. Chọn lớp.** Mở **Lớp học → Học bạ**.
 
 ![Học bạ: 1 khối lớp, 2 lớp mình dạy hoặc chủ nhiệm](lh-hoc-ba-lop)

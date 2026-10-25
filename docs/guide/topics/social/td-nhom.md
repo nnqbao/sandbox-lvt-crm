@@ -7,6 +7,8 @@ keywords: tao nhom, thanh vien, roi nhom, giai tan, doi ten nhom
 ---
 Lập nhóm nhắn tin riêng, ví dụ “GVCN khối 7”, “Dự giờ khối 7”.
 
+@video(td-trao-doi "Tạo nhóm")
+
 1. Trong **Trao đổi**, bấm **Tạo nhóm**.
 2. Nhập **Tên nhóm** [[1]].
 3. Tìm và tích chọn **Thành viên** [[2]].

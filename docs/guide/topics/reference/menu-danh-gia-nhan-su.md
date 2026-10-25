@@ -7,6 +7,8 @@ keywords: tra cuu, danh gia nhan su, tu danh gia, nhan xet, menu
 ---
 Hồ sơ của từng người: lỗi được ghi nhận, kết quả công việc, các kỳ đánh giá và nhận xét của Ban Giám hiệu.
 
+@video(dg-danh-gia-nhan-su)
+
 1. Mở menu **Đánh giá nhân sự** ở cột trái.
 2. Phần trên cùng là **hồ sơ của tôi**; người quản lý thấy thêm danh sách người trong phạm vi của mình.
 

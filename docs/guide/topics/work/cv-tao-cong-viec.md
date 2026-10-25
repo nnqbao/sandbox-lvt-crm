@@ -7,6 +7,8 @@ keywords: tao cong viec, giao viec, phan cong, phong ban, ca nhan, cap duoi, gia
 ---
 Giao việc cho người cấp thấp hơn; công việc đến tay người nhận **ngay**, không cần duyệt.
 
+@video(cv-cong-viec "Tổ trưởng giao việc")
+
 1. Trong **Công việc**, kéo xuống mục **Việc tôi tạo**, bấm **+ Tạo công việc**.
 2. Nhập **Tên công việc**, đính kèm tệp nếu cần (không bắt buộc) rồi chọn **Loại văn bản**.
 3. Bấm **+ Cá nhân** [[1]] (Ban Giám hiệu có thêm **+ Phòng ban**) để thêm dòng người nhận.
@@ -29,7 +31,7 @@ Tổ trưởng, tổ phó, Ban Giám hiệu không giao được cho chính mìn
 :::
 
 #### Theo dõi việc đã giao
-Mục **Việc tôi tạo** có 4 tab như phần Việc của tôi. Bấm **›** trên thẻ để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
+Mục **Việc tôi tạo** có 4 tab như phần Việc được giao. Bấm **›** trên thẻ để xem từng người: **Chưa hoàn thành**, **Chờ duyệt hoàn thành**, **Đã hoàn thành · %**. Duyệt bài nộp theo [Duyệt kết quả hoàn thành](#cv-duyet-hoan-thanh).
 
 ::: warn
 Chỉ sửa hoặc xóa được khi **chưa có ai nộp**. Khi đã có người nộp, công việc chỉ xem với mọi người (kể cả Administrator); thẻ ghi “Đã có người nộp kết quả — công việc chỉ xem.” Bạn vẫn duyệt kết quả nộp như bình thường.

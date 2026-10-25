@@ -7,6 +7,8 @@ keywords: giao vien, mon giang day, lop giang day, lop chu nhiem, lich day, them
 ---
 Danh sách giáo viên theo phòng ban, kèm Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm và Lịch dạy của năm học. Làm lần lượt: **môn → lớp → lịch**.
 
+@video(tl-giao-vien)
+
 **Bước 1. Xem danh sách.**
 
 ![Thiết lập giáo viên: 1 chuyển năm học, 2 sửa môn giảng dạy, 3 chọn lớp giảng dạy, 4 chọn lớp chủ nhiệm, 5 Xem lịch](tl-giao-vien-danh-sach)
@@ -65,10 +67,10 @@ Giáo viên chưa có Môn giảng dạy thì nút **(+)** ở cột Lớp giả
 
 ![Tick tiết dạy: 1 tick tiết, 2 chọn môn của tiết, 3 tiết chưa chọn môn, 4 áp dụng từ ngày, 5 Lưu lịch dạy](tl-giao-vien-tick-tiet)
 
-1. Tick ô [[1]] ở đúng thứ và tiết (5 tiết sáng, 5 tiết chiều; không cần tick đủ). Ô xám là tiết đã có giáo viên khác hoặc giáo viên đang dạy lớp khác cùng giờ.
-2. Giáo viên dạy **nhiều môn** phải chọn môn cho từng tiết [[2]].
-3. Tiết chưa chọn môn có viền đỏ [[3]]; nút Lưu bị khóa cho đến khi chọn đủ.
-4. Chọn **Áp dụng từ ngày** [[4]]: lịch áp dụng cho mọi ngày học từ ngày này đến hết năm, các ngày trước giữ nguyên.
+1. Chọn **Áp dụng từ ngày** [[4]] **trước khi tick**: lịch áp dụng cho mọi ngày học từ ngày này đến hết năm, các ngày trước giữ nguyên. Đổi ngày sau khi đã tick sẽ xóa các ô vừa tick.
+2. Tick ô [[1]] ở đúng thứ và tiết (5 tiết sáng, 5 tiết chiều; không cần tick đủ). Ô xám là tiết đã có giáo viên khác hoặc giáo viên đang dạy lớp khác cùng giờ.
+3. Giáo viên dạy **nhiều môn** phải chọn môn cho từng tiết [[2]].
+4. Tiết chưa chọn môn có viền đỏ [[3]]; nút Lưu bị khóa cho đến khi chọn đủ.
 5. Bấm **Lưu lịch dạy** [[5]].
 
 ::: note

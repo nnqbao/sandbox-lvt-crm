@@ -61,12 +61,16 @@ function baseEvent(duty) {
   };
 }
 
-function dutyCalendar(args, { persona }) {
+function dutyCalendar(args, { persona, state = {} }) {
   const selected = userById(args.userId) || persona;
   const ops = isOps(persona);
   const reviewer = isReviewer(persona);
   const canViewAll = ops || reviewer;
-  const visible = canViewAll ? USERS : USERS.filter((u) => u.departmentId === persona.departmentId);
+  // state.strictDutyPeople: like reports:dutyCalendar, others see only themselves and lower-level
+  // members of their department (videos). Without it, the whole department (existing screenshots).
+  const visible = canViewAll
+    ? USERS
+    : USERS.filter((u) => u.departmentId === persona.departmentId && (!state.strictDutyPeople || u._id === persona._id || level(u) < level(persona)));
   const people = visible
     .map((u) => ({
       _id: u._id,
@@ -239,6 +243,15 @@ export const queries = {
 export const mutations = {
   'dutyImport:generateUploadUrl': 'https://guide-upload.invalid/duty',
   'dutyImport:registerUpload': { uploadId: 'dup_1' },
+  // Video ct-tao-va-duyet confirms the import preview below (same three rows).
+  'dutyImport:commit': {
+    createdCount: 3,
+    duties: [
+      { id: 'dimp1', title: 'Chào cờ đầu tuần' },
+      { id: 'dimp2', title: 'Họp tổ Ngữ văn' },
+      { id: 'dimp3', title: 'Thao giảng cấp trường' },
+    ],
+  },
   'dutyImport:validateUpload': (_args, { state }) =>
     state.importErrors
       ? {
@@ -253,9 +266,9 @@ export const mutations = {
           ok: true,
           errors: [],
           preview: [
-            { rowNumber: 2, title: 'Chào cờ đầu tuần', startDate: '26/10/2026', startTime: '07:00', endDate: '26/10/2026', endTime: '07:45', allDay: false, location: 'Sân trường', departmentNames: ['Ban Giám hiệu', 'Tổ Toán – Tin', 'Tổ Ngữ văn'], participantEmails: [], otherParticipants: '' },
-            { rowNumber: 3, title: 'Họp tổ Ngữ văn', startDate: '27/10/2026', startTime: '14:00', endDate: '27/10/2026', endTime: '16:00', allDay: false, location: 'Phòng họp Hội đồng', departmentNames: ['Tổ Ngữ văn'], participantEmails: [], otherParticipants: '' },
-            { rowNumber: 4, title: 'Thao giảng cấp trường', startDate: '29/10/2026', startTime: '', endDate: '29/10/2026', endTime: '', allDay: true, location: 'Các lớp khối 8', departmentNames: [], participantEmails: ['giaovien.a@truongmau.example'], otherParticipants: 'Ban Giám khảo' },
+            { rowNumber: 2, title: 'Chào cờ đầu tuần', startDate: '2026-10-26', startTime: '07:00', endDate: '2026-10-26', endTime: '07:45', allDay: false, location: 'Sân trường', departmentNames: ['Ban Giám hiệu', 'Tổ Toán – Tin', 'Tổ Ngữ văn'], participantEmails: [], otherParticipants: '' },
+            { rowNumber: 3, title: 'Họp tổ Ngữ văn', startDate: '2026-10-27', startTime: '14:00', endDate: '2026-10-27', endTime: '16:00', allDay: false, location: 'Phòng họp Hội đồng', departmentNames: ['Tổ Ngữ văn'], participantEmails: [], otherParticipants: '' },
+            { rowNumber: 4, title: 'Thao giảng cấp trường', startDate: '2026-10-29', startTime: '', endDate: '2026-10-29', endTime: '', allDay: true, location: 'Các lớp khối 8', departmentNames: [], participantEmails: ['giaovien.a@truongmau.example'], otherParticipants: 'Ban Giám khảo' },
           ],
         },
 };

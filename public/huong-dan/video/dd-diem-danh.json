@@ -1,0 +1,19 @@
+{
+  "id": "dd-diem-danh",
+  "title": "Điểm danh học sinh",
+  "duration": 166,
+  "chapters": [
+    {
+      "title": "Giám thị điểm danh",
+      "start": 10.1
+    },
+    {
+      "title": "Giáo viên chủ nhiệm",
+      "start": 100.4
+    },
+    {
+      "title": "Văn thư chọn ngày",
+      "start": 149.4
+    }
+  ]
+}

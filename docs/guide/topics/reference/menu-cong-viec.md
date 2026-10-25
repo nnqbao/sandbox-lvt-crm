@@ -7,6 +7,8 @@ keywords: tra cuu, cong viec, viec cua toi, menu, duyet cong viec, cho toi duyet
 ---
 Công việc nhà trường giao (có hạn, có duyệt) và sổ tay việc riêng **Việc của tôi**.
 
+@video(cv-cong-viec)
+
 1. Mở menu **Công việc**. Số đỏ cạnh menu là số việc cần chú ý (gồm cả công việc chờ mình duyệt).
 2. Chọn tab **Công việc** hoặc **Việc của tôi**.
 3. Bấm nút **?** cạnh tên trang để mở mục hướng dẫn này.

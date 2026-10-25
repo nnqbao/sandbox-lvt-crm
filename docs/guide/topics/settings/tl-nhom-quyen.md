@@ -7,6 +7,8 @@ keywords: nhom quyen, an, xem, xem toi cao, giam thi, diem danh, menu
 ---
 Quyết định mỗi nhóm User thấy menu nào và ở mức nào.
 
+@video(tl-nhom-quyen)
+
 1. Nhập **Tên nhóm quyền** [[1]], **Mã nhóm quyền** (dùng khi import) và mô tả.
 2. Bảng quyền [[2]] có 4 cột: **Ẩn**, **Xem**, **Xem tối cao**, **Giám thị**.
 3. Hàng **Điểm danh** [[3]] chỉ chọn được **Ẩn** hoặc **Giám thị**. Các menu khác không có mức Giám thị (hiện dấu —).

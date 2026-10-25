@@ -7,6 +7,8 @@ keywords: thong bao, chuong, nhac, den han, da doc
 ---
 Xem lịch, việc sắp đến hạn và tin nhắn mới; bấm vào là mở đúng chỗ.
 
+@video(tb-thong-bao)
+
 1. Bấm **chuông** [[1]] ở góc phải. Số đỏ là thông báo chưa đọc.
 2. Bấm một thông báo [[2]] để mở đúng công tác, công việc, việc của tôi hoặc nhóm trao đổi.
 3. Bấm **Xem toàn bộ** [[3]] để mở trang **Thông báo**.
@@ -19,6 +21,7 @@ Trang **Thông báo** chia theo **Công tác**, **Trao đổi nhóm** và **Côn
 2. **Đánh dấu tất cả là đã đọc** [[2]].
 3. Mỗi thẻ [[3]] ghi mốc (“Còn 5 giờ”, “Mới phân công”…), tên và hạn; chấm đỏ là chưa đọc.
 4. Thẻ viền đỏ [[4]] là bài nộp bị trả về, cần nộp lại.
+5. Bấm dấu **×** ở góc thẻ để xóa một thông báo không cần nữa.
 
 ![Trang Thông báo: 1 mốc nhắc, 2 đánh dấu đã đọc, 3 thẻ thông báo, 4 bài nộp bị trả về](tb-trang-thong-bao)
 

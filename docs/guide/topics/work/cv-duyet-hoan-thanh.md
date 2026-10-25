@@ -7,6 +7,8 @@ keywords: duyet hoan thanh, cham diem, muc do, phan tram, tra ve, chua duyet
 ---
 Người tạo việc xác nhận bài nộp đạt yêu cầu, chấm mức độ hoàn thành hoặc trả về cho làm lại.
 
+@video(cv-cong-viec "Duyệt kết quả hoàn thành")
+
 1. Đầu trang **Công việc** có khung **DUYỆT HOÀN THÀNH** liệt kê bài nộp đang chờ [[1]], kèm người nộp, hạn và lời nhắn. Bài nộp sau hạn có nhãn **Nộp trễ**.
 2. Bấm **Duyệt / Chưa duyệt** [[2]].
 

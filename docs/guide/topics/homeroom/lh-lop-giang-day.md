@@ -7,6 +7,8 @@ keywords: so dau bai, danh gia tiet hoc, lop giang day, sao
 ---
 Sau mỗi tiết dạy, đánh giá lớp bằng số sao và nhận xét ngắn. GVCN của lớp sẽ thấy đánh giá này.
 
+@video(lh-lop-hoc "Lớp giảng dạy · Sổ đầu bài")
+
 **Bước 1. Chọn lớp vừa dạy.** Mở **Lớp học → Lớp giảng dạy**.
 
 ![Lớp giảng dạy: 1 lớp sắp tới giờ dạy nhất nằm trên cùng, 2 nút Sổ đầu bài](lh-giang-day-danh-sach)

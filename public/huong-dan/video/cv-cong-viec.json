@@ -1,0 +1,27 @@
+{
+  "id": "cv-cong-viec",
+  "title": "Công việc: giao việc và duyệt",
+  "duration": 304,
+  "chapters": [
+    {
+      "title": "Tổ trưởng giao việc",
+      "start": 12.1
+    },
+    {
+      "title": "Văn thư gửi duyệt",
+      "start": 65.3
+    },
+    {
+      "title": "Ban Giám hiệu duyệt",
+      "start": 144.5
+    },
+    {
+      "title": "Văn thư sửa việc bị trả lại",
+      "start": 208.4
+    },
+    {
+      "title": "Duyệt kết quả hoàn thành",
+      "start": 235.3
+    }
+  ]
+}

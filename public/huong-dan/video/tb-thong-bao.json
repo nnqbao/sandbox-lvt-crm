@@ -1,0 +1,19 @@
+{
+  "id": "tb-thong-bao",
+  "title": "Thông báo",
+  "duration": 165,
+  "chapters": [
+    {
+      "title": "Chuông thông báo",
+      "start": 9.5
+    },
+    {
+      "title": "Trang Thông báo",
+      "start": 59
+    },
+    {
+      "title": "Đánh dấu đã đọc",
+      "start": 118.4
+    }
+  ]
+}

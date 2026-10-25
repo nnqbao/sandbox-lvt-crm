@@ -7,6 +7,8 @@ keywords: tao cong tac, them lich, len lich, hop to, dia diem
 ---
 Lên lịch một buổi họp, dự giờ, sự kiện cho tổ hoặc cho toàn trường.
 
+@video(ct-tao-va-duyet)
+
 Ai được phép tạo lịch sẽ thấy hai nút ở **góc trên bên phải** trang Lịch công tác: **Import Excel** [[1]] và **+ Tạo công tác** [[2]].
 
 ![Hai nút ở góc phải trang Lịch công tác: 1 Import Excel, 2 + Tạo công tác](ct-nut-goc-phai)

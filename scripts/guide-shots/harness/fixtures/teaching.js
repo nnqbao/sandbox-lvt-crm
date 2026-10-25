@@ -296,7 +296,11 @@ function studentRecord(args, { persona }) {
 }
 
 export const queries = {
-  'teachingCatalog:catalog': () => ({ subjects: SUBJECTS, testTypes: TEST_TYPES }),
+  // Videos add rows after a "Thêm" click through state.extraSubjects / state.extraTestTypes.
+  'teachingCatalog:catalog': (args, { state }) => ({
+    subjects: [...SUBJECTS, ...(state.extraSubjects || [])],
+    testTypes: [...TEST_TYPES, ...(state.extraTestTypes || [])],
+  }),
   'teachers:listForYear': listForYear,
   'teachers:schedule': schedule,
   'timetable:classTimetable': classTimetable,

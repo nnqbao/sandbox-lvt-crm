@@ -7,6 +7,8 @@ keywords: xac nhan, da tham gia, chua tham gia, diem danh cong tac
 ---
 Báo cho nhà trường biết mình đã có mặt ở một công tác.
 
+@video(ct-lich-cong-tac "Xác nhận tham gia")
+
 1. Trong **Lịch công tác cá nhân**, bấm vào công tác **đang diễn ra**.
 
 ![Lịch công tác cá nhân: bấm vào một công tác để mở chi tiết](ct-ca-nhan)

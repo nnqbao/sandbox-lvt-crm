@@ -7,6 +7,8 @@ keywords: tao tai khoan, nguoi dung, moderator, phong ban, mat khau tam
 ---
 Cấp tài khoản cho một thầy cô, chọn vai trò, phòng ban, chức vụ và nhóm quyền.
 
+@video(tl-nguoi-dung)
+
 1. Vào **Thiết lập tối cao → Thiết lập người dùng**, phần **Tạo tài khoản**.
 2. Nhập **Họ tên** [[1]] và **Email (đăng nhập)** [[2]] — email phải chưa có trong hệ thống.
 3. Chọn **Vai trò** [[3]]: Administrator, Moderator hoặc User.

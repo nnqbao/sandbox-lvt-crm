@@ -7,6 +7,8 @@ keywords: tra cuu, lop hoc, lop chu nhiem, lop giang day, lich day, hoc ba, so d
 ---
 Menu **Lớp học** (trước đây là *Lớp chủ nhiệm*) gom mọi việc của giáo viên với lớp: chủ nhiệm, giảng dạy, lịch dạy và học bạ.
 
+@video(lh-lop-hoc)
+
 1. Mở menu **Lớp học** ở cột trái (trên điện thoại: **☰ → Lớp học**). Kiểm tra **Năm học** (thường để mặc định).
 2. Chọn tab phía trên:
 

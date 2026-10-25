@@ -1,0 +1,31 @@
+{
+  "id": "td-trao-doi",
+  "title": "Trao đổi: nhắn tin và nhóm",
+  "duration": 282,
+  "chapters": [
+    {
+      "title": "Danh sách cuộc trò chuyện",
+      "start": 15.6
+    },
+    {
+      "title": "Trao đổi theo công việc, công tác",
+      "start": 67.9
+    },
+    {
+      "title": "Gửi và thu hồi tin nhắn",
+      "start": 111.6
+    },
+    {
+      "title": "Tạo nhóm",
+      "start": 167.2
+    },
+    {
+      "title": "Quản lý thành viên",
+      "start": 207.4
+    },
+    {
+      "title": "Rời nhóm",
+      "start": 247.9
+    }
+  ]
+}

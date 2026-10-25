@@ -7,6 +7,8 @@ keywords: nop duyet, lich tuan, ban giam hieu, tra lai, huy thay doi
 ---
 Sau khi soạn hoặc sửa lịch tuần, Văn thư nộp để Ban Giám hiệu duyệt một lần cho cả tuần.
 
+@video(ct-tao-va-duyet "Nộp lịch tuần cho Ban Giám hiệu")
+
 1. Mở **Lịch công tác chung**, chọn đúng tuần.
 2. Thanh trạng thái màu vàng cho biết tình trạng tuần [[1]], ví dụ **Đã duyệt · có thay đổi chờ duyệt**.
 3. Danh sách **Thêm / Sửa** [[2]] liệt kê các thay đổi so với bản đã duyệt; các dòng đó cũng được tô vàng trong bảng [[5]].
@@ -18,7 +20,7 @@ Sau khi soạn hoặc sửa lịch tuần, Văn thư nộp để Ban Giám hiệ
 
 ::: note
 Khi tuần còn thay đổi chưa duyệt, bảng lịch và file **Tải PDF** của Văn thư / Ban Giám hiệu có dòng **BẢN NHÁP – CHƯA DUYỆT** và chữ chìm chéo trang, để không nhầm với lịch chính thức.
-Trong lúc chờ duyệt, giáo viên **vẫn xem bản cũ** đã duyệt. Nếu Ban Giám hiệu **Trả lại**, thanh vàng hiện lý do; sửa xong bấm **Nộp lại**.
+Trong lúc chờ duyệt, giáo viên **vẫn xem bản cũ** đã duyệt. Nếu Ban Giám hiệu **Trả lại**, thanh trạng thái chuyển màu hồng với nhãn **Bị trả lại** và lý do; sửa xong bấm **Nộp lại**.
 :::
 
 ::: warn

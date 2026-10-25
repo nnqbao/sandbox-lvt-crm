@@ -7,6 +7,8 @@ keywords: chuc vu, cap bac, sao, hieu truong, to truong
 ---
 Chức vụ gắn với cấp bậc 1–5 sao; cấp bậc quyết định ai duyệt, giao việc, ghi nhận lỗi cho ai.
 
+@video(tl-chuc-vu)
+
 1. Đọc **Quy tắc duyệt** [[1]]: người cấp cao hơn duyệt được người cấp thấp hơn.
 2. Trong **Thêm chức vụ** [[2]], nhập tên, mã, chọn **Cấp bậc (1–5 sao)** rồi bấm **+ Thêm chức vụ**.
 3. Mỗi thẻ chức vụ [[3]] có **Sửa**, **Xóa**, **Thêm user**.

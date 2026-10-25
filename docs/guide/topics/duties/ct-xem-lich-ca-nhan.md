@@ -7,8 +7,10 @@ keywords: lich cong tac, ca nhan, tuan, thang, cong tac cua toi, nhac nho
 ---
 Xem tuần này mình có công tác gì, ở đâu, với ai.
 
+@video(ct-lich-cong-tac "Lịch công tác cá nhân")
+
 1. Mở menu **Lịch công tác**. Tab **Lịch công tác cá nhân** [[1]] mở sẵn.
-2. Cột **Nhân sự** [[2]] chọn sẵn **Lịch của tôi**. Tổ trưởng, BGH bấm tên người khác để xem lịch của họ.
+2. Cột **Nhân sự** [[2]] chọn sẵn **Lịch của tôi**. Giáo viên chỉ thấy lịch của mình; tổ trưởng thấy thêm người cấp dưới trong tổ; Ban Giám hiệu, Văn thư thấy mọi người. Bấm tên người khác để xem lịch của họ.
 3. Chọn cách xem **List**, **Tuần**, **Tháng** hoặc **Năm** [[3]].
 4. Dùng **‹ Hôm nay ›** [[4]] để sang tuần/tháng trước hoặc sau.
 5. Bấm vào một dòng công tác [[5]] để xem chi tiết.

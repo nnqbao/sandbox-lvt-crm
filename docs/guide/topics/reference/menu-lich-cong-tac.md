@@ -7,6 +7,8 @@ keywords: tra cuu, lich cong tac, menu
 ---
 Lịch họp, dự giờ, sự kiện của cá nhân, của tổ và của toàn trường.
 
+@video(ct-lich-cong-tac)
+
 1. Mở menu **Lịch công tác** ở cột trái (trên điện thoại: **☰ → Lịch công tác**).
 2. Chọn tab **Lịch công tác cá nhân** hoặc **Lịch công tác chung**.
 

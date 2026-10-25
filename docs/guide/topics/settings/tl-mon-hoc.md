@@ -7,6 +7,8 @@ keywords: mon hoc, danh muc mon, gdpt 2018
 ---
 Danh mục môn học dùng cho Môn giảng dạy, Lịch dạy và Học bạ.
 
+@video(tl-mon-hoc)
+
 1. Trong khung **Thêm môn học** [[1]], nhập **Tên môn học** và **Mã** rồi bấm **Thêm**.
 2. Bấm **Sửa** [[2]] để đổi tên hoặc mã; ô phía trên chuyển thành “Sửa: …”, bấm **Lưu**.
 3. Bấm **Xóa** [[3]] rồi xác nhận để xóa môn.
