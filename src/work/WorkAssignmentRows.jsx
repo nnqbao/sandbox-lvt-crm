@@ -220,7 +220,7 @@ export default function WorkAssignmentRows({
           <span>⌁</span>
           <p>
             {showDepartments
-              ? 'Bấm ＋ Phòng ban hoặc ＋ Cá nhân để thêm row nhận việc.'
+              ? 'Bấm ＋ Phòng ban hoặc ＋ Cá nhân để thêm người hoặc phòng ban nhận việc.'
               : 'Bấm ＋ Cá nhân để thêm người nhận việc.'}
           </p>
         </div>

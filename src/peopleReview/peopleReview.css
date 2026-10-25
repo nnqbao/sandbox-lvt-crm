@@ -573,6 +573,16 @@
   border: 1px solid var(--pr-line);
 }
 
+/* Evaluator name and time on one line, clearly apart ("Hoàng Văn E · 09:00 9/10/2026"). */
+.pr-mini-text > strong {
+  margin-right: 0.5rem;
+}
+
+.pr-mini-text > span {
+  color: var(--pr-muted);
+  font-size: 0.85em;
+}
+
 .pr-modal-backdrop {
   position: fixed;
   inset: 0;
