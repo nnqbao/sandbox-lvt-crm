@@ -734,6 +734,30 @@
   min-width: 0;
 }
 
+/* Lay the card out by its own width, not the viewport: with the Nhân sự column open on a
+   1280px screen the card is narrow and three columns squeezed the details to a sliver. */
+.duty-modern-card {
+  container: duty-card / inline-size;
+}
+
+@container duty-card (max-width: 760px) {
+  .duty-card-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .personal-reminder-panel {
+    border-left: 0;
+    border-top: 1px solid var(--duty-line);
+  }
+}
+
+@container duty-card (max-width: 520px) {
+  .duty-card-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+}
+
 .personal-reminder-panel {
   display: grid;
   align-content: start;
