@@ -4,9 +4,10 @@
 // origin) or `window.webkit.messageHandlers.lvtApp` (iOS). Outside the app neither exists and
 // every function here is a no-op, so browsers behave exactly as before.
 //
-// Web → app: { type: 'ready' | 'signed-out' | 'quick-sign-in' } · { type: 'handoff-request', id }
+// Web → app: { type: 'ready', userId } · { type: 'signed-out' | 'quick-sign-in' } · { type: 'handoff-request', id }
+//            { type: 'handoff-error' } after repeated network failures (the app offers Thử lại)
 //            { type: 'file', mode: 'open' | 'save', name, mime, data (base64) }
-// App → web: { type: 'handoff', id, code } | { type: 'handoff-failed', id }
+// App → web: { type: 'handoff', id, code } | { type: 'handoff-failed', id, retry? } (retry = network, not signed out)
 //            { type: 'open-notification', item: { key, kind, sourceType, sourceId, menu } }
 //            { type: 'sign-out' }
 // Sign-in stays native (password, vân tay / Face ID, passkey): the app hands the WebView a
@@ -68,22 +69,25 @@ export function onAppMessage(listener) {
   };
 }
 
-/** Ask the app for a sign-in code; resolves to the code, or null when the app has no session. */
+/**
+ * Ask the app for a sign-in code. Resolves to { code }, { signedOut: true } (the app has no
+ * session) or { retry: true } (network trouble or no answer: ask again, do not sign out).
+ */
 export function requestAppHandoff(timeoutMs = 20_000) {
   const id = nextRequestId++;
   return new Promise((resolve) => {
-    const timer = window.setTimeout(() => finish(null), timeoutMs);
+    const timer = window.setTimeout(() => finish({ retry: true }), timeoutMs);
     const stop = onAppMessage((message) => {
       if (message.id !== id) return;
-      if (message.type === 'handoff') finish(typeof message.code === 'string' ? message.code : null);
-      else if (message.type === 'handoff-failed') finish(null);
+      if (message.type === 'handoff' && typeof message.code === 'string') finish({ code: message.code });
+      else if (message.type === 'handoff-failed') finish(message.retry ? { retry: true } : { signedOut: true });
     });
-    function finish(code) {
+    function finish(result) {
       window.clearTimeout(timer);
       stop();
-      resolve(code);
+      resolve(result);
     }
-    if (!postToApp({ type: 'handoff-request', id })) finish(null);
+    if (!postToApp({ type: 'handoff-request', id })) finish({ signedOut: true });
   });
 }
 
@@ -124,6 +128,21 @@ function sendAnchorToApp(anchor) {
   return true;
 }
 
+/**
+ * Phone Back button (the app asks first): close the open menu drawer, dialog or help panel with
+ * the same Escape handling as a keyboard. Returns false when nothing was open (the app then goes
+ * back in history or leaves).
+ */
+export function handleAppBack() {
+  const open =
+    document.documentElement.classList.contains('mobile-nav-open') ||
+    document.querySelector('dialog[open], [aria-modal="true"], [role="dialog"]');
+  if (!open) return false;
+  const target = document.activeElement instanceof HTMLElement ? document.activeElement : document.body;
+  target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
+  return true;
+}
+
 let installed = false;
 
 /**
@@ -134,6 +153,7 @@ export function installAppBridge() {
   if (installed || !isInApp()) return;
   installed = true;
   appWindow.__lvtAppDeliver = receiveAppMessage;
+  appWindow.__lvtAppBack = handleAppBack;
   const android = androidBridge();
   if (android) android.onmessage = (event) => receiveAppMessage(event.data);
   const originalClick = HTMLAnchorElement.prototype.click;

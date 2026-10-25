@@ -56,15 +56,19 @@ test('web bridge: no-op in a browser; a handoff reply must match its request', a
   bridge.receiveAppMessage(JSON.stringify({ type: 'handoff', id: id + 1, code: 'other' }));
   bridge.receiveAppMessage('not json');
   bridge.receiveAppMessage(JSON.stringify({ type: 'handoff', id, code: 'mine' }));
-  assert.equal(await pending, 'mine');
+  assert.deepEqual(await pending, { code: 'mine' });
 
   const failed = bridge.requestAppHandoff();
   bridge.receiveAppMessage({ type: 'handoff-failed', id: sent.at(-1).id });
-  assert.equal(await failed, null);
+  assert.deepEqual(await failed, { signedOut: true });
+
+  const offline = bridge.requestAppHandoff();
+  bridge.receiveAppMessage({ type: 'handoff-failed', id: sent.at(-1).id, retry: true });
+  assert.deepEqual(await offline, { retry: true }, 'network trouble never signs out');
 
   const timedOut = bridge.requestAppHandoff();
   [...timers.values()].at(-1)();
-  assert.equal(await timedOut, null);
+  assert.deepEqual(await timedOut, { retry: true });
 
   assert.equal(bridge.appSignOutRequested(), false);
   bridge.markAppSignOut();
@@ -79,7 +83,9 @@ test('web bridge: no-op in a browser; a handoff reply must match its request', a
 test('web in the app shell: native sign-in, sign-out goes back to the app, files and notifications go to the app', () => {
   const main = read('src/main.jsx');
   assert.match(main, /<Unauthenticated>\{isInApp\(\) \? <AppHandoffView \/> : <SignedOutView \/>\}<\/Unauthenticated>/);
-  assert.match(main, /await signIn\('app-handoff', \{ code \}\);/);
+  assert.match(main, /await signIn\('app-handoff', \{ code: result\.code \}\);/);
+  assert.match(main, /if \(result\.signedOut\) \{\n\s+setLeaving\(true\);\n\s+postToApp\(\{ type: 'signed-out' \}\);/);
+  assert.match(main, /if \(!cancelled\) postToApp\(\{ type: 'handoff-error' \}\);/);
   assert.equal((main.match(/markAppSignOut\(\);\n\s+void signOut\(\);/g) || []).length, 4, 'menu, password gate, access denied, app-initiated');
   assert.match(main, /if \(!session\?\.user \|\| session\.user\.status !== 'active' \|\| isInApp\(\)\) return;/);
   assert.match(main, /message\.type === 'open-notification' && message\.item\?\.sourceId\) openFromNotificationRef\.current\(message\.item\)/);
@@ -87,6 +93,8 @@ test('web in the app shell: native sign-in, sign-out goes back to the app, files
   const bridge = read('src/lib/appBridge.js');
   assert.match(bridge, /if \(!anchor\.hasAttribute\('download'\) \|\| !\/\^\(blob:\|data:\)\/\.test\(href\)\) return false;/);
   assert.match(bridge, /if \(installed \|\| !isInApp\(\)\) return;/, 'browsers keep their normal downloads');
+  assert.match(bridge, /appWindow\.__lvtAppBack = handleAppBack;/);
+  assert.match(bridge, /document\.documentElement\.classList\.contains\('mobile-nav-open'\)/, 'Back closes the menu drawer first');
   assert.doesNotMatch(bridge, /localStorage|__convexAuth|fetchAccessToken/, 'the bridge never touches tokens');
   assert.match(read('src/work/WorkViews.jsx'), /if \(action === 'preview' && kind === 'pdf' && isInApp\(\)\) \{\n\s+await sendBlobToApp\(blob, fileName \|\| 'cong-van\.pdf', 'open'\);/);
   assert.match(read('src/profile/DevicesPanel.jsx'), /\{isInApp\(\) \? \(\n\s+<button type="button" className="primary-button devices-quick-sign-in" onClick=\{\(\) => postToApp\(\{ type: 'quick-sign-in' \}\)\}>/);
