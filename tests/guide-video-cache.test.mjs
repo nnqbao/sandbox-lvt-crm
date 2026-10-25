@@ -174,4 +174,5 @@ test('the guide registers the worker for /huong-dan only, and the redirect is no
   assert.match(worker, /const TTL_MS = 24 \* 60 \* 60 \* 1000;/);
   assert.match(worker, /const MEDIA = \/\^\\\/huong-dan\\\/video\\\/\[a-z0-9-\]\{2,60\}\\\.\(mp4\|webp\)\$\/;/);
   assert.doesNotMatch(read('src/main.jsx'), /serviceWorker/, 'the app itself has no service worker');
+  assert.match(read('scripts/serve-production.mjs'), /servedPath === '\/huong-dan-sw\.js' \? 'no-store' : 'no-cache'/, 'worker updates bypass the CDN');
 });

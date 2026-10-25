@@ -712,9 +712,11 @@ const server = createServer(async (request, response) => {
     response.setHeader('Content-Type', contentTypes.get(extension) || 'application/octet-stream');
     const servedPath = `/${path.relative(distRoot, filePath).split(path.sep).join('/')}`;
     for (const header of staticFrameHeaders(servedPath)) response.setHeader(header.name, header.value);
+    // The guide's service worker must reach viewers at once: Cloudflare keeps a no-cache .js for
+    // 4 hours, so a worker fix would lag behind; no-store makes it bypass the edge.
     response.setHeader(
       'Cache-Control',
-      isHashedAsset ? 'public, max-age=31536000, immutable' : 'no-cache',
+      isHashedAsset ? 'public, max-age=31536000, immutable' : servedPath === '/huong-dan-sw.js' ? 'no-store' : 'no-cache',
     );
 
     if (extension === '.mp4') {
