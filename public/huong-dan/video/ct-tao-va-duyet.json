@@ -1,0 +1,31 @@
+{
+  "id": "ct-tao-va-duyet",
+  "title": "Lịch công tác: tạo lịch và duyệt theo tuần",
+  "duration": 245,
+  "chapters": [
+    {
+      "title": "Tổ trưởng tạo công tác cho tổ",
+      "start": 5
+    },
+    {
+      "title": "Văn thư tạo lịch trường",
+      "start": 66.5
+    },
+    {
+      "title": "Import Excel",
+      "start": 80.4
+    },
+    {
+      "title": "Nộp lịch tuần cho Ban Giám hiệu",
+      "start": 122.7
+    },
+    {
+      "title": "Ban Giám hiệu duyệt lịch tuần",
+      "start": 166.9
+    },
+    {
+      "title": "Ban Giám hiệu sửa trực tiếp",
+      "start": 198.4
+    }
+  ]
+}
