@@ -28,7 +28,7 @@ test('guide videos are published to Convex, not git, and served by redirect', ()
   assert.match(ignore, /^public\/huong-dan\/video\/\*\.webp$/m);
   const server = read('scripts/serve-production.mjs');
   assert.match(server, /const GUIDE_MEDIA_ROUTE = \/\^\\\/huong-dan\\\/video\\\/\(\[a-z0-9-\]\{2,60\}\)\\\.\(mp4\|webp\)\$\//);
-  assert.match(server, /response\.writeHead\(302, \{ Location: target, 'Cache-Control': 'public, max-age=300' \}\)/);
+  assert.match(server, /response\.writeHead\(302, \{ Location: target, 'Cache-Control': 'no-store' \}\)/);
   const convex = read('convex/guideVideos.ts');
   // Only the read-only URL lookup is public; uploads go through the deploy-key CLI.
   assert.match(convex, /export const url = query\(/);

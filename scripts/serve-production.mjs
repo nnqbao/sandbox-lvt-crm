@@ -684,7 +684,9 @@ const server = createServer(async (request, response) => {
     if (guideMedia) {
       const target = await guideMediaUrl(guideMedia[1], guideMedia[2] === 'mp4' ? 'video' : 'poster');
       if (target) {
-        response.writeHead(302, { Location: target, 'Cache-Control': 'public, max-age=300' });
+        // no-store: Cloudflare would otherwise keep the redirect for hours, pointing at an object a
+        // republish already deleted. Viewers keep the media itself 24 h (public/huong-dan-sw.js).
+        response.writeHead(302, { Location: target, 'Cache-Control': 'no-store' });
         response.end();
         return;
       }
