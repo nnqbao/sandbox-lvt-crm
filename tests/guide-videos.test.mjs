@@ -22,6 +22,22 @@ test('byte ranges: single ranges served, malformed ignored, out of range refused
   assert.equal(staticEtag({ size: 255, mtimeMs: 4096.7 }), '"ff-1000"');
 });
 
+test('guide videos are published to Convex, not git, and served by redirect', () => {
+  const ignore = read('.gitignore');
+  assert.match(ignore, /^public\/huong-dan\/video\/\*\.mp4$/m);
+  assert.match(ignore, /^public\/huong-dan\/video\/\*\.webp$/m);
+  const server = read('scripts/serve-production.mjs');
+  assert.match(server, /const GUIDE_MEDIA_ROUTE = \/\^\\\/huong-dan\\\/video\\\/\(\[a-z0-9-\]\{2,60\}\)\\\.\(mp4\|webp\)\$\//);
+  assert.match(server, /response\.writeHead\(302, \{ Location: target, 'Cache-Control': 'public, max-age=300' \}\)/);
+  const convex = read('convex/guideVideos.ts');
+  // Only the read-only URL lookup is public; uploads go through the deploy-key CLI.
+  assert.match(convex, /export const url = query\(/);
+  assert.match(convex, /export const register = internalMutation\(/);
+  assert.match(convex, /export const issueUploadUrl = internalMutation\(/);
+  assert.doesNotMatch(convex, /export const \w+ = (mutation|action)\(/);
+  assert.match(read('scripts/guide-videos/publish.mjs'), /lvt-convex-cloud-env\.sh/);
+});
+
 test('the static server answers MP4 with ranges and revalidation', () => {
   const server = read('scripts/serve-production.mjs');
   assert.match(server, /\['\.mp4', 'video\/mp4'\]/);
@@ -35,7 +51,7 @@ test('every tutorial video ships with a poster and chapter metadata, and the gui
   const files = new Set(readdirSync(VIDEO_DIR));
   const html = read('public/huong-dan-su-dung.html');
   for (const id of VIDEOS) {
-    for (const ext of ['mp4', 'webp', 'json']) assert.ok(files.has(`${id}.${ext}`), `${id}.${ext}`);
+    assert.ok(files.has(`${id}.json`), `${id}.json`);
     const meta = JSON.parse(readFileSync(new URL(`${id}.json`, VIDEO_DIR), 'utf8'));
     assert.equal(meta.id, id);
     assert.ok(meta.duration > 30 && meta.duration < 420, `${id}: ${meta.duration}s`);

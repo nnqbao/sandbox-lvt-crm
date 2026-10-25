@@ -515,6 +515,30 @@ async function serveDesignLibrary(request, response) {
   response.end(html);
 }
 
+/**
+ * Guide videos live in Convex File Storage (convex/guideVideos.ts, public fictional content):
+ * /huong-dan/video/<id>.mp4|webp redirects to the published object, which answers byte ranges.
+ * Lookups are cached briefly; an unpublished id falls back to a local dist/ file (sandbox).
+ */
+const GUIDE_MEDIA_ROUTE = /^\/huong-dan\/video\/([a-z0-9-]{2,60})\.(mp4|webp)$/;
+const guideMediaCache = new Map();
+const GUIDE_MEDIA_TTL_MS = 5 * 60 * 1000;
+
+async function guideMediaUrl(videoId, kind) {
+  const key = `${videoId}:${kind}`;
+  const hit = guideMediaCache.get(key);
+  if (hit && hit.expires > Date.now()) return hit.url;
+  let url = null;
+  try {
+    url = await new ConvexHttpClient(convexUrl).query(anyApi.guideVideos.url, { videoId, kind });
+  } catch (error) {
+    console.error('LVT guide video lookup failed', { videoId, kind, code: error instanceof Error ? error.message.split('\n')[0] : 'UNKNOWN' });
+    return hit?.url || null;
+  }
+  guideMediaCache.set(key, { url, expires: Date.now() + (url ? GUIDE_MEDIA_TTL_MS : 60 * 1000) });
+  return url;
+}
+
 /** Guide videos: ETag revalidation and single byte ranges (Safari / iOS need 206 to play MP4). */
 async function serveStaticMedia(request, response, filePath) {
   const info = await stat(filePath);
@@ -654,6 +678,21 @@ const server = createServer(async (request, response) => {
       response.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end('{"error":"FILE_NOT_FOUND"}\n');
       return;
+    }
+
+    const guideMedia = (request.method === 'GET' || request.method === 'HEAD') ? pathname.match(GUIDE_MEDIA_ROUTE) : null;
+    if (guideMedia) {
+      const target = await guideMediaUrl(guideMedia[1], guideMedia[2] === 'mp4' ? 'video' : 'poster');
+      if (target) {
+        response.writeHead(302, { Location: target, 'Cache-Control': 'public, max-age=300' });
+        response.end();
+        return;
+      }
+      if (!(await existingFile(path.resolve(distRoot, `.${pathname}`)))) {
+        response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        response.end('Video chưa được xuất bản.\n');
+        return;
+      }
     }
 
     const candidate = path.resolve(distRoot, `.${pathname}`);

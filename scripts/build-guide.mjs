@@ -161,7 +161,8 @@ const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.round(seco
 function renderVideo(line, ctx) {
   const [, id, chapter] = line.match(VIDEO_RE);
   const metaFile = join(videoDir, `${id}.json`);
-  if (!existsSync(metaFile) || !existsSync(join(videoDir, `${id}.mp4`))) {
+  // Only the metadata is in git; the MP4 + poster are published to Convex (npm run guide:videos:publish).
+  if (!existsSync(metaFile)) {
     warn(`${ctx.topicId}: thiếu video "${id}" (npm run guide:videos)`);
     return `<figure class="guide-video is-missing"><div class="figure-missing">Video “${escapeHtml(id)}” chưa được tạo</div></figure>`;
   }
@@ -426,7 +427,7 @@ ${rendered}
     .replace('{{FIGURE_COUNT}}', () => String(ctx.figureCount.n));
 
   const unusedImages = readdirSync(imageDir).filter((name) => /\.(webp|svg|png)$/.test(name) && !ctx.usedImages.has(name));
-  const videos = existsSync(videoDir) ? readdirSync(videoDir).filter((name) => name.endsWith('.mp4')).map((name) => name.slice(0, -4)) : [];
+  const videos = existsSync(videoDir) ? readdirSync(videoDir).filter((name) => name.endsWith('.json')).map((name) => name.slice(0, -5)) : [];
   for (const id of videos) if (!ctx.usedVideos.has(id)) warn(`video không được dùng: ${id}`);
   return { html, figureCount: ctx.figureCount.n, topicCount: topics.size, unusedImages, videoCount: ctx.usedVideos.size };
 }

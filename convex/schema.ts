@@ -785,6 +785,18 @@ export default defineSchema({
   })
     .index("by_cleanup_token", ["cleanupToken"])
     .index("by_drive_file", ["driveFileId"]),
+  /**
+   * Public user-guide tutorial videos (fictional data) published from the Mac mini with
+   * `npm run guide:videos:publish`; served by redirect from /huong-dan/video/<id>.mp4|webp.
+   */
+  guideVideos: defineTable({
+    videoId: v.string(),
+    kind: v.string(), // "video" (mp4) | "poster" (webp)
+    storageId: v.id("_storage"),
+    sha256: v.string(),
+    size: v.number(),
+    updatedAt: v.number(),
+  }).index("by_video_kind", ["videoId", "kind"]),
   /** Idempotency receipts for atomic multi-section personnel-review saves. */
   peopleReviewSaveRequests: defineTable({
     userId: v.string(),
