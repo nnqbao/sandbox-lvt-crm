@@ -48,6 +48,7 @@ import type * as fileHttp from "../fileHttp.js";
 import type * as fileObjects from "../fileObjects.js";
 import type * as gradebook from "../gradebook.js";
 import type * as groupMessages from "../groupMessages.js";
+import type * as guideVideos from "../guideVideos.js";
 import type * as homeroomAlerts from "../homeroomAlerts.js";
 import type * as homeroomCatalog from "../homeroomCatalog.js";
 import type * as homeroomClasses from "../homeroomClasses.js";
@@ -160,6 +161,7 @@ declare const fullApi: ApiFromModules<{
   fileObjects: typeof fileObjects;
   gradebook: typeof gradebook;
   groupMessages: typeof groupMessages;
+  guideVideos: typeof guideVideos;
   homeroomAlerts: typeof homeroomAlerts;
   homeroomCatalog: typeof homeroomCatalog;
   homeroomClasses: typeof homeroomClasses;

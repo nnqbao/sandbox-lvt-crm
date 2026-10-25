@@ -18,7 +18,8 @@
     "guide:build": "node scripts/build-guide.mjs",
     "guide:shots": "node scripts/guide-shots/run.mjs",
     "guide:videos": "node scripts/guide-videos/run.mjs",
-    "guide:voice": "node scripts/guide-videos/align-voice.mjs"
+    "guide:voice": "node scripts/guide-videos/align-voice.mjs",
+    "guide:videos:publish": "node scripts/guide-videos/publish.mjs"
   },
   "dependencies": {
     "@auth/core": "0.41.3",

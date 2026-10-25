@@ -47,3 +47,8 @@ acceptance-platform/keychain-helper
 # Cursor / agent code intelligence caches (rebuild in CI / Cloud Agent VM)
 .codegraph/
 graphify-out/
+
+# Guide tutorial videos are published to Convex File Storage (npm run guide:videos:publish);
+# only their chapter metadata (*.json) is versioned.
+public/huong-dan/video/*.mp4
+public/huong-dan/video/*.webp
