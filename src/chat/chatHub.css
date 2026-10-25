@@ -124,9 +124,9 @@
 
 .chat-filters {
   display: flex;
+  flex-wrap: wrap; /* narrow list (sidebar open, 1280px): wrap instead of hiding "Nhóm" off-screen */
   gap: 6px;
   padding: 10px 12px;
-  overflow-x: auto;
 }
 
 .chat-filters button {

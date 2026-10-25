@@ -759,7 +759,7 @@ function CompletionReviewModal({ item, onClose, onSubmit, saving }) {
         <div className="work-modal-actions">
           <button type="button" className="work-ghost-button" onClick={onClose}>Hủy</button>
           <button type="submit" className={mode === 'approve' ? 'work-primary-button' : 'work-reject-button'} disabled={saving}>
-            {saving ? 'Đang lưu…' : mode === 'approve' ? 'Duyệt hoàn thành' : 'Trả về user'}
+            {saving ? 'Đang lưu…' : mode === 'approve' ? 'Duyệt hoàn thành' : 'Trả về người nộp'}
           </button>
         </div>
       </form>
@@ -1100,7 +1100,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
       setReviewing(null);
       setFeedback({
         type: 'success',
-        text: decision === 'approve' ? 'Đã duyệt hoàn thành task.' : 'Đã từ chối và trả task về cho user.',
+        text: decision === 'approve' ? 'Đã duyệt hoàn thành công việc.' : 'Đã trả kết quả về cho người nộp.',
       });
     } catch {
       setFeedback({ type: 'error', text: 'Không thể duyệt hoàn thành lúc này.' });
@@ -1230,7 +1230,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
           <header>
             <div>
               <span>DUYỆT HOÀN THÀNH</span>
-              <h3>{pendingCompletionReviews.length} task đang chờ duyệt</h3>
+              <h3>{pendingCompletionReviews.length} việc đang chờ duyệt</h3>
             </div>
           </header>
           <div className="work-user-list">
@@ -1748,7 +1748,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
       setReviewing(null);
       setFeedback({
         type: 'success',
-        text: decision === 'approve' ? 'Đã duyệt hoàn thành task.' : 'Đã từ chối và trả task về cho user.',
+        text: decision === 'approve' ? 'Đã duyệt hoàn thành công việc.' : 'Đã trả kết quả về cho người nộp.',
       });
     } catch {
       setFeedback({ type: 'error', text: 'Không thể duyệt hoàn thành lúc này.' });
@@ -1767,7 +1767,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
           <header>
             <div>
               <span>DUYỆT HOÀN THÀNH</span>
-              <h3>{pendingCompletionReviews.length} task đang chờ bạn duyệt</h3>
+              <h3>{pendingCompletionReviews.length} việc đang chờ bạn duyệt</h3>
             </div>
           </header>
           <div className="work-user-list">
@@ -1779,6 +1779,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
                   <div className="work-card-meta">
                     <span>Người nộp <strong>{item.userName}</strong></span>
                     <span>Hạn <strong>{formatWorkDate(item.deadline)}</strong></span>
+                    {item.submittedLate ? <span className="work-late-flag">Nộp trễ</span> : null}
                   </div>
                   <SubmitterNote note={item.note} />
                 </div>
@@ -1816,7 +1817,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
 
       {isAdminMod || isAssigner || (!isAdminMod && !isApprover && !isAssigner) ? (
         <div className="duty-list-section">
-          <DutyListHeading>Việc của tôi</DutyListHeading>
+          <DutyListHeading>Việc được giao</DutyListHeading>
           <div className="duty-list-toolbar">
             <WorkListTabs tab={listTab} onChange={setListTab} counts={mineTabCounts} />
           </div>
@@ -1912,7 +1913,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
                             </details>
                           ) : null}
                           {task.status === 'pending_completion' ? (
-                            <small className="work-overdue-note">Đang chờ Admin/Mod duyệt hoàn thành.</small>
+                            <small className="work-overdue-note">Đang chờ người giao việc duyệt hoàn thành.</small>
                           ) : null}
                           {task.status === 'completed_late' ? (
                             <small className="work-overdue-note">Đã hoàn thành trễ hạn — sẽ ghi nhận vào KPI.</small>
