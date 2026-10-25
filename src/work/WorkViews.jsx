@@ -54,6 +54,7 @@ import PersonalReminderPanel, {
 } from '../notifications/PersonalReminderPanel';
 import { PersonalReminderQueryBoundary } from '../notifications/personalReminderQuery';
 import './work.css';
+import { isInApp, sendBlobToApp } from '../lib/appBridge';
 
 const ACCEPTED_EXTENSIONS = ['pdf', 'docx', 'xlsx', 'xls', 'png', 'jpg', 'jpeg'];
 
@@ -241,6 +242,11 @@ function PrivateFileLink({
     setBusyAction(action);
     try {
       const blob = await fetchFileBlob();
+      // A WebView has no PDF viewer: in the app shell the phone's viewer opens the file.
+      if (action === 'preview' && kind === 'pdf' && isInApp()) {
+        await sendBlobToApp(blob, fileName || 'cong-van.pdf', 'open');
+        return;
+      }
       const objectUrl = URL.createObjectURL(blob);
       if (action === 'preview') {
         let nextPreview = { kind, url: objectUrl };

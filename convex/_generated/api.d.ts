@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as appHandoff from "../appHandoff.js";
+import type * as appHandoffCode from "../appHandoffCode.js";
 import type * as assignmentPolicy from "../assignmentPolicy.js";
 import type * as attendanceImport from "../attendanceImport.js";
 import type * as attendanceImportSheet from "../attendanceImportSheet.js";
@@ -121,6 +123,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  appHandoff: typeof appHandoff;
+  appHandoffCode: typeof appHandoffCode;
   assignmentPolicy: typeof assignmentPolicy;
   attendanceImport: typeof attendanceImport;
   attendanceImportSheet: typeof attendanceImportSheet;
