@@ -116,6 +116,10 @@
 .notification-category > header p { margin: 0; color: var(--lvt-muted); font-size: 12px; }
 .notification-category > header > strong { display: grid; place-items: center; min-width: 36px; height: 36px; padding: 0 7px; border-radius: 12px; color: #167868; background: #e2f5ef; font-size: 14px; }
 .category-work > header > strong { color: #285f8d; background: #e8f1fb; }
+/* Nhân sự (Ghi nhận lỗi, BGH đánh giá chờ duyệt): warm tone from the DESIGN.md tokens. */
+.notification-category.category-people > header { background: linear-gradient(90deg, var(--lvt-warning-bg), var(--lvt-paper)); }
+.category-people > header > strong { color: var(--lvt-warning-text); background: var(--lvt-warning-bg); }
+.category-people .notification-icon { color: var(--lvt-warning-text); background: var(--lvt-warning-bg); }
 
 .notification-category-list { display: grid; }
 

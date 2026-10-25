@@ -69,6 +69,7 @@ import type * as moderatorScope from "../moderatorScope.js";
 import type * as notificationSettings from "../notificationSettings.js";
 import type * as notifications from "../notifications.js";
 import type * as peopleReview from "../peopleReview.js";
+import type * as peopleReviewPolicy from "../peopleReviewPolicy.js";
 import type * as permissionGroups from "../permissionGroups.js";
 import type * as personalReminderPolicy from "../personalReminderPolicy.js";
 import type * as personalReminders from "../personalReminders.js";
@@ -180,6 +181,7 @@ declare const fullApi: ApiFromModules<{
   notificationSettings: typeof notificationSettings;
   notifications: typeof notifications;
   peopleReview: typeof peopleReview;
+  peopleReviewPolicy: typeof peopleReviewPolicy;
   permissionGroups: typeof permissionGroups;
   personalReminderPolicy: typeof personalReminderPolicy;
   personalReminders: typeof personalReminders;

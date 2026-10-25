@@ -22,7 +22,7 @@ import DesignLibraryView from './settings/DesignLibraryView';
 import UserBulkImport from './settings/UserBulkImport';
 import './settings/userBulkImport.css';
 import NotificationsView from './notifications/NotificationsView';
-import { DUTY_NOTIFICATION_FOCUS_TYPES, menuForNotification, useNotificationFocus } from './notifications/useNotificationFocus';
+import { DUTY_NOTIFICATION_FOCUS_TYPES, menuForNotification, peopleNotificationLabel, useNotificationFocus } from './notifications/useNotificationFocus';
 import {
   ACCOUNT_MENU_IDS,
   PRIMARY_MENUS,
@@ -573,9 +573,9 @@ function AppShell({ session }) {
         ) : active === 'chat' ? (
           <ChatHub path={chatPath} onNavigate={openChatThread} onOpenEntity={openChatEntity} />
         ) : active === 'people-review' ? (
-          <PeopleReviewView />
+          <PeopleReviewView focusTarget={activeFocusTarget} />
         ) : active === 'staff-faults' ? (
-          <StaffFaultsView />
+          <StaffFaultsView focusTarget={activeFocusTarget} />
         ) : active === 'reports' ? (
           reportSection === 'boarding' && canSeeBoarding ? <BoardingReportsView /> : <WorkReportsView />
         ) : active === 'boarding' ? (
@@ -668,12 +668,12 @@ function NotificationBell({ data, onViewAll, onOpenItem }) {
               {latestItems.map((item) => (
                 <button
                   type="button"
-                  className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' ? ' is-rejection' : ''}`}
+                  className={`notification-popover-item ${item.read ? '' : 'unread'}${item.sourceType === 'completion_rejected' || item.sourceType === 'work_returned' || item.sourceType === 'evaluation_text_returned' ? ' is-rejection' : ''}`}
                   key={item.key}
-                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : 'Mở công việc này'}
+                  title={item.sourceType === 'group_chat' || item.kind === 'group' ? 'Mở nhóm trao đổi' : item.kind === 'duty' ? 'Mở công tác này' : item.kind === 'todo' ? 'Mở Việc của tôi' : item.kind === 'people' ? `Mở ${peopleNotificationLabel(item)}` : 'Mở công việc này'}
                   onClick={() => openItem(item)}
                 >
-                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.kind === 'todo' ? 'Việc của tôi' : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
+                  <span>{item.sourceType === 'group_chat' || item.kind === 'group' ? 'Nhóm' : item.kind === 'duty' ? 'Công tác' : item.kind === 'todo' ? 'Việc của tôi' : item.kind === 'people' ? peopleNotificationLabel(item) : item.sourceType === 'completion_rejected' ? 'Từ chối hoàn thành' : 'Công việc'} · {item.milestoneLabel}</span>
                   <strong>{item.title}</strong>
                   <small>{item.description}</small>
                 </button>

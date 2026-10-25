@@ -46,6 +46,17 @@ import { moderatorDepartmentScope } from "./moderatorScope";
 import { createMilestones, mergeMilestoneItems, unionMilestoneHours } from "./notificationSettings";
 import { dutyNotificationEndFloor, loadPublicDutiesFromEndDate } from "./dutyRange";
 import { projectPublicDuty } from "./dutyApproval";
+import {
+  canWriteEvaluationTextRule,
+  evaluationPeriodLabel,
+  evaluationReviewNotificationKey,
+  evaluationWriterNotice,
+  formatIsoDateVi,
+  hasCountedEvaluation,
+  isBghReviewer,
+  STAFF_FAULT_NOTICE_MS,
+  staffFaultNoticeVisible,
+} from "./peopleReviewPolicy";
 
 const HOUR_MS = 60 * 60 * 1000;
 const VN_OFFSET_MS = 7 * HOUR_MS;
@@ -124,6 +135,140 @@ async function dutyWeekNotificationItems(ctx: any, user: any, level: number, now
         availableAt: Number(row.approvedAt),
       })),
   ];
+}
+
+/**
+ * Đánh giá nhân sự / Ghi nhận lỗi bell items (kind "people", `menu` = web menu to open):
+ * - the evaluated person: faults recorded for them in the last 30 days (never
+ *   ones they recorded themselves), only when they can open Ghi nhận lỗi or
+ *   Đánh giá nhân sự; the text carries the date only, never the reason;
+ * - Ban giám hiệu: comments văn thư wrote on their behalf, waiting for them;
+ * - the writer: their on-behalf comment was returned / approved.
+ * Comment text and return reasons never appear here (Android shows feed text on the lock screen).
+ */
+async function peopleNotificationItems(
+  ctx: any,
+  user: any,
+  menuAccess: Record<string, string>,
+  level: number,
+  positions: any[],
+  now: number,
+) {
+  const isOps = isOperationalManagerRole(user.role);
+  const canSeeStaffFaults = isOps || menuAccess["staff-faults"] !== "hidden";
+  const canSeePeopleReview = isOps || menuAccess["people-review"] !== "hidden";
+  const items: any[] = [];
+  const userCache = new Map<string, any>();
+  const loadUser = async (id: string) => {
+    if (!userCache.has(id)) userCache.set(id, await ctx.db.get(id).catch(() => null));
+    return userCache.get(id);
+  };
+  const nameOf = (row: any) => String(row?.name || row?.email || "Người dùng").trim() || "Người dùng";
+
+  if (canSeeStaffFaults || canSeePeopleReview) {
+    const faults = await ctx.db
+      .query("personnelFaults")
+      .withIndex("by_target", (q: any) => q.eq("targetUserId", String(user._id)).eq("active", true))
+      .collect();
+    for (const fault of faults) {
+      if (fault.createdAt < now - STAFF_FAULT_NOTICE_MS) continue;
+      if (!staffFaultNoticeVisible(fault, String(user._id), now)) continue;
+      items.push({
+        key: `people:staff_fault:${String(fault._id)}`,
+        kind: "people" as const,
+        sourceType: "staff_fault" as const,
+        sourceId: String(fault._id),
+        menu: canSeeStaffFaults ? "staff-faults" : "people-review",
+        title: "Ghi nhận lỗi mới",
+        description: `Ngày vi phạm ${formatIsoDateVi(fault.violationDate)}. Mở để xem chi tiết.`,
+        dueAt: fault.createdAt,
+        milestoneHours: 0,
+        milestoneLabel: "Ghi nhận lỗi",
+        availableAt: fault.createdAt,
+      });
+    }
+  }
+
+  if (!canSeePeopleReview) return items;
+
+  if (isBghReviewer({ isOps, level })) {
+    const pending = await ctx.db
+      .query("personnelEvaluationTexts")
+      .withIndex("by_status", (q: any) => q.eq("status", "pending").eq("active", true))
+      .collect();
+    for (const text of pending) {
+      if (String(text.targetUserId) === String(user._id)) continue;
+      if (String(text.evaluatorUserId) === String(user._id)) continue;
+      const target = await loadUser(String(text.targetUserId));
+      if (!target || target.status !== "active") continue;
+      const targetIsOps = isOperationalManagerRole(target.role);
+      const canWrite = canWriteEvaluationTextRule({
+        actorUserId: String(user._id),
+        actorIsOps: false,
+        actorLevel: level,
+        actorReachesTarget: false,
+        targetUserId: String(target._id),
+        targetIsOps,
+        targetLevel: targetIsOps ? 0 : activePositionLevel(target, positions),
+      });
+      if (!canWrite) continue;
+      const file = await ctx.db.get(text.fileId);
+      if (!file?.active) continue;
+      const fileTexts = await ctx.db
+        .query("personnelEvaluationTexts")
+        .withIndex("by_file", (q: any) => q.eq("fileId", String(file._id)).eq("active", true))
+        .collect();
+      if (hasCountedEvaluation(fileTexts, String(user._id))) continue;
+      const writer = await loadUser(String(text.evaluatorUserId));
+      const submittedAt = Number(text.submittedAt || text.createdAt) || now;
+      items.push({
+        key: evaluationReviewNotificationKey(String(text._id), submittedAt),
+        kind: "people" as const,
+        sourceType: "evaluation_text_review" as const,
+        sourceId: String(text._id),
+        menu: "people-review",
+        title: `Nhận xét chờ duyệt: ${nameOf(target)}`,
+        description: `${evaluationPeriodLabel(file)} · ${nameOf(writer)} (văn thư) viết thay, cần Ban Giám hiệu duyệt.`,
+        dueAt: submittedAt,
+        milestoneHours: 0,
+        milestoneLabel: "Cần duyệt",
+        availableAt: submittedAt,
+      });
+    }
+  }
+
+  const written = await ctx.db
+    .query("personnelEvaluationTexts")
+    .withIndex("by_evaluator", (q: any) => q.eq("evaluatorUserId", String(user._id)).eq("active", true))
+    .collect();
+  for (const text of written) {
+    const notice = evaluationWriterNotice(text, String(user._id), now);
+    if (!notice) continue;
+    const target = await loadUser(String(text.targetUserId));
+    const file = await ctx.db.get(text.fileId);
+    if (!target || !file?.active) continue;
+    const reviewer = text.reviewedByUserId ? await loadUser(String(text.reviewedByUserId)) : null;
+    const returned = notice.decision === "returned";
+    items.push({
+      key: `people:${returned ? "evaluation_text_returned" : "evaluation_text_approved"}:${String(text._id)}:${notice.at}`,
+      kind: "people" as const,
+      sourceType: returned ? ("evaluation_text_returned" as const) : ("evaluation_text_approved" as const),
+      sourceId: String(text._id),
+      menu: "people-review",
+      title: returned
+        ? `Nhận xét bị trả lại: ${nameOf(target)}`
+        : `Nhận xét đã được duyệt: ${nameOf(target)}`,
+      description: returned
+        ? `${evaluationPeriodLabel(file)} · ${nameOf(reviewer)} trả lại, hãy xem lý do, sửa và gửi duyệt lại.`
+        : `${evaluationPeriodLabel(file)} · ${nameOf(reviewer)} đã duyệt.`,
+      dueAt: notice.at,
+      milestoneHours: 0,
+      milestoneLabel: returned ? "Bị trả lại" : "Đã duyệt",
+      availableAt: notice.at,
+      ...(returned ? { priority: "high" as const } : {}),
+    });
+  }
+  return items;
 }
 
 function dutyDueAt(duty: { endDate: string; endTime: string }) {
@@ -735,7 +880,8 @@ async function notificationItems(ctx: any, requestedNow?: number) {
   const todoItems = todoRows
     .map((row: any) => todoReminderNotificationItem(row))
     .filter((item: any): item is NonNullable<ReturnType<typeof todoReminderNotificationItem>> => item !== null);
-  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...creatorApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones, ...todoItems]
+  const peopleItems = await peopleNotificationItems(ctx, user, menuAccess, level, positions, now);
+  const milestones = [...newDutyAssignments, ...newWorkAssignments, ...pendingApprovalItems, ...creatorApprovalItems, ...dutyWeekItems, ...chatItems, ...scheduledMilestones, ...todoItems, ...peopleItems]
     .sort((a, b) => b.availableAt - a.availableAt || a.title.localeCompare(b.title, "vi"));
   const [reads, dismissals] = await Promise.all([
     ctx.db

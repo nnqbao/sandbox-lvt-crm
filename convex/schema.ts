@@ -738,8 +738,20 @@ export default defineSchema({
   personnelEvaluationTexts: defineTable({
     fileId: v.string(),
     targetUserId: v.string(),
+    /** The writer: a BGH member, or admin/mod writing on behalf of BGH. */
     evaluatorUserId: v.string(),
     content: v.string(),
+    /**
+     * BGH approval (`convex/peopleReviewPolicy.ts`). Missing = legacy, counts as
+     * approved. Admin/mod-written comments start `pending`; only `approved`
+     * ones lock the file and count, and only those reach the evaluated person.
+     */
+    status: v.optional(v.union(v.literal("pending"), v.literal("approved"), v.literal("returned"))),
+    writtenOnBehalf: v.optional(v.boolean()),
+    submittedAt: v.optional(v.number()),
+    reviewedByUserId: v.optional(v.string()),
+    reviewedAt: v.optional(v.number()),
+    returnReason: v.optional(v.string()),
     active: v.boolean(),
     createdBy: v.string(),
     updatedBy: v.optional(v.string()),
@@ -747,7 +759,9 @@ export default defineSchema({
   })
     .index("by_file", ["fileId", "active"])
     .index("by_target", ["targetUserId", "active"])
-    .index("by_file_evaluator", ["fileId", "evaluatorUserId"]),
+    .index("by_file_evaluator", ["fileId", "evaluatorUserId"])
+    .index("by_evaluator", ["evaluatorUserId", "active"])
+    .index("by_status", ["status", "active"]),
   /** Trusted cleanup queue for file objects (Convex `cvx_` keys or legacy Drive ids) superseded by an atomic metadata update. */
   driveCleanupJobs: defineTable({
     driveFileId: v.string(),

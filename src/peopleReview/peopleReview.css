@@ -583,6 +583,69 @@
   font-size: 0.85em;
 }
 
+/* BGH đánh giá written by văn thư: waiting for / returned by Ban Giám hiệu. */
+.pr-text-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.pr-text-card textarea {
+  width: 100%;
+}
+
+.pr-text-card.is-pending {
+  border-color: var(--lvt-warning-bg);
+  background: var(--lvt-surface);
+}
+
+.pr-text-card.is-returned {
+  border-color: var(--lvt-danger-line);
+}
+
+.pr-text-status {
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pr-text-status.is-pending {
+  color: var(--lvt-warning-text);
+  background: var(--lvt-warning-bg);
+}
+
+.pr-text-status.is-returned {
+  color: var(--lvt-danger-text);
+  background: var(--lvt-danger-bg);
+}
+
+.pr-mini-text .pr-text-status {
+  margin-left: 0.5rem;
+}
+
+.pr-text-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.pr-review-item {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pr-review-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.pr-review-item-head small {
+  color: var(--pr-muted);
+}
+
 .pr-modal-backdrop {
   position: fixed;
   inset: 0;

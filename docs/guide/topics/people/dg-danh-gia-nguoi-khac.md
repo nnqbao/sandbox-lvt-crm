@@ -23,5 +23,15 @@ Trong hộp **Thêm đánh giá**:
 ![Hộp Thêm đánh giá: 1 chọn kỳ, 2 Upload file, 3 BGH đánh giá, 4 Lưu](dg-them-danh-gia)
 
 ::: note
-Chỉ Ban Giám hiệu (4–5 sao) ghi được ô **BGH đánh giá**. Tổ trưởng chỉ thấy và đánh giá người cấp dưới trong tổ. Nếu nhà trường giới hạn Moderator theo phòng ban, Moderator chỉ thấy người trong phòng ban đó.
+Ban Giám hiệu (4–5 sao) ghi ô **BGH đánh giá**; Văn thư (Admin/Moderator) cũng có thể ghi thay cho người 1–3 sao. Tổ trưởng chỉ thấy và đánh giá người cấp dưới trong tổ. Nếu nhà trường giới hạn Moderator theo phòng ban, Moderator chỉ thấy người trong phòng ban đó.
+:::
+
+#### Văn thư ghi thay — cần Ban Giám hiệu duyệt
+1. Nhận xét do Văn thư ghi có nhãn **Chờ BGH duyệt**. Nó chưa có hiệu lực: người được đánh giá chưa thấy, file kỳ đó chưa bị khóa.
+2. Ban Giám hiệu nhận thông báo **Nhận xét chờ duyệt**. Mục **Nhận xét chờ BGH duyệt** hiện trên cùng trang **Đánh giá nhân sự**.
+3. Bấm **Duyệt** để nhận xét có hiệu lực (ghi “… duyệt — viết bởi Văn thư …”), hoặc **Trả lại** và ghi lý do.
+4. Văn thư nhận thông báo kết quả. Nhận xét **Bị trả lại** thì bấm **Sửa & gửi duyệt lại**.
+
+::: note
+Người duyệt phải là thành viên Ban Giám hiệu được phép tự ghi nhận xét cho người đó. Nhận xét đã duyệt được tính là nhận xét của người duyệt trong kỳ đó, nên ai đã có nhận xét cho kỳ này thì để thành viên BGH khác duyệt.
 :::
