@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAction, useMutation, useQuery } from 'convex/react';
 import { anyApi } from 'convex/server';
 import { clientKindIcon, formatSessionActiveAt } from './deviceSession';
+import { isInApp, postToApp } from '../lib/appBridge';
 
 function localMessageFor(error) {
   const raw = String(error?.data ?? error?.message ?? error ?? '');
@@ -171,6 +172,11 @@ function SignInKeysSection({ now }) {
   return (
     <section className="devices-section">
       <h4>VÂN TAY, FACE ID VÀ PASSKEY</h4>
+      {isInApp() ? (
+        <button type="button" className="primary-button devices-quick-sign-in" onClick={() => postToApp({ type: 'quick-sign-in' })}>
+          Cài đặt đăng nhập nhanh trên điện thoại này
+        </button>
+      ) : null}
       {feedback ? <p className="profile-feedback" role="status">{feedback}</p> : null}
       {keys.length === 0 ? (
         <p className="devices-empty">Chưa bật đăng nhập bằng vân tay, Face ID hay passkey trên app nào.</p>

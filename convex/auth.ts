@@ -3,6 +3,7 @@ import { convexAuth, retrieveAccount } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import { Scrypt } from "lucia";
 import { internal } from "./_generated/api";
+import { APP_HANDOFF_INVALID, appHandoffCodeHash, isAppHandoffCode } from "./appHandoffCode";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import {
@@ -149,8 +150,23 @@ const PasskeySignIn = ConvexCredentials({
   },
 });
 
+/**
+ * App → WebView handoff: the signed-in Android / iOS app gives its WebView a single-use code
+ * (convex/appHandoff.ts) that becomes a separate session for the same account.
+ */
+const AppHandoffSignIn = ConvexCredentials({
+  id: "app-handoff",
+  authorize: async (params, ctx) => {
+    const code = params.code;
+    if (!isAppHandoffCode(code)) throw new ConvexError(APP_HANDOFF_INVALID);
+    const userId = await ctx.runMutation(internal.appHandoff.consume, { codeHash: await appHandoffCodeHash(code) });
+    if (!userId) throw new ConvexError(APP_HANDOFF_INVALID);
+    return { userId };
+  },
+});
+
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [PasswordSignInOnly, DeviceKeySignIn, PasskeySignIn],
+  providers: [PasswordSignInOnly, DeviceKeySignIn, PasskeySignIn, AppHandoffSignIn],
   // Keep library rate-limit high so SYS-008 window/threshold is the controlling policy.
   signIn: { maxFailedAttempsPerHour: 1000 },
   callbacks: {

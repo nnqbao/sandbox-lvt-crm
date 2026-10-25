@@ -56,7 +56,7 @@ test('domain association files for iOS and Android passkeys', () => {
 
 test('server: providers registered, sessions gated, registration needs a ready signed-in user', () => {
   const auth = read('convex/auth.ts');
-  assert.match(auth, /providers: \[PasswordSignInOnly, DeviceKeySignIn, PasskeySignIn\]/);
+  assert.match(auth, /providers: \[PasswordSignInOnly, DeviceKeySignIn, PasskeySignIn(, AppHandoffSignIn)?\]/);
   assert.match(auth, /beforeSessionCreation[\s\S]*USER_NOT_ACTIVE[\s\S]*ACCOUNT_LOCKED/);
   assert.match(auth, /credential\.kind !== "device_key"/);
   assert.match(auth, /credential\.kind !== "passkey"/);

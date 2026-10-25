@@ -1064,6 +1064,16 @@ export default defineSchema({
    * Sign-in credentials bound to a device: `device_key` = P-256 key in Secure Enclave /
    * Android Keystore unlocked by biometrics; `passkey` = WebAuthn credential. Public keys only.
    */
+  /** Single-use app → WebView sign-in codes (convex/appHandoff.ts); only the SHA-256 is stored, 60 s TTL. */
+  appWebHandoffs: defineTable({
+    userId: v.id("users"),
+    codeHash: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_code_hash", ["codeHash"])
+    .index("by_user", ["userId"])
+    .index("by_expires", ["expiresAt"]),
   deviceCredentials: defineTable({
     userId: v.string(),
     kind: v.string(), // device_key | passkey

@@ -79,6 +79,15 @@ import './settings/displaySettings.css';
 import './notifications/notifications.css';
 import { navIconFor } from './navIcons';
 import ChatHub from './chat/ChatHub';
+import {
+  appSignOutRequested,
+  installAppBridge,
+  isInApp,
+  markAppSignOut,
+  onAppMessage,
+  postToApp,
+  requestAppHandoff,
+} from './lib/appBridge';
 
 const configuredConvexUrl = import.meta.env.VITE_CONVEX_URL;
 const publicConvexUrl =
@@ -116,9 +125,11 @@ function AuthenticatedApp() {
   const session = useQuery(anyApi.users.sessionContext);
   const registerDevice = useMutation(anyApi.sessions.registerCurrent);
   const touchSession = useMutation(anyApi.sessions.touchCurrent);
+  const { signOut } = useAuthActions();
 
+  // In the app shell the app's own session is the phone's row in Thiết bị đăng nhập.
   useEffect(() => {
-    if (!session?.user || session.user.status !== 'active') return;
+    if (!session?.user || session.user.status !== 'active' || isInApp()) return;
     const device = describeWebDevice();
     void registerDevice(device).catch(() => {});
     const timer = window.setInterval(() => {
@@ -126,6 +137,17 @@ function AuthenticatedApp() {
     }, 5 * 60 * 1000);
     return () => window.clearInterval(timer);
   }, [session?.user?._id, session?.user?.status, registerDevice, touchSession]);
+
+  // The app signed out (its own session ended): end this WebView session too.
+  useEffect(
+    () =>
+      onAppMessage((message) => {
+        if (message.type !== 'sign-out') return;
+        markAppSignOut();
+        void signOut();
+      }),
+    [signOut],
+  );
 
   if (session === undefined) return <LoadingView label="Đang kiểm tra quyền truy cập…" />;
   if (!session?.user) return <AccessDeniedView message="Phiên đăng nhập không gắn với hồ sơ người dùng hợp lệ." />;
@@ -386,6 +408,23 @@ function AppShell({ session }) {
 
   const activeFocusTarget = focusTarget?.menu === active ? focusTarget : null;
 
+  const signOutFromMenu = () => {
+    markAppSignOut();
+    void signOut();
+  };
+
+  // App shell: a tapped push / app notification opens here like a bell item (the app marks it read).
+  const openFromNotificationRef = useRef(openFromNotification);
+  openFromNotificationRef.current = openFromNotification;
+  useEffect(() => {
+    if (!isInApp()) return undefined;
+    const stop = onAppMessage((message) => {
+      if (message.type === 'open-notification' && message.item?.sourceId) openFromNotificationRef.current(message.item);
+    });
+    postToApp({ type: 'ready' });
+    return stop;
+  }, []);
+
   return (
     <OwnAvatarProvider user={user}>
     <ChatAutoOpenProvider target={activeFocusTarget}>
@@ -503,7 +542,7 @@ function AppShell({ session }) {
                 onOpenItem={openFromNotification}
               />
             ) : null}
-            <AccountMenu onChoose={choose} onSignOut={() => void signOut()} />
+            <AccountMenu onChoose={choose} onSignOut={signOutFromMenu} />
           </div>
         </header>
         {active === 'users' && isAdmin ? (
@@ -2243,7 +2282,15 @@ function MustChangePasswordView() {
         <button className="primary-button" disabled={pending}>
           {pending ? 'Đang cập nhật…' : 'Đổi mật khẩu và tiếp tục'}
         </button>
-        <button type="button" className="text-button" onClick={() => void signOut()} disabled={pending}>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => {
+            markAppSignOut();
+            void signOut();
+          }}
+          disabled={pending}
+        >
           Đăng xuất
         </button>
       </form>
@@ -2282,7 +2329,14 @@ function AccessDeniedView({ message }) {
         <p className="eyebrow">CRM Lê Văn Tám</p>
         <h1>Chưa thể truy cập</h1>
         <p>{message}</p>
-        <button type="button" className="text-button" onClick={() => void signOut()}>
+        <button
+          type="button"
+          className="text-button"
+          onClick={() => {
+            markAppSignOut();
+            void signOut();
+          }}
+        >
           Đăng xuất
         </button>
       </div>
@@ -2438,14 +2492,49 @@ function Root() {
       <AuthLoading>
         <LoadingView label="Đang kiểm tra phiên đăng nhập…" />
       </AuthLoading>
-      <Unauthenticated>
-        <SignedOutView />
-      </Unauthenticated>
+      <Unauthenticated>{isInApp() ? <AppHandoffView /> : <SignedOutView />}</Unauthenticated>
       <Authenticated>
         <AuthenticatedApp />
       </Authenticated>
     </ConvexAuthProvider>
   );
+}
+
+/**
+ * In the app shell the app signs in natively and hands this WebView a single-use code
+ * (convex/appHandoff.ts). After "Đăng xuất", or when the app has no session, the app shows its
+ * own sign-in screen instead.
+ */
+function AppHandoffView() {
+  const { signIn } = useAuthActions();
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    if (appSignOutRequested()) {
+      setLeaving(true);
+      postToApp({ type: 'signed-out' });
+      return undefined;
+    }
+    void (async () => {
+      const code = await requestAppHandoff();
+      if (cancelled) return;
+      if (code) {
+        try {
+          await signIn('app-handoff', { code });
+          return;
+        } catch (error) {
+          console.error('App sign-in handoff failed', error);
+        }
+      }
+      if (cancelled) return;
+      setLeaving(true);
+      postToApp({ type: 'signed-out' });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [signIn]);
+  return <LoadingView label={leaving ? 'Đang quay lại màn hình đăng nhập…' : 'Đang đăng nhập…'} />;
 }
 
 function LoadingView({ label }) {
@@ -2459,4 +2548,5 @@ function LoadingView({ label }) {
   );
 }
 
+installAppBridge();
 createRoot(document.getElementById('root')).render(<Root />);
