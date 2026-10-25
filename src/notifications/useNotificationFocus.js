@@ -64,9 +64,26 @@ export function useNotificationFocus(focusTarget, options = {}) {
   }, [focusTarget?.token, focusTarget?.sourceId, focusTarget?.sourceType]);
 }
 
+export const PEOPLE_NOTIFICATION_FOCUS_TYPES = [
+  'staff_fault',
+  'evaluation_text_review',
+  'evaluation_text_approved',
+  'evaluation_text_returned',
+];
+
+/** Short label for bell rows / tooltips of Đánh giá nhân sự & Ghi nhận lỗi items. */
+export function peopleNotificationLabel(item) {
+  return item?.sourceType === 'staff_fault' ? 'Ghi nhận lỗi' : 'Đánh giá nhân sự';
+}
+
 export function menuForNotification(item) {
   if (item?.sourceType === 'work_chat' || item?.sourceType === 'duty_chat' || item?.sourceType === 'group_chat') {
     return 'chat';
+  }
+  if (item?.kind === 'people') {
+    // The server picks the menu the person can open (Ghi nhận lỗi, else Đánh giá nhân sự).
+    if (item.menu === 'staff-faults' || item.menu === 'people-review') return item.menu;
+    return item.sourceType === 'staff_fault' ? 'staff-faults' : 'people-review';
   }
   return item?.kind === 'duty' ? 'duties' : 'work';
 }

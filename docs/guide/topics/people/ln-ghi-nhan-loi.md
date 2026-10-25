@@ -26,3 +26,7 @@ Xem các lỗi mình bị ghi nhận; người có quyền thì ghi nhận lỗi
 ::: warn
 Ghi lý do khách quan, cụ thể và luôn kèm bằng chứng. Người bị ghi nhận sẽ thấy lỗi này trong hồ sơ của họ.
 :::
+
+::: note Thông báo cho người bị ghi nhận
+Khi lỗi được ghi, người bị ghi nhận nhận thông báo đẩy trên điện thoại (**Ghi nhận lỗi mới**, chỉ có ngày vi phạm — không có lý do) và một mục trên chuông trong 30 ngày. Bấm vào sẽ mở **Lỗi của tôi** để xem chi tiết. Người tự ghi lỗi cho chính mình không nhận thông báo.
+:::
