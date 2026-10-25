@@ -218,7 +218,7 @@ export function messageFor(error) {
     WORK_EVIDENCE_REQUIRED: 'Khi nộp việc phải đính kèm file bằng chứng hoàn thành.',
     INVALID_COMPLETION_NOTE: 'Nội dung gửi người giao tối đa 500 ký tự.',
     WORK_COMPLETION_REVIEWER_REQUIRED: 'Chỉ người tạo công việc mới được đánh dấu hoàn thành hoặc trả về.',
-    WORK_COMPLETION_NOT_PENDING: 'Task không còn ở trạng thái chờ duyệt hoàn thành.',
+    WORK_COMPLETION_NOT_PENDING: 'Việc này không còn ở trạng thái chờ duyệt hoàn thành.',
     WORK_ASSIGNMENTS_REQUIRED: 'Vui lòng thêm ít nhất một phân công.',
     WORK_ADMIN_MOD_MODE_REQUIRED: 'Thao tác này chỉ dùng ở chế độ Admin/Mod giao việc.',
     WORK_SUPERVISOR_MODE_REQUIRED: 'Thao tác này chỉ dùng ở chế độ Cấp trên giao việc.',

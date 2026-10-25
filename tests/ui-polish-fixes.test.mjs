@@ -41,3 +41,9 @@ test('Công việc: assigned work is "Việc được giao"; "Việc của tôi"
   assert.doesNotMatch(views, /<DutyListHeading>Việc của tôi<\/DutyListHeading>/);
   assert.match(read('src/work/PersonalTodosView.jsx'), /<h2>Việc của tôi<\/h2>/);
 });
+
+test('Công việc error messages say "việc", never the English "task"', () => {
+  const messages = read('src/lib/appErrorMessage.js');
+  assert.match(messages, /WORK_COMPLETION_NOT_PENDING: 'Việc này không còn ở trạng thái chờ duyệt hoàn thành\.'/);
+  assert.doesNotMatch(messages, /: '[^'\n]*\b[Tt]ask\b/);
+});
