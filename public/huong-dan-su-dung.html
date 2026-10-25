@@ -1684,6 +1684,19 @@ mark { background: #fff3c8; color: inherit; border-radius: 3px; padding: 0 1px; 
       video.load();
     }
   });
+  // Keep the tutorial videos on this device for 24 hours (public/huong-dan-sw.js); without a
+  // service worker (old browser, file://, private mode) they simply stream as before.
+  if (document.querySelector('.guide-video') && 'serviceWorker' in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register('/huong-dan-sw.js', { scope: '/huong-dan' }).catch(() => {});
+    // Safety net: a video that fails through the worker streams straight from the server instead.
+    document.addEventListener('error', (event) => {
+      const video = event.target;
+      if (!(video instanceof HTMLVideoElement) || video.dataset.direct || !navigator.serviceWorker.controller) return;
+      video.dataset.direct = '1';
+      video.src = video.getAttribute('src').replace(/\.mp4(?=#|$)/, '.mp4?direct=1');
+      video.load();
+    }, true);
+  }
   // Only one video plays at a time.
   document.addEventListener('play', (event) => {
     if (!(event.target instanceof HTMLVideoElement)) return;
