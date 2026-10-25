@@ -92,7 +92,7 @@ export default {
         { clear: true, step: 'Trả về', caption: 'Bài nộp chưa đạt: mở “Duyệt / Chưa duyệt” rồi chọn “Chưa duyệt”.', click: { css: '.pending-completion-card button', text: 'Duyệt / Chưa duyệt', nth: 1 }, waitFor: '.work-modal', hold: 0.8 },
         { click: { css: '.work-modal button', text: 'Chưa duyệt', exact: true }, waitFor: '#review-reason', hold: 1 },
         { caption: 'Ghi “Lý do chưa duyệt” cụ thể để người nộp sửa một lần là xong.', type: '#review-reason', text: 'Thiếu danh sách học sinh tham gia câu lạc bộ. Bổ sung rồi nộp lại.' },
-        { caption: 'Bấm “Trả về user”. Người nộp thấy lý do và nộp lại.', click: '.work-modal button[type=submit]', hold: 1.5 },
+        { caption: 'Bấm “Trả về người nộp”. Người nộp thấy lý do và nộp lại.', click: '.work-modal button[type=submit]', hold: 1.5 },
         { clear: true, step: 'Theo dõi', caption: 'Trong “Việc tôi tạo”, bấm vào thẻ để xem tiến độ từng người: chưa hoàn thành, chờ duyệt, hay đã hoàn thành kèm phần trăm.', click: mine('doc1', '.duty-card-toggle'), hold: 1 },
         { highlight: { css: `${mine('doc1')} .work-member-progress`, nth: 0 }, hold: 3.5 },
         { clear: true, step: 'Lưu ý', caption: 'Khi đã có người nộp kết quả, công việc chỉ xem với mọi người, kể cả quản trị viên; vẫn duyệt kết quả như bình thường.', highlight: mine('doc1', '.work-document-locked'), hold: 4 },
