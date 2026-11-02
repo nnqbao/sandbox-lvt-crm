@@ -545,15 +545,18 @@ test('sửa giữ nguyên phân công thì giữ công việc con; đổi phân 
     { assignmentType: 'department', departmentId: 'toan', assigneeUserIds: [], content: 'A', deadline: '2026-10-30' },
     { assignmentType: 'individual', departmentId: 'van', assigneeUserIds: ['b', 'a'], content: 'B', deadline: '2026-10-31' },
   ];
+  // The edit is compared as planned work items (`planWorkItems`).
   const same = [
-    { type: 'individual', departmentId: 'other', userIds: ['a', 'b'], content: 'B', deadline: '2026-10-31' },
-    { type: 'department', departmentId: 'toan', userIds: [], content: 'A', deadline: '2026-10-30' },
+    { assignmentType: 'individual', departmentId: 'other', assigneeUserIds: ['a', 'b'], content: 'B', deadline: '2026-10-31' },
+    { assignmentType: 'department', departmentId: 'toan', assigneeUserIds: [], content: 'A', deadline: '2026-10-30' },
   ];
   assert.equal(workAssignmentsUnchanged(items, same), true);
   assert.equal(workAssignmentsUnchanged(items, [same[0]]), false);
   assert.equal(workAssignmentsUnchanged(items, [same[0], { ...same[1], deadline: '2026-11-01' }]), false);
   assert.equal(workAssignmentsUnchanged(items, [same[0], { ...same[1], content: 'A2' }]), false);
-  assert.equal(workAssignmentsUnchanged(items, [{ ...same[0], userIds: ['a'] }, same[1]]), false);
+  assert.equal(workAssignmentsUnchanged(items, [{ ...same[0], assigneeUserIds: ['a'] }, same[1]]), false);
+  // Same people but now carried by a Phòng ban → new items.
+  assert.equal(workAssignmentsUnchanged(items, [{ ...same[0], unitId: 'u1' }, same[1]]), false);
   assert.equal(workAssignmentsUnchanged([], []), false);
   const source = readFileSync(new URL('../convex/work.ts', import.meta.url), 'utf8');
   const update = source.slice(source.indexOf('export const updateDocument'), source.indexOf('export const deleteDocument'));

@@ -278,7 +278,7 @@ test('Văn thư/admin không giao công việc cá nhân cho Ban giám hiệu (c
   assert.doesNotMatch(duties, /opsCanAssignWorkToUser|WORK_ASSIGNEE_BGH_FORBIDDEN|WORK_ASSIGNEE_OPS_FORBIDDEN/);
   const messages = readFileSync(new URL('../src/lib/appErrorMessage.js', import.meta.url), 'utf8');
   assert.match(messages, /WORK_ASSIGNEE_BGH_FORBIDDEN: 'Văn thư không thể giao công việc cho Ban giám hiệu\.'/);
-  assert.match(messages, /WORK_ASSIGNEE_OPS_FORBIDDEN: 'Chỉ giao việc cho tài khoản quản trị cùng phòng ban\.'/);
+  assert.match(messages, /WORK_ASSIGNEE_OPS_FORBIDDEN: 'Chỉ giao việc cho tài khoản quản trị cùng tổ chuyên môn\.'/);
 });
 
 test('Văn thư tự giao cho mình; tài khoản quản trị khác chỉ khi cùng phòng ban (có phòng ban)', async () => {

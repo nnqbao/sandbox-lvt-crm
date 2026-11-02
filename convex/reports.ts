@@ -42,9 +42,12 @@ function mapNames(ids: string[], rows: { _id: string; name: string }[]) {
 
 function userIsParticipant(
   user: { _id: string; departmentId?: string },
-  duty: { departmentIds: string[]; participantUserIds: string[] },
+  duty: { departmentIds: string[]; participantUserIds: string[]; unitUserIds?: string[] },
 ) {
   if (duty.participantUserIds.some((id) => String(id) === String(user._id))) {
+    return true;
+  }
+  if ((duty.unitUserIds || []).some((id) => String(id) === String(user._id))) {
     return true;
   }
   return Boolean(
@@ -410,7 +413,7 @@ export const dutyCalendar = query({
               departmentName:
                 (participant.departmentId
                   ? departmentMap.get(String(participant.departmentId))?.name
-                  : "") || "Chưa gán phòng ban",
+                  : "") || "Chưa gán tổ chuyên môn",
               status: selectedAttendance(String(duty._id), String(participant._id)),
             }))
           : [];
@@ -687,11 +690,11 @@ export const workCalendar = query({
           status,
           qualityPercent: qualityPercent ?? null,
           kind: type === "individual" ? "personal_task" : "department_work",
-          kindLabel: type === "individual" ? "Công việc cá nhân" : "Việc phòng ban",
+          kindLabel: type === "individual" ? "Công việc cá nhân" : "Việc của tổ",
           departmentName:
             type === "individual"
               ? "Cá nhân"
-              : departmentsById.get(String(item.departmentId))?.name || "Chưa gán phòng ban",
+              : departmentsById.get(String(item.departmentId))?.name || "Chưa gán tổ chuyên môn",
           documentName: document.fileName || "Công văn",
         });
       }
@@ -715,9 +718,9 @@ export const workCalendar = query({
             deadline: item.deadline,
             status,
             kind: "department_work",
-            kindLabel: "Việc phòng ban",
+            kindLabel: "Việc của tổ",
             departmentName:
-              departmentsById.get(String(item.departmentId))?.name || "Chưa gán phòng ban",
+              departmentsById.get(String(item.departmentId))?.name || "Chưa gán tổ chuyên môn",
             documentName: document.fileName || "Công văn",
           });
         }
@@ -757,7 +760,7 @@ export const workCalendar = query({
             kind: "personal_task",
             kindLabel: "Công việc cá nhân",
             departmentName:
-              departmentsById.get(String(item.departmentId))?.name || "Chưa gán phòng ban",
+              departmentsById.get(String(item.departmentId))?.name || "Chưa gán tổ chuyên môn",
             documentName: document.fileName || "Công văn",
           });
         }

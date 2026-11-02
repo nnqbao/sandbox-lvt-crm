@@ -59,6 +59,7 @@ export type ScopeAssignment = {
   type?: string;
   assignmentType?: string;
   departmentId?: string | null;
+  unitId?: string | null;
   userIds?: string[] | null;
   assigneeUserIds?: string[] | null;
 };
@@ -75,8 +76,8 @@ export function workDocumentScopeAssignments(document: {
 
 /**
  * A work document is in a moderator's scope iff every assignment targets the
- * scoped department (department assignment) or individuals whose current
- * departmentId is the scoped department. Unscoped actors see everything.
+ * scoped department (department assignment) or individuals / Phòng ban members
+ * whose current departmentId is the scoped department. Unscoped actors see everything.
  */
 export function isWorkDocumentInModeratorScope(
   scope: string | null | undefined,
@@ -88,7 +89,8 @@ export function isWorkDocumentInModeratorScope(
   if (!rows.length) return false;
   return rows.every((assignment) => {
     const type = assignment.type || assignment.assignmentType;
-    if (type === "individual") {
+    // Phòng ban rows store their member snapshot in `userIds`.
+    if (type === "individual" || type === "unit") {
       const ids = (assignment.userIds || assignment.assigneeUserIds || []).map(String).filter(Boolean);
       if (!ids.length) return false;
       return ids.every((id) => isUserInModeratorScope(scope, usersById.get(id) || null));

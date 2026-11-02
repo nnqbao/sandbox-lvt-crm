@@ -35,10 +35,16 @@ export default function DutyCreatePreview({ form, catalogs, pending, onCancel, o
             <dd>{preview.location}</dd>
           </div>
           {preview.showDepartments ? (
-            <div>
-              <dt>Phòng ban</dt>
-              <dd>{preview.departments}</dd>
-            </div>
+            <>
+              <div>
+                <dt>Tổ chuyên môn</dt>
+                <dd>{preview.departments}</dd>
+              </div>
+              <div>
+                <dt>Phòng ban</dt>
+                <dd>{preview.units}</dd>
+              </div>
+            </>
           ) : null}
           <div>
             <dt>Người tham gia</dt>

@@ -75,16 +75,29 @@ export function formatWorkDate(value) {
 
 export function emptyWorkAssignment(type) {
   return {
-    type: type === 'individual' ? 'individual' : 'department',
+    type: type === 'individual' || type === 'unit' ? type : 'department',
     departmentId: '',
+    unitId: '',
     userIds: [],
     content: '',
     deadline: '',
   };
 }
 
+/** Edit-form rows: the rows as saved (`formAssignments`), else the list rows. */
 export function assignmentsFromDocument(document) {
-  return (document?.assignments || []).flatMap((assignment) => {
+  const rows = document?.formAssignments?.length ? document.formAssignments : document?.assignments || [];
+  return rows.flatMap((assignment) => {
+    if (assignment.type === 'unit') {
+      return [{
+        type: 'unit',
+        departmentId: '',
+        unitId: String(assignment.unitId || ''),
+        userIds: [],
+        content: assignment.content || '',
+        deadline: assignment.deadline || '',
+      }];
+    }
     if (assignment.type === 'individual') {
       const ids = assignment.userIds?.length ? assignment.userIds : [''];
       return ids.map((userId) => ({
@@ -156,11 +169,15 @@ export const WORK_HAS_SUBMISSIONS_NOTE = 'Đã có người nộp kết quả �
 export const WORK_REAPPROVAL_WARNING = 'Công việc đã được duyệt. Sau khi lưu, công việc sẽ phải gửi Ban giám hiệu duyệt lại và tạm ẩn với người được giao.';
 
 export function workAssignmentPayload(assignments) {
-  return (assignments || []).map((item) => (
-    item.type === 'individual'
-      ? { type: 'individual', userIds: item.userIds, content: item.content, deadline: item.deadline }
-      : { type: 'department', departmentId: item.departmentId, content: item.content, deadline: item.deadline }
-  ));
+  return (assignments || []).map((item) => {
+    if (item.type === 'individual') {
+      return { type: 'individual', userIds: item.userIds, content: item.content, deadline: item.deadline };
+    }
+    if (item.type === 'unit') {
+      return { type: 'unit', unitId: item.unitId, content: item.content, deadline: item.deadline };
+    }
+    return { type: 'department', departmentId: item.departmentId, content: item.content, deadline: item.deadline };
+  });
 }
 
 export function workDeadlines(item) {
@@ -349,16 +366,45 @@ export function filterWorksBySearch(list, search = {}) {
   });
 }
 
+/**
+ * People reached by more than one row (Tổ / Phòng ban / Cá nhân). Hint only;
+ * the server (`planWorkItems`) decides with the full roster. Tổ rows count
+ * listed non-admin/mod members of that Tổ.
+ */
+export function workDuplicateRecipientIds(assignments, { users = [], units = [] } = {}) {
+  const counts = new Map();
+  const bump = (ids) => {
+    for (const id of new Set(ids.map(String))) counts.set(id, (counts.get(id) || 0) + 1);
+  };
+  for (const row of assignments || []) {
+    if (row.type === 'individual') bump(row.userIds || []);
+    else if (row.type === 'unit') {
+      const unit = units.find((item) => String(item._id) === String(row.unitId || ''));
+      bump(unit?.memberUserIds || []);
+    } else if (row.departmentId) {
+      bump(users
+        .filter((user) => String(user.departmentId || '') === String(row.departmentId)
+          && user.role !== 'admin' && user.role !== 'moderator')
+        .map((user) => user._id));
+    }
+  }
+  return [...counts].filter(([, count]) => count > 1).map(([id]) => id);
+}
+
 export function assignmentRecipientLabel(assignment, catalogs = {}) {
   if (assignment?.type === 'individual') {
     const id = String(assignment.userIds?.[0] || '');
     const user = (catalogs.users || []).find((row) => String(row._id) === id);
     return user?.name || assignment.userNames?.[0] || 'Chưa chọn người';
   }
+  if (assignment?.type === 'unit') {
+    const unit = (catalogs.units || []).find((row) => String(row._id) === String(assignment.unitId || ''));
+    return unit?.name || assignment?.departmentName || 'Chưa chọn phòng ban';
+  }
   const department = (catalogs.departments || []).find(
     (row) => String(row._id) === String(assignment?.departmentId || ''),
   );
-  return department?.name || assignment?.departmentName || 'Chưa chọn phòng ban';
+  return department?.name || assignment?.departmentName || 'Chưa chọn tổ chuyên môn';
 }
 
 /** @param {{ title?: string, fileName?: string, assignments?: object[] }} [form] */
@@ -385,9 +431,9 @@ export function workRecipientSummary(item) {
   if (item?.assignments?.length) {
     return item.assignments
       .map((assignment) => (
-        assignment.type === 'individual'
+        assignment.type === 'individual' && !assignment.unitId
           ? (assignment.userNames?.join(', ') || 'Cá nhân')
-          : (assignment.departmentName || 'Phòng ban')
+          : (assignment.departmentName || 'Tổ chuyên môn')
       ))
       .filter(Boolean)
       .join(', ') || '—';

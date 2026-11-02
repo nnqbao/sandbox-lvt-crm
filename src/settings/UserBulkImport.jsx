@@ -259,7 +259,7 @@ export default function UserBulkImport({
             <div className="user-table-head user-table-head-5">
               <span>Dòng</span>
               <span>Họ tên / Email</span>
-              <span>PB / Chức vụ</span>
+              <span>Tổ CM / Chức vụ</span>
               <span>Nhóm quyền</span>
               <span>Vai trò</span>
             </div>

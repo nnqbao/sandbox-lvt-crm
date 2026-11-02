@@ -37,8 +37,8 @@ export default function BoardingReportsView() {
           <h3>{periodLabel(selectedPeriod)}</h3>
           <p>
             {isGlobalView
-              ? 'Bạn đang xem toàn bộ phòng ban tham gia bán trú.'
-              : 'Bạn đang xem giáo viên tham gia bán trú trong phòng ban của mình.'}
+              ? 'Bạn đang xem toàn bộ tổ chuyên môn tham gia bán trú.'
+              : 'Bạn đang xem giáo viên tham gia bán trú trong tổ chuyên môn của mình.'}
           </p>
         </div>
         <label>
@@ -67,7 +67,7 @@ export default function BoardingReportsView() {
             </div>
             <div>
               <i>◇</i>
-              <span><strong>{groups.length}</strong><small>Phòng ban</small></span>
+              <span><strong>{groups.length}</strong><small>Tổ chuyên môn</small></span>
             </div>
             <p>Danh sách do quản trị viên thiết lập trong menu Bán trú.</p>
           </div>
@@ -78,7 +78,7 @@ export default function BoardingReportsView() {
                 <article className="boarding-report-group" key={group.departmentName}>
                   <header>
                     <div>
-                      <span>PHÒNG BAN</span>
+                      <span>TỔ CHUYÊN MÔN</span>
                       <h3>{group.departmentName}</h3>
                     </div>
                     <strong>{group.participantCount}<small> giáo viên</small></strong>

@@ -216,7 +216,7 @@ export default function InternalProfilePanel({ session }) {
             <dd>{roleLabel}</dd>
           </div>
           <div>
-            <dt><span className="profile-field-icon is-department"><DepartmentFieldIcon /></span> Phòng ban</dt>
+            <dt><span className="profile-field-icon is-department"><DepartmentFieldIcon /></span> Tổ chuyên môn</dt>
             <dd>{department?.name || 'Chưa gán'}</dd>
           </div>
           <div>

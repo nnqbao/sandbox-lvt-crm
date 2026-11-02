@@ -21,6 +21,7 @@ import {
   dutyPushRecipientIds,
 } from "./assignmentPolicy";
 import { cleanDutyInput, evaluateDutyRefs, parseLocalMs } from "./dutyWritePolicy";
+import { loadUnitMemberIds, loadUnits } from "./unitRoster";
 import { canAccessDutyChat } from "./dutyMessagePolicy";
 import {
   dutyScheduleRevision,
@@ -78,12 +79,14 @@ export async function writeDutyChangeLog(
   },
 ) {
   const refs = dutyLogReferencedIds(args.before, args.after);
-  const [departments, users] = await Promise.all([
+  const [departments, units, users] = await Promise.all([
     loadDocsByIds(ctx, refs.departmentIds),
+    loadDocsByIds(ctx, refs.unitIds),
     loadDocsByIds(ctx, refs.userIds),
   ]);
   const changes = buildDutyChangeDiff(args.before, args.after, {
     departments: new Map(departments.map((row: any) => [String(row._id), String(row.name || row.code || "")])),
+    units: new Map(units.map((row: any) => [String(row._id), String(row.name || row.code || "")])),
     users: new Map(users.map((row: any) => [String(row._id), String(row.name || row.email || "")])),
   });
   await ctx.db.insert("dutyChangeLogs", {
@@ -96,19 +99,23 @@ export async function writeDutyChangeLog(
   });
 }
 
+/** Validates the Thành phần refs and returns the Phòng ban members to store with the duty. */
 async function assertRefs(
   ctx: { db: any },
   input: {
     departmentIds: string[];
+    unitIds?: string[];
     participantUserIds: string[];
     otherParticipants?: string;
   },
   actor: { user: any; isOps: boolean; positions: any[] },
 ) {
   const departments = input.departmentIds.length ? await ctx.db.query("departments").collect() : [];
+  const units = (input.unitIds || []).length ? await loadUnits(ctx) : [];
   const users = input.participantUserIds.length ? await ctx.db.query("users").collect() : [];
-  const error = evaluateDutyRefs(input, actor, { departments, users });
+  const error = evaluateDutyRefs(input, actor, { departments, units, users });
   if (error) throw new Error(error);
+  return await loadUnitMemberIds(ctx, input.unitIds || []);
 }
 
 export async function requireDutyWrite(ctx: any) {
@@ -135,6 +142,8 @@ export async function insertCreatedDuty(
     locationText: string;
     locationIds: string[];
     departmentIds: string[];
+    unitIds?: string[];
+    unitUserIds?: string[];
     participantUserIds: string[];
     otherParticipants: string;
   },
@@ -178,6 +187,7 @@ export async function insertCreatedDuty(
     body: dutyListTitle(input),
     departmentIds: input.departmentIds,
     participantUserIds: input.participantUserIds,
+    unitUserIds: input.unitUserIds,
   });
   return id;
 }
@@ -190,12 +200,14 @@ async function scheduleDutyPush(
     body: string;
     departmentIds: string[];
     participantUserIds: string[];
+    unitUserIds?: string[];
   },
 ) {
   const users = (await ctx.db.query("users").collect()).filter((row: any) => row.status === "active");
   const userIds = dutyPushRecipientIds({
     departmentIds: args.departmentIds,
     participantUserIds: args.participantUserIds,
+    unitUserIds: args.unitUserIds,
     users,
   });
   if (!userIds.length) return;
@@ -216,10 +228,11 @@ function canMutateDuty(actor: { user: any; isOps: boolean }, duty: { createdBy?:
 
 function userIsParticipant(
   user: { _id: string; departmentId?: string },
-  duty: { departmentIds: string[]; participantUserIds: string[] },
+  duty: { departmentIds: string[]; participantUserIds: string[]; unitUserIds?: string[] },
 ): boolean {
   const userId = String(user._id);
   if (duty.participantUserIds.some((id) => String(id) === userId)) return true;
+  if ((duty.unitUserIds || []).some((id) => String(id) === userId)) return true;
   if (user.departmentId && duty.departmentIds.some((id) => String(id) === String(user.departmentId))) {
     return true;
   }
@@ -228,7 +241,7 @@ function userIsParticipant(
 
 function resolveParticipantUsers(
   users: any[],
-  duty: { departmentIds: string[]; participantUserIds: string[] },
+  duty: { departmentIds: string[]; participantUserIds: string[]; unitUserIds?: string[] },
 ) {
   return users
     .filter((u) => u.status === "active" && userIsParticipant(u, duty))
@@ -278,8 +291,9 @@ export const formOptions = query({
   args: {},
   handler: async (ctx) => {
     const actor = await requireDutyWrite(ctx);
-    const [departments, users] = await Promise.all([
+    const [departments, units, users] = await Promise.all([
       ctx.db.query("departments").collect(),
+      ctx.db.query("units").collect(),
       ctx.db.query("users").collect(),
     ]);
     const assignableUsers = users
@@ -305,6 +319,12 @@ export const formOptions = query({
             .sort((a, b) => a.name.localeCompare(b.name, "vi"))
             .map((d) => ({ _id: d._id, name: d.name, code: d.code }))
         : [],
+      units: actor.isOps
+        ? units
+            .filter((u) => u.active)
+            .sort((a, b) => a.name.localeCompare(b.name, "vi"))
+            .map((u) => ({ _id: u._id, name: u.name, code: u.code }))
+        : [],
       users: assignableUsers,
     };
   },
@@ -315,10 +335,11 @@ export const listAdmin = query({
   handler: async (ctx) => {
     const actor = await requireDutyWrite(ctx);
     if (!actor.isOps) throw new Error("FORBIDDEN: operational manager role required");
-    const [duties, locations, departments, users, attendances, attendanceConfirmationEnabled] = await Promise.all([
+    const [duties, locations, departments, units, users, attendances, attendanceConfirmationEnabled] = await Promise.all([
       ctx.db.query("duties").collect(),
       ctx.db.query("locations").collect(),
       ctx.db.query("departments").collect(),
+      ctx.db.query("units").collect(),
       ctx.db.query("users").collect(),
       ctx.db.query("dutyAttendances").collect(),
       getBooleanSystemSetting(
@@ -348,6 +369,7 @@ export const listAdmin = query({
           ...duty,
           locationNames: [dutyLocationLabel(duty, mapNames(duty.locationIds, locations))].filter(Boolean),
           departmentNames: mapNames(duty.departmentIds, departments),
+          unitNames: mapNames(duty.unitIds || [], units),
           participantNames: participants.map((u) => u.name || u.email || u._id),
           timing: {
             isOngoing: timing.isOngoing,
@@ -374,10 +396,11 @@ export const listMine = query({
   args: {},
   handler: async (ctx) => {
     const { user, access, isAdmin } = await requireDutiesAccess(ctx);
-    const [rawDuties, locations, departments, users, positions, attendances, attendanceConfirmationEnabled] = await Promise.all([
+    const [rawDuties, locations, departments, units, users, positions, attendances, attendanceConfirmationEnabled] = await Promise.all([
       ctx.db.query("duties").collect(),
       ctx.db.query("locations").collect(),
       ctx.db.query("departments").collect(),
+      ctx.db.query("units").collect(),
       ctx.db.query("users").collect(),
       ctx.db.query("positions").collect(),
       ctx.db.query("dutyAttendances").collect(),
@@ -446,7 +469,7 @@ export const listMine = query({
                 name: participant.name,
                 email: participant.email,
                 departmentName:
-                  departmentNameMap.get(String(participant.departmentId)) || "Chưa gán phòng ban",
+                  departmentNameMap.get(String(participant.departmentId)) || "Chưa gán tổ chuyên môn",
                 positionName: positionNameMap.get(String(participant.positionId)) || "",
                 status:
                   (attMap.get(`${String(duty._id)}:${String(participant._id)}`) as string) ||
@@ -467,12 +490,14 @@ export const listMine = query({
             locationText: duty.locationText || dutyLocationLabel(duty, mapNames(duty.locationIds, locations)),
             locationNames: [dutyLocationLabel(duty, mapNames(duty.locationIds, locations))].filter(Boolean),
             departmentIds: duty.departmentIds,
+            unitIds: duty.unitIds || [],
             participantUserIds: duty.participantUserIds,
             canManage: isAdmin || String(duty.createdBy || "") === String(user._id),
             departmentNames: mapNames(duty.departmentIds, departments),
+            unitNames: mapNames(duty.unitIds || [], units),
             departmentParticipants: duty.departmentIds.map((departmentId) => ({
               departmentName:
-                departmentNameMap.get(String(departmentId)) || "Chưa gán phòng ban",
+                departmentNameMap.get(String(departmentId)) || "Chưa gán tổ chuyên môn",
               participantNames: users
                 .filter(
                   (candidate) =>
@@ -604,9 +629,10 @@ export const sharedSchedule = query({
     const slice = await loadSharedScheduleSlice(ctx, user, isAdmin, startDate, endDate);
     const duties = slice.duties;
     const weekUserIds = slice.weekRecords.flatMap((row) => [row.submittedBy, row.returnedBy, row.approvedBy]);
-    const [locations, departments, participantUsers, subordinateUsers, weekUsers] = await Promise.all([
+    const [locations, departments, units, participantUsers, subordinateUsers, weekUsers] = await Promise.all([
       loadDocsByIds(ctx, duties.flatMap((duty) => duty.locationIds || [])),
       loadDocsByIds(ctx, duties.flatMap((duty) => duty.departmentIds || [])),
+      loadDocsByIds(ctx, duties.flatMap((duty) => duty.unitIds || [])),
       loadDocsByIds(ctx, duties.flatMap((duty) => duty.participantUserIds || [])),
       loadScheduleSubordinates(ctx, user, isAdmin, access),
       loadDocsByIds(ctx, weekUserIds),
@@ -630,8 +656,10 @@ export const sharedSchedule = query({
           location: dutyLocationLabel(duty, mapNames(duty.locationIds, locations)),
           locationText: duty.locationText || dutyLocationLabel(duty, mapNames(duty.locationIds, locations)),
           departmentIds: duty.departmentIds || [],
+          unitIds: duty.unitIds || [],
           participantUserIds: duty.participantUserIds || [],
           departmentNames: mapNames(duty.departmentIds, departments),
+          unitNames: mapNames(duty.unitIds || [], units),
           participantNames: duty.participantUserIds
             .map((id) => userNameMap.get(String(id)))
             .filter((name): name is string => Boolean(name)),
@@ -716,14 +744,15 @@ export const create = mutation({
     content: v.string(),
     locationText: v.string(),
     departmentIds: v.array(v.string()),
+    unitIds: v.optional(v.array(v.string())),
     participantUserIds: v.array(v.string()),
     otherParticipants: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const actor = await requireDutyWrite(ctx);
-    const input = cleanDutyInput(args);
-    await assertRefs(ctx, input, actor);
-    return await insertCreatedDuty(ctx, actor, input);
+    const cleaned = cleanDutyInput(args);
+    const unitUserIds = await assertRefs(ctx, cleaned, actor);
+    return await insertCreatedDuty(ctx, actor, { ...cleaned, unitUserIds });
   },
 });
 
@@ -739,6 +768,7 @@ export const update = mutation({
     content: v.string(),
     locationText: v.string(),
     departmentIds: v.array(v.string()),
+    unitIds: v.optional(v.array(v.string())),
     participantUserIds: v.array(v.string()),
     otherParticipants: v.optional(v.string()),
   },
@@ -747,9 +777,9 @@ export const update = mutation({
     const current = await ctx.db.get(args.id);
     if (!current || !current.active) throw new Error("DUTY_NOT_FOUND");
     if (!canMutateDuty(actor, current)) throw new Error("DUTY_UPDATE_FORBIDDEN");
-    const input = cleanDutyInput(args);
+    const cleaned = cleanDutyInput(args);
     const scope = await resolveDutyScope(ctx, current);
-    await assertRefs(ctx, input, actor);
+    const input = { ...cleaned, unitUserIds: await assertRefs(ctx, cleaned, actor) };
     const now = Date.now();
     if (scope === "school") {
       const patch = {
@@ -808,6 +838,7 @@ export const update = mutation({
       body: dutyListTitle(input),
       departmentIds: input.departmentIds,
       participantUserIds: input.participantUserIds,
+      unitUserIds: input.unitUserIds,
     });
   },
 });
@@ -873,8 +904,9 @@ export const reviewerEditContext = query({
   handler: async (ctx, args) => {
     const actor = await requireDutyReviewer(ctx);
     const { current } = await loadReviewerEditableDuty(ctx, actor, args.id);
-    const [departments, users] = await Promise.all([
+    const [departments, units, users] = await Promise.all([
       ctx.db.query("departments").collect(),
+      ctx.db.query("units").collect(),
       ctx.db.query("users").collect(),
     ]);
     return {
@@ -889,6 +921,7 @@ export const reviewerEditContext = query({
         content: current.content,
         locationText: current.locationText || "",
         departmentIds: current.departmentIds || [],
+        unitIds: current.unitIds || [],
         participantUserIds: current.participantUserIds || [],
         otherParticipants: current.otherParticipants || "",
       },
@@ -896,6 +929,10 @@ export const reviewerEditContext = query({
         .filter((d) => d.active)
         .sort((a, b) => a.name.localeCompare(b.name, "vi"))
         .map((d) => ({ _id: d._id, name: d.name, code: d.code })),
+      units: units
+        .filter((u) => u.active)
+        .sort((a, b) => a.name.localeCompare(b.name, "vi"))
+        .map((u) => ({ _id: u._id, name: u.name, code: u.code })),
       users: users
         .filter((u) => u.status === "active")
         .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"))
@@ -920,15 +957,19 @@ export const reviewerUpdate = mutation({
     content: v.string(),
     locationText: v.string(),
     departmentIds: v.array(v.string()),
+    unitIds: v.optional(v.array(v.string())),
     participantUserIds: v.array(v.string()),
     otherParticipants: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const actor = await requireDutyReviewer(ctx);
     const { current, scope } = await loadReviewerEditableDuty(ctx, actor, args.id);
-    const input = cleanDutyInput(args);
-    // Same validation as văn thư: any active department/user, participants optional.
-    await assertRefs(ctx, input, { user: actor.user, isOps: true, positions: [] });
+    const cleaned = cleanDutyInput(args);
+    // Same validation as văn thư: any active department/unit/user, participants optional.
+    const input = {
+      ...cleaned,
+      unitUserIds: await assertRefs(ctx, cleaned, { user: actor.user, isOps: true, positions: [] }),
+    };
     const now = Date.now();
     const change = reviewerEditPatchForDuty({ ...current, _id: String(current._id), scope } as any, input, now);
     await ctx.db.patch(args.id, {
@@ -959,6 +1000,7 @@ export const reviewerUpdate = mutation({
         body: dutyListTitle(input),
         departmentIds: input.departmentIds,
         participantUserIds: input.participantUserIds,
+        unitUserIds: input.unitUserIds,
       });
     }
     return { published: change.publishes };

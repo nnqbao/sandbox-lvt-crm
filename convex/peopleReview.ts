@@ -206,9 +206,9 @@ function personLabel(user: any) {
 }
 
 function departmentNameOf(user: any, departments: any[]) {
-  if (!user?.departmentId) return "Chưa xác định phòng ban";
+  if (!user?.departmentId) return "Chưa xác định tổ chuyên môn";
   const row = departments.find((item: any) => String(item._id) === String(user.departmentId));
-  return row?.name || "Chưa xác định phòng ban";
+  return row?.name || "Chưa xác định tổ chuyên môn";
 }
 
 function targetLevelOf(target: any, positions: any[], isOpsTarget: boolean) {

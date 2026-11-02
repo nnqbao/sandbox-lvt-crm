@@ -473,7 +473,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
         description:
           type === "individual"
             ? "Công việc cá nhân cần hoàn thành."
-            : `${departmentMap.get(String(item.departmentId)) || "Phòng ban"} · Công việc phòng ban`,
+            : `${departmentMap.get(String(item.departmentId)) || "Tổ chuyên môn"} · Công việc của tổ`,
         dueAt: workDueAt(item.deadline),
       });
     }
@@ -493,7 +493,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
           sourceType: "department_work",
           sourceId: String(item._id),
           title: item.content,
-          description: `${departmentMap.get(String(item.departmentId)) || "Phòng ban"} · Công việc phòng ban`,
+          description: `${departmentMap.get(String(item.departmentId)) || "Tổ chuyên môn"} · Công việc của tổ`,
           dueAt: workDueAt(item.deadline),
         });
       }
@@ -511,7 +511,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
           sourceType: "department_work",
           sourceId: String(item._id),
           title: item.content,
-          description: "Công việc của phòng ban cần hoàn thành.",
+          description: "Công việc của tổ cần hoàn thành.",
           dueAt: workDueAt(item.deadline),
         });
       }
@@ -648,7 +648,7 @@ async function notificationItems(ctx: any, requestedNow?: number) {
             description:
               type === "individual"
                 ? "Công việc cá nhân cần hoàn thành."
-                : `${departmentMap.get(String(item.departmentId)) || "Phòng ban"} · Công việc phòng ban`,
+                : `${departmentMap.get(String(item.departmentId)) || "Tổ chuyên môn"} · Công việc của tổ`,
             dueAt: workDueAt(item.deadline),
             milestoneHours: 0,
             milestoneLabel: "Mới phân công",

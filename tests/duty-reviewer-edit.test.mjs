@@ -163,7 +163,7 @@ test('lịch sử: diff theo trường, tên người/phòng ban, ngày dd/MM/yy
     { field: 'Bắt đầu', before: '13/10/2026 14:00', after: '14/10/2026 07:30' },
     { field: 'Kết thúc', before: '13/10/2026 16:00', after: '14/10/2026 16:00' },
     { field: 'Địa điểm', before: 'Phòng họp 1', after: 'Hội trường' },
-    { field: 'Phòng ban tham gia', before: 'Tổ Toán', after: 'Tổ Toán, Tổ Văn' },
+    { field: 'Tổ chuyên môn tham gia', before: 'Tổ Toán', after: 'Tổ Toán, Tổ Văn' },
     { field: 'Cá nhân tham gia', before: 'Nguyễn Văn A', after: 'Trần Thị B' },
   ]);
   assert.deepEqual(buildDutyChangeDiff(before, before, NAMES), []);
@@ -175,7 +175,7 @@ test('lịch sử: diff theo trường, tên người/phòng ban, ngày dd/MM/yy
   assert.ok(removed.length > 0 && removed.every((c) => c.after === ''));
   const unknown = buildDutyChangeDiff(null, input({ participantUserIds: ['ghost'] }), NAMES);
   assert.equal(unknown.find((c) => c.field === 'Cá nhân tham gia')?.after, '(không rõ)');
-  assert.deepEqual(dutyLogReferencedIds(before, after), { departmentIds: ['dep1', 'dep2'], userIds: ['u1', 'u2'] });
+  assert.deepEqual(dutyLogReferencedIds(before, after), { departmentIds: ['dep1', 'dep2'], unitIds: [], userIds: ['u1', 'u2'] });
 });
 
 test('lịch sử: cả ngày, giờ Việt Nam và nhãn vai trò', () => {

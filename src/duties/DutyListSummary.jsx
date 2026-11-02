@@ -82,7 +82,7 @@ export default function DutyListSummary({ item }) {
           </div>
           <div className="duty-detail-row">
             <DutyIcon kind="department" />
-            <DutyEllipsisText text={joinNames(item.departmentNames)} />
+            <DutyEllipsisText text={joinNames([...(item.departmentNames || []), ...(item.unitNames || [])])} />
           </div>
           <div className="duty-detail-row">
             <DutyIcon kind="people" />

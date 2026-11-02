@@ -832,6 +832,16 @@
   line-height: 1.45;
 }
 
+.work-duplicate-note {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-radius: 9px;
+  color: var(--lvt-muted);
+  background: var(--lvt-surface-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .work-document-card::before,
 .work-user-card::before {
   position: absolute;

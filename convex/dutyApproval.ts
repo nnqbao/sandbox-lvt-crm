@@ -25,6 +25,8 @@ export const DUTY_PUBLISHED_FIELDS = [
   "locationIds",
   "locationText",
   "departmentIds",
+  "unitIds",
+  "unitUserIds",
   "participantUserIds",
   "otherParticipants",
 ] as const;
@@ -40,6 +42,10 @@ export type DutyPublishedFields = {
   locationIds: string[];
   locationText?: string;
   departmentIds: string[];
+  /** Phòng ban taking part (part of the approved content). */
+  unitIds?: string[];
+  /** Derived member list of `unitIds`; kept in sync, never a reason to re-approve. */
+  unitUserIds?: string[];
   participantUserIds: string[];
   otherParticipants?: string;
 };
@@ -147,6 +153,8 @@ export function pickPublishedFields(duty: DutyPublishedFields): DutyPublishedFie
     locationIds: [...(duty.locationIds || [])].map(String),
     locationText: duty.locationText === undefined ? undefined : String(duty.locationText),
     departmentIds: [...(duty.departmentIds || [])].map(String),
+    unitIds: [...(duty.unitIds || [])].map(String),
+    unitUserIds: [...(duty.unitUserIds || [])].map(String),
     participantUserIds: [...(duty.participantUserIds || [])].map(String),
     otherParticipants: duty.otherParticipants === undefined ? undefined : String(duty.otherParticipants),
   };
@@ -161,6 +169,9 @@ function comparableFields(duty: DutyPublishedFields) {
     otherParticipants: String(fields.otherParticipants || "").trim(),
     locationIds: [...fields.locationIds].sort(),
     departmentIds: [...fields.departmentIds].sort(),
+    unitIds: [...(fields.unitIds || [])].sort(),
+    // Unit membership follows the Phòng ban roster; it never needs BGH approval.
+    unitUserIds: undefined,
     participantUserIds: [...fields.participantUserIds].sort(),
   });
 }
@@ -280,6 +291,7 @@ export function summarizeDutyWeek(
   const missingParticipants = working.filter(
     (duty) =>
       !(duty.departmentIds || []).length &&
+      !(duty.unitIds || []).length &&
       !(duty.participantUserIds || []).length &&
       !String(duty.otherParticipants || "").trim(),
   ).length;

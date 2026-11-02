@@ -207,7 +207,7 @@ function EventDetail({ event, personName, onClose }) {
       <div><dt>Loại công việc</dt><dd>{event.kindLabel}</dd></div>
       <div><dt>Hạn hoàn thành</dt><dd>{event.deadline}</dd></div>
       {event.qualityPercent != null ? <div><dt>Chất lượng</dt><dd>{event.qualityPercent}%</dd></div> : null}
-      <div><dt>Phòng ban</dt><dd>{event.departmentName}</dd></div>
+      <div><dt>Tổ / Phòng ban</dt><dd>{event.departmentName}</dd></div>
       <div><dt>Công văn</dt><dd className="report-work-document-name" title={event.documentName}>{event.documentName}</dd></div>
     </dl>
   </aside>;
@@ -248,7 +248,7 @@ export default function WorkReportsView() {
   const peopleGroups = useMemo(() => {
     const groups = new Map();
     for (const person of data?.people || []) {
-      const departmentName = person.departmentName || 'Chưa gán phòng ban';
+      const departmentName = person.departmentName || 'Chưa gán tổ chuyên môn';
       const people = groups.get(departmentName) || [];
       people.push(person);
       groups.set(departmentName, people);

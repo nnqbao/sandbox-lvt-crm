@@ -303,8 +303,8 @@ export const report = query({
         name: user.name || user.email || "Chưa đặt tên",
         email: user.email || "",
         departmentName: user.departmentId
-          ? departmentMap.get(String(user.departmentId)) || "Chưa gán phòng ban"
-          : "Chưa gán phòng ban",
+          ? departmentMap.get(String(user.departmentId)) || "Chưa gán tổ chuyên môn"
+          : "Chưa gán tổ chuyên môn",
         positionName: user.positionId
           ? positionMap.get(String(user.positionId)) || "Chưa gán chức vụ"
           : "Chưa gán chức vụ",

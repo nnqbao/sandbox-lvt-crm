@@ -58,6 +58,7 @@ export function cleanDutyInput(args: {
   content: string;
   locationText: string;
   departmentIds: string[];
+  unitIds?: string[];
   participantUserIds: string[];
   otherParticipants?: string;
 }) {
@@ -86,6 +87,7 @@ export function cleanDutyInput(args: {
     locationText: cleanDutyLocationText(args.locationText),
     locationIds: [] as string[],
     departmentIds: uniq(args.departmentIds || []),
+    unitIds: uniq(args.unitIds || []),
     participantUserIds: uniq(args.participantUserIds || []),
     otherParticipants: cleanDutyOtherParticipants(args.otherParticipants),
   };
@@ -94,21 +96,31 @@ export function cleanDutyInput(args: {
 export function evaluateDutyRefs(
   input: {
     departmentIds: string[];
+    unitIds?: string[];
     participantUserIds: string[];
     otherParticipants?: string;
   },
   actor: { user: any; isOps: boolean; positions: any[] },
   catalogs: {
     departments: { _id: string; active?: boolean }[];
+    units?: { _id: string; active?: boolean }[];
     users: { _id: string; status?: string; departmentId?: string; positionId?: string }[];
   },
 ): string | null {
   if (!actor.isOps && input.departmentIds.length) {
     return "DUTY_DEPARTMENT_FORBIDDEN";
   }
+  // Phòng ban, like Tổ chuyên môn, is a văn thư (admin/mod) quick pick.
+  if (!actor.isOps && (input.unitIds || []).length) {
+    return "DUTY_UNIT_FORBIDDEN";
+  }
   for (const id of input.departmentIds) {
     const row = catalogs.departments.find((d) => String(d._id) === String(id));
     if (!row?.active) return "INVALID_DEPARTMENT";
+  }
+  for (const id of input.unitIds || []) {
+    const row = (catalogs.units || []).find((u) => String(u._id) === String(id));
+    if (!row?.active) return "INVALID_UNIT";
   }
   for (const id of input.participantUserIds) {
     const user = catalogs.users.find((row) => String(row._id) === String(id));

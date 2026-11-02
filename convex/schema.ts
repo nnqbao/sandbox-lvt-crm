@@ -82,6 +82,26 @@ export default defineSchema({
     active: v.boolean(),
     ...timestamps,
   }).index("by_code", ["code"]),
+  /**
+   * Phòng ban: a plain membership group with no permissions (unlike
+   * `departments` = Tổ chuyên môn, one per user, which drives scope and
+   * permissions). A user may belong to many units via `unitMembers`.
+   */
+  units: defineTable({
+    name: v.string(),
+    code: v.string(),
+    active: v.boolean(),
+    ...timestamps,
+  }).index("by_code", ["code"]),
+  unitMembers: defineTable({
+    unitId: v.id("units"),
+    userId: v.id("users"),
+    createdBy: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_unit", ["unitId"])
+    .index("by_user", ["userId"])
+    .index("by_unit_user", ["unitId", "userId"]),
   /** Physical / organizational locations used by school workflows. */
   locations: defineTable({
     name: v.string(),
@@ -223,6 +243,13 @@ export default defineSchema({
     /** Free-text location; new duties write this instead of locationIds. */
     locationText: v.optional(v.string()),
     departmentIds: v.array(v.string()),
+    /** Phòng ban (units) taking part; shown by name on the sheet. */
+    unitIds: v.optional(v.array(v.string())),
+    /**
+     * Current members of `unitIds`, kept in sync on save and on every unit
+     * membership change; participant checks read this instead of joining.
+     */
+    unitUserIds: v.optional(v.array(v.string())),
     participantUserIds: v.array(v.string()),
     /** Free-text guests; empty/omitted on older rows. Not a push/email recipient. */
     otherParticipants: v.optional(v.string()),
@@ -248,6 +275,8 @@ export default defineSchema({
         locationIds: v.array(v.string()),
         locationText: v.optional(v.string()),
         departmentIds: v.array(v.string()),
+        unitIds: v.optional(v.array(v.string())),
+        unitUserIds: v.optional(v.array(v.string())),
         participantUserIds: v.array(v.string()),
         otherParticipants: v.optional(v.string()),
         updatedAt: v.number(),
@@ -414,9 +443,11 @@ export default defineSchema({
     assignments: v.optional(
       v.array(
         v.object({
-          /** department (default) | individual */
+          /** department (default) = Tổ chuyên môn | unit = Phòng ban | individual */
           type: v.optional(v.string()),
           departmentId: v.optional(v.string()),
+          unitId: v.optional(v.string()),
+          /** individual: assignees; unit: member snapshot at save time. */
           userIds: v.optional(v.array(v.string())),
           content: v.string(),
           deadline: v.string(),
@@ -467,6 +498,8 @@ export default defineSchema({
     departmentId: v.string(),
     assignmentType: v.optional(v.string()),
     assigneeUserIds: v.optional(v.array(v.string())),
+    /** Set on the individual-type item that carries a Phòng ban assignment (display label). */
+    unitId: v.optional(v.string()),
     /** Legacy approved markers; prefer `completions` going forward. */
     completedUserIds: v.optional(v.array(v.string())),
     completedLateUserIds: v.optional(v.array(v.string())),

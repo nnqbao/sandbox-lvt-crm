@@ -213,10 +213,10 @@ test('server modules enforce the moderator scope (not just the UI)', () => {
 test('MODERATOR_DEPARTMENT_SCOPE has a Vietnamese message and the user form explains the rule', () => {
   assert.equal(
     messageFor({ message: 'Uncaught Error: MODERATOR_DEPARTMENT_SCOPE' }),
-    'Moderator chỉ được thao tác trong phòng ban được gán.',
+    'Moderator chỉ được thao tác trong tổ chuyên môn được gán.',
   );
   assert.match(
     read('src/main.jsx'),
-    /form\.role === 'moderator'[\s\S]*?Moderator chỉ thao tác trong phòng ban này ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi\. Để trống = toàn trường\./,
+    /form\.role === 'moderator'[\s\S]*?Moderator chỉ thao tác trong tổ chuyên môn này ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi\. Để trống = toàn trường\./,
   );
 });

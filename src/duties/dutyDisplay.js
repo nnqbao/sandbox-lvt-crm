@@ -41,6 +41,7 @@ export function emptyDutyForm() {
     content: '',
     locationText: '',
     departmentIds: [],
+    unitIds: [],
     participantUserIds: [],
     otherParticipants: '',
   };
@@ -57,6 +58,7 @@ export function dutyFormFromItem(item) {
     content: item.content || '',
     locationText: item.locationText || (item.locationNames || []).join(', '),
     departmentIds: [...(item.departmentIds || [])],
+    unitIds: [...(item.unitIds || [])],
     participantUserIds: [...(item.participantUserIds || [])],
     otherParticipants: item.otherParticipants || '',
   };
@@ -73,6 +75,8 @@ export function dutyPayloadFromForm(form, { includeDepartments = true } = {}) {
     content: form.content,
     locationText: form.locationText,
     departmentIds: includeDepartments ? form.departmentIds : [],
+    // Phòng ban, like Tổ chuyên môn, is a văn thư (admin/mod) pick.
+    unitIds: includeDepartments ? form.unitIds || [] : [],
     participantUserIds: form.participantUserIds,
     otherParticipants: form.otherParticipants || '',
   };
@@ -82,6 +86,7 @@ export function dutyFormHasParticipants(form, options) {
   const payload = dutyPayloadFromForm(form, options);
   return (
     payload.departmentIds.length > 0 ||
+    payload.unitIds.length > 0 ||
     payload.participantUserIds.length > 0 ||
     Boolean(String(payload.otherParticipants || '').trim())
   );
@@ -243,7 +248,7 @@ export function filterDutiesBySearch(list, search = {}) {
     if (query && !includesDutySearch(item?.title, query) && !includesDutySearch(item?.content, query)) {
       return false;
     }
-    if (!includesDutySearch((item?.departmentNames || []).join(' '), department)) return false;
+    if (!includesDutySearch([...(item?.departmentNames || []), ...(item?.unitNames || [])].join(' '), department)) return false;
     if (!includesDutySearch(dutyPersonSearchText(item), person)) return false;
     if (!includesDutySearch(dutyLocationSearchText(item), location)) return false;
     return dutyOverlapsDateRange(item, dateFrom, dateTo);
@@ -262,6 +267,7 @@ export function buildDutyCreatePreview(form, catalogs = {}) {
   const includeDepartments = catalogs.includeDepartments !== false;
   const payload = dutyPayloadFromForm(form, { includeDepartments });
   const departments = labelsForIds(payload.departmentIds, catalogs.departments, (row) => row.name || row.code);
+  const units = labelsForIds(payload.unitIds, catalogs.units, (row) => row.name || row.code);
   const participants = labelsForIds(
     payload.participantUserIds,
     catalogs.users,
@@ -275,6 +281,7 @@ export function buildDutyCreatePreview(form, catalogs = {}) {
     location: String(payload.locationText || '').trim() || '—',
     showDepartments: includeDepartments,
     departments: departments.length ? departments.join(', ') : '—',
+    units: units.length ? units.join(', ') : '—',
     participants: participants.length ? participants.join(', ') : '—',
     otherParticipants: String(payload.otherParticipants || '').trim() || '—',
   };

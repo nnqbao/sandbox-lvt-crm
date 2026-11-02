@@ -135,7 +135,7 @@ test('invalid catalog codes block import before row checks', () => {
     },
   );
   assert.equal(result.ok, false);
-  assert.match(result.errors[0].message, /Phòng ban/);
+  assert.match(result.errors[0].message, /Tổ chuyên môn/);
 });
 
 test('duplicate active catalog codes block import instead of silently picking one', () => {

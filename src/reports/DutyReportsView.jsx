@@ -250,7 +250,7 @@ function EventDetail({
             </dd>
           </div>
         ) : null}
-        <div><dt>Hình thức gán</dt><dd>{event.assignmentType === 'individual' ? 'Gán cá nhân' : 'Theo phòng ban'}</dd></div>
+        <div><dt>Hình thức gán</dt><dd>{event.assignmentType === 'individual' ? 'Gán cá nhân' : 'Theo tổ / phòng ban'}</dd></div>
       </dl>
       {showAttendance && onMarkAttendance ? (
         <div className="report-detail-attendance">
@@ -277,7 +277,7 @@ function EventDetail({
       ) : null}
       {showAttendance && event.subordinateParticipants?.length ? (
         <div className="report-detail-people">
-          <strong>Cấp dưới cùng phòng ban</strong>
+          <strong>Cấp dưới cùng tổ chuyên môn</strong>
           <ul>
             {event.subordinateParticipants.map((participant) => (
               <li key={participant._id}>
@@ -512,7 +512,7 @@ function DutyReportsViewBody({
   const peopleGroups = useMemo(() => {
     const groups = new Map();
     for (const person of data?.people || []) {
-      const departmentName = person.departmentName || 'Chưa gán phòng ban';
+      const departmentName = person.departmentName || 'Chưa gán tổ chuyên môn';
       const people = groups.get(departmentName) || [];
       people.push(person);
       groups.set(departmentName, people);

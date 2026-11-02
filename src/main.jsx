@@ -551,6 +551,8 @@ function AppShell({ session }) {
           <UserManagement />
         ) : active === 'departments' && isAdmin ? (
           <DepartmentManagement />
+        ) : active === 'units' && isAdmin ? (
+          <UnitManagement />
         ) : active === 'roles' && isAdmin ? (
           <PermissionGroupManagement />
         ) : active === 'positions' && isAdmin ? (
@@ -935,13 +937,26 @@ function DutiesAdminView({
           onEndDateTime={(date, time) => setForm((prev) => applyDutyEndDateTime(prev, date, time))}
         >
         <div className="duty-field">
-          <span className="duty-field-label">Phòng ban tham gia</span>
+          <span className="duty-field-label">Tổ chuyên môn tham gia</span>
           <CollapsibleMultiCheckList
-            title="Chọn phòng ban"
+            title="Chọn tổ chuyên môn"
             options={options.departments}
             values={form.departmentIds}
             onChange={(ids) => setField('departmentIds', ids)}
             getLabel={(d) => `${d.name}${d.code ? ` (${d.code})` : ''}`}
+            searchPlaceholder="Tìm tổ chuyên môn…"
+            emptyText="Chưa có tổ chuyên môn."
+          />
+        </div>
+
+        <div className="duty-field">
+          <span className="duty-field-label">Phòng ban tham gia</span>
+          <CollapsibleMultiCheckList
+            title="Chọn phòng ban"
+            options={options.units || []}
+            values={form.unitIds || []}
+            onChange={(ids) => setField('unitIds', ids)}
+            getLabel={(u) => `${u.name}${u.code ? ` (${u.code})` : ''}`}
             searchPlaceholder="Tìm phòng ban…"
             emptyText="Chưa có phòng ban."
           />
@@ -1106,7 +1121,7 @@ function DutiesUserView({
     }
     setPreviewOpen(false);
     if (!includeDepartments && !dutyFormHasParticipants(form, { includeDepartments })) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
+      setFeedback({ type: 'error', text: 'Vui lòng chọn tổ chuyên môn, phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
       return;
     }
     const ok = await run('save', () => create(payload), 'Đã tạo công tác.');
@@ -1120,7 +1135,7 @@ function DutiesUserView({
       return;
     }
     if (!options?.isOps && !dutyFormHasParticipants(form, { includeDepartments: false })) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
+      setFeedback({ type: 'error', text: 'Vui lòng chọn tổ chuyên môn, phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
       return;
     }
     setPreviewOpen(true);
@@ -1181,7 +1196,7 @@ function DutiesUserView({
               onChange={(ids) => setField('participantUserIds', ids)}
               getLabel={(u) => `${u.name || '—'} · ${u.email || ''}`}
               searchPlaceholder="Tìm theo tên, email…"
-              emptyText="Chưa có người tham gia trong phòng ban."
+              emptyText="Chưa có người tham gia trong tổ chuyên môn."
             />
           </div>
           </DutyEditorFields>
@@ -1512,7 +1527,7 @@ function UserManagement() {
           <small>Administrator và Moderator không dùng nhóm quyền. User phụ thuộc nhóm quyền được gán.</small>
         </label>
         <label>
-          Phòng ban
+          Tổ chuyên môn
           <select value={form.departmentId} onChange={(e) => setField('departmentId', e.target.value)}>
             <option value="">Chưa gán</option>
             {departments.map((d) => (
@@ -1523,7 +1538,7 @@ function UserManagement() {
           </select>
           {form.role === 'moderator' ? (
             <small>
-              Moderator chỉ thao tác trong phòng ban này ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi. Để trống = toàn trường.
+              Moderator chỉ thao tác trong tổ chuyên môn này ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi. Để trống = toàn trường.
             </small>
           ) : null}
         </label>
@@ -1603,17 +1618,17 @@ function UserManagement() {
           onChange={(e) => setUserSearch(e.target.value)}
         />
         <select
-          aria-label="Lọc theo phòng ban"
+          aria-label="Lọc theo tổ chuyên môn"
           value={userDepartmentFilter}
           onChange={(e) => setUserDepartmentFilter(e.target.value)}
         >
-          <option value="">Tất cả phòng ban</option>
+          <option value="">Tất cả tổ chuyên môn</option>
           {departments.map((d) => (
             <option key={d._id} value={d._id}>
               {d.name}
             </option>
           ))}
-          <option value={NO_DEPARTMENT_FILTER}>Chưa gán PB</option>
+          <option value={NO_DEPARTMENT_FILTER}>Chưa gán tổ</option>
         </select>
         <span className="muted">
           {visibleUsers.length}/{users.length} người dùng
@@ -1623,7 +1638,7 @@ function UserManagement() {
         <div className="user-table-head user-table-head-5">
           <span>Người dùng</span>
           <span>Vai trò</span>
-          <span>PB / Chức vụ / Nhóm quyền</span>
+          <span>Tổ CM / Chức vụ / Nhóm quyền</span>
           <span>Trạng thái</span>
           <span>Thao tác</span>
         </div>
@@ -1638,7 +1653,7 @@ function UserManagement() {
               <span className="role-tag">{ROLE_LABELS[item.role] || item.role}</span>
             </div>
             <div className="meta-stack">
-              <span>{departments.find((d) => d._id === item.departmentId)?.name || 'Chưa gán PB'}</span>
+              <span>{departments.find((d) => d._id === item.departmentId)?.name || 'Chưa gán tổ'}</span>
               <span>{positions.find((p) => p._id === item.positionId)?.name || 'Chưa gán chức vụ'}</span>
               <span>{groups.find((g) => g._id === item.permissionGroupId)?.name || 'Chưa gán nhóm quyền'}</span>
             </div>
@@ -1715,11 +1730,12 @@ function UserManagement() {
   );
 }
 
-function AssignUserPanel({ users, filterId, idField, onAssign, onUnassign, pending, label }) {
+function AssignUserPanel({ users, filterId = null, idField = '', isMember = null, onAssign, onUnassign, pending, label }) {
   const [userId, setUserId] = useState('');
   const [search, setSearch] = useState('');
-  const members = users.filter((u) => u[idField] === filterId);
-  const candidates = users.filter((u) => u.status === 'active' && u[idField] !== filterId);
+  const memberOf = isMember || ((u) => u[idField] === filterId);
+  const members = users.filter(memberOf);
+  const candidates = users.filter((u) => u.status === 'active' && !memberOf(u));
   const matches = filterByPickerSearch(candidates, search, (u) => `${u.name || ''} ${u.email || ''}`);
   // Keep the current pick listed even when a later search no longer matches it.
   const selected = candidates.find((u) => u._id === userId);
@@ -1802,6 +1818,124 @@ function DepartmentManagement() {
   const submit = async (event) => {
     event.preventDefault();
     if (editing) {
+      const ok = await run('save', () => update({ id: editing._id, name: form.name, code: form.code }), 'Đã cập nhật tổ chuyên môn.');
+      if (ok) {
+        setEditing(null);
+        setForm({ name: '', code: '' });
+      }
+    } else {
+      const ok = await run('save', () => create({ name: form.name, code: form.code }), 'Đã thêm tổ chuyên môn. Có thể thêm user bên dưới.');
+      if (ok) setForm({ name: '', code: '' });
+    }
+  };
+
+  if (data === undefined) return <LoadingView label="Đang tải tổ chuyên môn…" />;
+
+  return (
+    <section className="admin-view modern-management departments-management">
+      <div className="section-intro">
+        <div>
+          <span className="status-pill blue">Tổ chuyên môn</span>
+          <h2>Thiết lập tổ chuyên môn</h2>
+          <p>Thêm, sửa, xóa tổ chuyên môn. Mỗi user chỉ thuộc một tổ; tổ dùng cho phân quyền và giao việc theo tổ.</p>
+        </div>
+      </div>
+      <div className={`feedback ${feedback.type}`} role="status" aria-live="polite">
+        {feedback.text}
+      </div>
+      <form className="admin-form" onSubmit={submit}>
+        <div className="form-heading">
+          <strong>{editing ? `Sửa: ${editing.name}` : 'Thêm tổ chuyên môn'}</strong>
+          {editing && (
+            <button type="button" className="text-button" onClick={() => { setEditing(null); setForm({ name: '', code: '' }); }}>
+              Hủy
+            </button>
+          )}
+        </div>
+        <label>
+          Tên tổ chuyên môn
+          <input required maxLength={120} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+        </label>
+        <label>
+          Mã
+          <input required maxLength={20} value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))} />
+        </label>
+        <button className="primary-button" disabled={Boolean(pending)}>
+          {editing ? 'Lưu' : '+ Thêm tổ chuyên môn'}
+        </button>
+      </form>
+      <div className="card-list">
+        {departments.map((item) => (
+          <article className="mgmt-card" key={item._id}>
+            <div className="mgmt-card-head">
+              <div>
+                <strong>{item.name}</strong>
+                <span className="code-tag">{item.code}</span>
+              </div>
+              <div className="row-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(item);
+                    setForm({ name: item.name, code: item.code });
+                  }}
+                  disabled={Boolean(pending)}
+                >
+                  Sửa
+                </button>
+                <button
+                  type="button"
+                  className="danger-button"
+                  onClick={() => {
+                    if (window.confirm(`Xóa tổ chuyên môn ${item.name}? Chỉ xóa được khi không còn user đang gán.`)) {
+                      void run(`del-${item._id}`, () => remove({ id: item._id }), 'Đã xóa tổ chuyên môn.');
+                    }
+                  }}
+                  disabled={Boolean(pending)}
+                >
+                  Xóa
+                </button>
+                <button type="button" onClick={() => setExpanded(expanded === item._id ? null : item._id)}>
+                  {expanded === item._id ? 'Ẩn user' : 'Thêm user'}
+                </button>
+              </div>
+            </div>
+            {expanded === item._id && (
+              <AssignUserPanel
+                users={users}
+                filterId={item._id}
+                idField="departmentId"
+                label="tổ chuyên môn"
+                pending={pending}
+                onAssign={(userId) => run('assign', () => assignUser({ departmentId: item._id, userId }), 'Đã gán user vào tổ chuyên môn.')}
+                onUnassign={(userId) => run('unassign', () => unassignUser({ userId }), 'Đã gỡ user khỏi tổ chuyên môn.')}
+              />
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UnitManagement() {
+  const data = useQuery(anyApi.units.list);
+  const create = useMutation(anyApi.units.create);
+  const update = useMutation(anyApi.units.update);
+  const remove = useMutation(anyApi.units.remove);
+  const addMember = useMutation(anyApi.units.addMember);
+  const removeMember = useMutation(anyApi.units.removeMember);
+  const [form, setForm] = useState({ name: '', code: '' });
+  const [editing, setEditing] = useState(null);
+  const [expanded, setExpanded] = useState(null);
+  const { pending, feedback, run } = useFeedback();
+
+  const units = (data?.units || []).filter((u) => u.active);
+  const users = data?.users || [];
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (editing) {
       const ok = await run('save', () => update({ id: editing._id, name: form.name, code: form.code }), 'Đã cập nhật phòng ban.');
       if (ok) {
         setEditing(null);
@@ -1816,12 +1950,12 @@ function DepartmentManagement() {
   if (data === undefined) return <LoadingView label="Đang tải phòng ban…" />;
 
   return (
-    <section className="admin-view modern-management departments-management">
+    <section className="admin-view modern-management units-management">
       <div className="section-intro">
         <div>
           <span className="status-pill blue">Phòng ban</span>
           <h2>Thiết lập phòng ban</h2>
-          <p>Thêm, sửa, xóa phòng ban. Sau khi tạo có thể gán user vào phòng ban.</p>
+          <p>Phòng ban là nhóm người dùng, không có phân quyền. Một user có thể thuộc nhiều phòng ban. Dùng để giao nhanh Công tác / Công việc.</p>
         </div>
       </div>
       <div className={`feedback ${feedback.type}`} role="status" aria-live="polite">
@@ -1849,54 +1983,58 @@ function DepartmentManagement() {
         </button>
       </form>
       <div className="card-list">
-        {departments.map((item) => (
-          <article className="mgmt-card" key={item._id}>
-            <div className="mgmt-card-head">
-              <div>
-                <strong>{item.name}</strong>
-                <span className="code-tag">{item.code}</span>
+        {units.length === 0 ? <p className="muted">Chưa có phòng ban.</p> : null}
+        {units.map((item) => {
+          const memberIds = new Set((item.memberUserIds || []).map(String));
+          return (
+            <article className="mgmt-card" key={item._id}>
+              <div className="mgmt-card-head">
+                <div>
+                  <strong>{item.name}</strong>
+                  <span className="code-tag">{item.code}</span>
+                  <span className="muted unit-member-count">{memberIds.size} thành viên</span>
+                </div>
+                <div className="row-actions">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(item);
+                      setForm({ name: item.name, code: item.code });
+                    }}
+                    disabled={Boolean(pending)}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    type="button"
+                    className="danger-button"
+                    onClick={() => {
+                      if (window.confirm(`Xóa phòng ban ${item.name}? Chỉ xóa được khi phòng ban không còn thành viên.`)) {
+                        void run(`del-${item._id}`, () => remove({ id: item._id }), 'Đã xóa phòng ban.');
+                      }
+                    }}
+                    disabled={Boolean(pending)}
+                  >
+                    Xóa
+                  </button>
+                  <button type="button" onClick={() => setExpanded(expanded === item._id ? null : item._id)}>
+                    {expanded === item._id ? 'Ẩn user' : 'Thêm user'}
+                  </button>
+                </div>
               </div>
-              <div className="row-actions">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditing(item);
-                    setForm({ name: item.name, code: item.code });
-                  }}
-                  disabled={Boolean(pending)}
-                >
-                  Sửa
-                </button>
-                <button
-                  type="button"
-                  className="danger-button"
-                  onClick={() => {
-                    if (window.confirm(`Xóa phòng ban ${item.name}? Chỉ xóa được khi không còn user đang gán.`)) {
-                      void run(`del-${item._id}`, () => remove({ id: item._id }), 'Đã xóa phòng ban.');
-                    }
-                  }}
-                  disabled={Boolean(pending)}
-                >
-                  Xóa
-                </button>
-                <button type="button" onClick={() => setExpanded(expanded === item._id ? null : item._id)}>
-                  {expanded === item._id ? 'Ẩn user' : 'Thêm user'}
-                </button>
-              </div>
-            </div>
-            {expanded === item._id && (
-              <AssignUserPanel
-                users={users}
-                filterId={item._id}
-                idField="departmentId"
-                label="phòng ban"
-                pending={pending}
-                onAssign={(userId) => run('assign', () => assignUser({ departmentId: item._id, userId }), 'Đã gán user vào phòng ban.')}
-                onUnassign={(userId) => run('unassign', () => unassignUser({ userId }), 'Đã gỡ user khỏi phòng ban.')}
-              />
-            )}
-          </article>
-        ))}
+              {expanded === item._id && (
+                <AssignUserPanel
+                  users={users}
+                  isMember={(u) => memberIds.has(String(u._id))}
+                  label="phòng ban"
+                  pending={pending}
+                  onAssign={(userId) => run('assign', () => addMember({ unitId: item._id, userId }), 'Đã thêm user vào phòng ban.')}
+                  onUnassign={(userId) => run('unassign', () => removeMember({ unitId: item._id, userId }), 'Đã gỡ user khỏi phòng ban.')}
+                />
+              )}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
