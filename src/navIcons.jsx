@@ -94,6 +94,14 @@ const NAV_ICONS = {
       <path d="M9.5 11h.2M12 11h.2M14.5 11h.2M9.5 14h.2M12 14h.2M14.5 14h.2" />
     </NavGlyph>
   ),
+  units: () => (
+    <NavGlyph>
+      <rect x="3.5" y="4.5" width="7" height="6" rx="1.4" />
+      <rect x="13.5" y="4.5" width="7" height="6" rx="1.4" />
+      <rect x="8.5" y="14" width="7" height="6" rx="1.4" />
+      <path d="M7 10.5v1.8h10v-1.8M12 12.3V14" />
+    </NavGlyph>
+  ),
   roles: () => (
     <NavGlyph>
       <path d="M12 3.5 19.5 7v5.2c0 4.4-3.1 7.4-7.5 8.8-4.4-1.4-7.5-4.4-7.5-8.8V7z" />

@@ -399,7 +399,7 @@ export function assignmentRecipientLabel(assignment, catalogs = {}) {
   }
   if (assignment?.type === 'unit') {
     const unit = (catalogs.units || []).find((row) => String(row._id) === String(assignment.unitId || ''));
-    return unit ? `Phòng ban ${unit.name}` : assignment?.departmentName || 'Chưa chọn phòng ban';
+    return unit?.name || assignment?.departmentName || 'Chưa chọn phòng ban';
   }
   const department = (catalogs.departments || []).find(
     (row) => String(row._id) === String(assignment?.departmentId || ''),
