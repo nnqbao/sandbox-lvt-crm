@@ -3,8 +3,8 @@ import * as XLSX from 'xlsx';
 export const USER_EXPORT_HEADERS = [
   'Họ tên',
   'Email',
-  'Mã phòng ban',
-  'Tên phòng ban',
+  'Mã tổ chuyên môn',
+  'Tên tổ chuyên môn',
   'Mã chức vụ',
   'Tên chức vụ',
   'Mã nhóm quyền',
@@ -78,8 +78,8 @@ export function buildUserExportRows({
       return {
         'Họ tên': user.name || '',
         Email: user.email || '',
-        'Mã phòng ban': department?.code || '',
-        'Tên phòng ban': department?.name || '',
+        'Mã tổ chuyên môn': department?.code || '',
+        'Tên tổ chuyên môn': department?.name || '',
         'Mã chức vụ': position?.code || '',
         'Tên chức vụ': position?.name || '',
         'Mã nhóm quyền': isOpsManager ? '' : group?.code || '',

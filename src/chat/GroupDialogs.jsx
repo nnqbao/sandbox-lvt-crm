@@ -25,7 +25,7 @@ function MemberPicker({ people, selected, onChange, disabled }) {
         type="search"
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        placeholder="Tìm theo tên, email, phòng ban…"
+        placeholder="Tìm theo tên, email, tổ chuyên môn…"
         aria-label="Tìm nhân sự"
       />
       <div className="chat-member-options" role="group" aria-label="Danh sách nhân sự">

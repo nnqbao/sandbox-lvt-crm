@@ -21,7 +21,7 @@ export const USER_IMPORT_MIN_PASSWORD = 8;
 export const USER_IMPORT_MESSAGES = {
   incomplete: 'Vui lòng điền đầy đủ các cột thông tin người dùng',
   lookup:
-    'Thông tin [Phòng ban, Chức vụ, Nhóm quyền] không chính xác, vui lòng đảm bảo chính xác với hệ thống',
+    'Thông tin [Tổ chuyên môn, Chức vụ, Nhóm quyền] không chính xác, vui lòng đảm bảo chính xác với hệ thống',
   duplicateEmail: 'Phát hiện email trùng, vui lòng kiểm tra lại',
   shortPassword: 'Mật khẩu tạm thời phải có ít nhất 8 ký tự',
   invalidEmail: 'Email không hợp lệ',
@@ -84,12 +84,12 @@ export function validateUserImportRows(rows, context) {
   };
 
   const invalidCatalog = [
-    ...describeInvalidEntityCodes(context.departments, 'Phòng ban'),
+    ...describeInvalidEntityCodes(context.departments, 'Tổ chuyên môn'),
     ...describeInvalidEntityCodes(context.positions, 'Chức vụ'),
     ...describeInvalidEntityCodes(context.permissionGroups, 'Nhóm quyền'),
   ];
   const duplicateCatalog = [
-    ...describeDuplicateActiveCodes(context.departments, 'Phòng ban'),
+    ...describeDuplicateActiveCodes(context.departments, 'Tổ chuyên môn'),
     ...describeDuplicateActiveCodes(context.positions, 'Chức vụ'),
     ...describeDuplicateActiveCodes(context.permissionGroups, 'Nhóm quyền'),
   ];
@@ -148,7 +148,7 @@ export function validateUserImportRows(rows, context) {
     const department = departmentsByCode.get(departmentCode);
     const position = positionsByCode.get(positionCode);
     const group = groupsByCode.get(groupCode);
-    if (!department) missingParts.push('Phòng ban');
+    if (!department) missingParts.push('Tổ chuyên môn');
     if (!position) missingParts.push('Chức vụ');
     if (!group) missingParts.push('Nhóm quyền');
     if (missingParts.length) {

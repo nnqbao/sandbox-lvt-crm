@@ -29,6 +29,7 @@ import {
   workAssignmentPushUserIds,
   workListTitle,
 } from "./assignmentPolicy";
+import { planWorkItems, type PlannedWorkItem } from "./workAssignmentPlan";
 import { internal } from "./_generated/api";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
@@ -181,16 +182,19 @@ function assertContent(value: string) {
 }
 
 type DocumentAssignmentInput = {
-  type?: "department" | "individual";
+  type?: "department" | "unit" | "individual";
   departmentId?: string;
+  unitId?: string;
   userIds?: string[];
   content: string;
   deadline: string;
 };
 
 type ValidatedDocumentAssignment = {
-  type: "department" | "individual";
+  type: "department" | "unit" | "individual";
   departmentId: string;
+  unitId?: string;
+  /** individual: assignees; unit: eligible members at save time. */
   userIds: string[];
   content: string;
   deadline: string;
@@ -215,16 +219,37 @@ async function validateDocumentWorkflow(
 ) {
   if (!assignmentInputs.length) throw new Error("WORK_ASSIGNMENTS_REQUIRED");
 
-  const [departments, users, positions] = await Promise.all([
+  const hasUnitRows = assignmentInputs.some((assignment) => assignment.type === "unit");
+  const [departments, users, positions, units, unitMembers] = await Promise.all([
     ctx.db.query("departments").collect(),
     ctx.db.query("users").collect(),
     ctx.db.query("positions").collect(),
+    hasUnitRows ? ctx.db.query("units").collect() : Promise.resolve([]),
+    hasUnitRows ? ctx.db.query("unitMembers").collect() : Promise.resolve([]),
   ]);
   const activeUsers = users.filter((user: any) => user.status === "active");
+  const approverInputIds = new Set(approverInputs.map((id) => String(id).trim()).filter(Boolean));
   const assignments: ValidatedDocumentAssignment[] = assignmentInputs.map((assignment) => {
-    const type = assignment.type === "individual" ? "individual" : "department";
+    const type = assignment.type === "individual" || assignment.type === "unit" ? assignment.type : "department";
     const content = assertContent(assignment.content);
     const deadline = assertDate(assignment.deadline);
+    if (type === "unit") {
+      const unitId = String(assignment.unitId || "").trim();
+      const unit = units.find((item: any) => String(item._id) === unitId);
+      if (!unitId || !unit?.active) throw new Error("INVALID_UNIT");
+      // Members at save time; approvers review the document, they do not do it.
+      const userIds: string[] = [
+        ...new Set<string>(
+          unitMembers
+            .filter((row: any) => String(row.unitId) === unitId)
+            .map((row: any) => String(row.userId))
+            .filter((id: string) => activeUsers.some((user: any) => String(user._id) === id))
+            .filter((id: string) => !approverInputIds.has(id)),
+        ),
+      ];
+      if (!userIds.length) throw new Error("WORK_UNIT_EMPTY");
+      return { type, departmentId: "", unitId, userIds, content, deadline };
+    }
     if (type === "department") {
       const departmentId = String(assignment.departmentId || "").trim();
       const department = departments.find((item: any) => String(item._id) === departmentId);
@@ -257,6 +282,12 @@ async function validateDocumentWorkflow(
   if (new Set(departmentIds).size !== departmentIds.length) {
     throw new Error("WORK_DEPARTMENT_DUPLICATE");
   }
+  const unitIds = assignments
+    .filter((assignment) => assignment.type === "unit")
+    .map((assignment) => String(assignment.unitId));
+  if (new Set(unitIds).size !== unitIds.length) {
+    throw new Error("WORK_UNIT_DUPLICATE");
+  }
 
   const approverUserIds = [
     ...new Set(approverInputs.map((id) => String(id).trim()).filter(Boolean)),
@@ -282,29 +313,57 @@ function storedAssignments(assignments: ValidatedDocumentAssignment[]) {
   return assignments.map((assignment) => ({
     type: assignment.type,
     departmentId: assignment.departmentId || undefined,
-    userIds: assignment.type === "individual" ? assignment.userIds : undefined,
+    unitId: assignment.type === "unit" ? assignment.unitId : undefined,
+    // Unit rows keep the member snapshot (moderator scope, release pushes).
+    userIds: assignment.type === "department" ? undefined : assignment.userIds,
     content: assignment.content,
     deadline: assignment.deadline,
   }));
 }
 
+/**
+ * Work items for the validated rows (`planWorkItems`): Phòng ban rows become
+ * individual items and anyone reached twice gets personal work of their own.
+ */
+async function planDocumentWorkItems(
+  ctx: any,
+  assignments: ValidatedDocumentAssignment[],
+  approverUserIds: string[],
+) {
+  const users = await activeUsersList(ctx);
+  const approvers = new Set(approverUserIds.map(String));
+  return planWorkItems(assignments, {
+    // Same rule as `departmentRosterMembers` (Cá nhân exclusions are applied live).
+    departmentRosterIds: (departmentId: string) => users
+      .filter((user: any) =>
+        String(user.departmentId || "") === String(departmentId)
+        && !isOperationalManagerRole(user.role)
+        && !approvers.has(String(user._id)),
+      )
+      .map((user: any) => String(user._id)),
+    departmentOfUser: (userId: string) =>
+      String(users.find((user: any) => String(user._id) === String(userId))?.departmentId || ""),
+  });
+}
+
 async function insertDocumentWorkItems(
   ctx: any,
   documentId: Id<"officeDocuments">,
-  assignments: ValidatedDocumentAssignment[],
+  items: PlannedWorkItem[],
   actorUserId: Id<"users">,
   now: number,
 ) {
-  for (const assignment of assignments) {
+  for (const item of items) {
     await ctx.db.insert("workItems", {
       documentId,
-      departmentId: assignment.departmentId || "",
-      assignmentType: assignment.type,
-      assigneeUserIds: assignment.type === "individual" ? assignment.userIds : [],
+      departmentId: item.departmentId || "",
+      assignmentType: item.assignmentType,
+      assigneeUserIds: item.assignmentType === "individual" ? item.assigneeUserIds : [],
+      ...(item.unitId ? { unitId: item.unitId } : {}),
       completedUserIds: [],
       completedLateUserIds: [],
-      content: assignment.content,
-      deadline: assignment.deadline,
+      content: item.content,
+      deadline: item.deadline,
       active: true,
       createdBy: actorUserId,
       updatedBy: actorUserId,
@@ -485,6 +544,8 @@ async function assertWorkAssignmentsForActor(
   }
   if (!actor.isOps) {
     for (const assignment of assignments) {
+      // Phòng ban is a văn thư (admin/mod) quick pick.
+      if (assignment.type === "unit") throw new Error("WORK_UNIT_FORBIDDEN");
       if (assignment.type !== "individual") {
         if (!canAssignWorkDepartment(actor.user.role, actor.level)) {
           throw new Error("WORK_DEPARTMENT_FORBIDDEN");
@@ -687,12 +748,14 @@ function isActorAssignedToWorkItem(
 }
 
 async function catalog(ctx: any) {
-  const [users, departments, positions, documentTypes] = await Promise.all([
+  const [users, departments, positions, documentTypes, units] = await Promise.all([
     ctx.db.query("users").collect(),
     ctx.db.query("departments").collect(),
     ctx.db.query("positions").collect(),
     ctx.db.query("documentTypes").collect(),
+    ctx.db.query("units").collect(),
   ]);
+  const unitMap = new Map(units.map((unit: any) => [String(unit._id), unit]));
   const activeUsers = users.filter((user: any) => user.status === "active");
   const departmentMap = new Map(
     departments.map((department: any) => [String(department._id), department]),
@@ -703,7 +766,42 @@ async function catalog(ctx: any) {
   const documentTypeMap = new Map(
     documentTypes.map((item: any) => [String(item._id), item]),
   );
-  return { users, activeUsers, departments, positions, documentTypes, departmentMap, positionMap, documentTypeMap };
+  return { users, activeUsers, departments, positions, documentTypes, units, departmentMap, unitMap, positionMap, documentTypeMap };
+}
+
+async function workUnitOptions(ctx: any, units: any[], activeUsers: any[], departmentScope: string | null) {
+  const members = await ctx.db.query("unitMembers").collect();
+  const activeById = new Map(activeUsers.map((user: any) => [String(user._id), user]));
+  return units
+    .filter((unit: any) => unit.active)
+    .map((unit: any) => {
+      const memberUsers = members
+        .filter((row: any) => String(row.unitId) === String(unit._id))
+        .map((row: any) => activeById.get(String(row.userId)))
+        .filter(Boolean);
+      return { unit, memberUsers };
+    })
+    .filter(({ memberUsers }: any) =>
+      memberUsers.length > 0
+      && memberUsers.every((user: any) => isUserInModeratorScope(departmentScope, user)),
+    )
+    .sort((a: any, b: any) => a.unit.name.localeCompare(b.unit.name, "vi"))
+    .map(({ unit, memberUsers }: any) => ({
+      _id: unit._id,
+      name: unit.name,
+      code: unit.code,
+      memberUserIds: memberUsers.map((user: any) => String(user._id)),
+    }));
+}
+
+/** Label of what a work item targets: its Tổ chuyên môn, its Phòng ban, or "Cá nhân". */
+function workItemTargetName(item: any, catalogData: any) {
+  if (assignmentTypeOf(item) === "individual") {
+    if (!item.unitId) return "Cá nhân";
+    return String((catalogData.unitMap.get(String(item.unitId)) as any)?.name || "") || "Phòng ban";
+  }
+  return String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
+    || "Chưa gán tổ chuyên môn";
 }
 
 async function resolveDocumentTypeForFile(
@@ -812,13 +910,16 @@ async function documentView(
 ) {
   const rejectedByUserIds = document.rejectedByUserIds || [];
   const assignments = documentAssignments(document).map((assignment: any) => {
-    const type = assignment.type === "individual" ? "individual" : "department";
+    const type = assignment.type === "individual" || assignment.type === "unit" ? assignment.type : "department";
     return {
       type,
       departmentId: assignment.departmentId || "",
-      departmentName: assignment.departmentId
-        ? catalogData.departmentMap.get(String(assignment.departmentId))?.name || "Chưa gán phòng ban"
-        : "Cá nhân",
+      unitId: type === "unit" ? String(assignment.unitId || "") : "",
+      departmentName: type === "unit"
+        ? catalogData.unitMap.get(String(assignment.unitId))?.name || "Phòng ban"
+        : type === "department"
+          ? catalogData.departmentMap.get(String(assignment.departmentId))?.name || "Chưa gán tổ chuyên môn"
+          : "Cá nhân",
       userIds: assignment.userIds || [],
       content: assignment.content,
       deadline: assignment.deadline,
@@ -861,7 +962,7 @@ async function documentView(
     departmentId: document.departmentId,
     departmentName: assignments.find((item: any) => item.type === "department")?.departmentName
       || assignments[0]?.departmentName
-      || "Chưa gán phòng ban",
+      || "Chưa gán tổ chuyên môn",
     assignments,
     assignmentCount: assignments.length,
     approvers,
@@ -1194,7 +1295,7 @@ export const formOptions = query({
   handler: async (ctx) => {
     const actor = await requireWorkWrite(ctx);
     const visibilityMode = await getWorkVisibilityMode(ctx);
-    const { activeUsers, departments, positions } = await catalog(ctx);
+    const { activeUsers, departments, positions, units } = await catalog(ctx);
     const opsTarget = (user: any) => ({
       _id: String(user._id),
       role: user.role,
@@ -1265,6 +1366,9 @@ export const formOptions = query({
       users: users
         .map(assigneeOption)
         .sort((a: any, b: any) => a.name.localeCompare(b.name, "vi")),
+      // Phòng ban quick pick (admin/mod only). A department-scoped moderator
+      // sees the units whose every active member is in their department.
+      units: actor.isOps ? await workUnitOptions(ctx, units, activeUsers, actor.departmentScope) : [],
       documentTypes: await listActiveDocumentTypes(ctx),
       // Approvers are school-wide Ban giám hiệu, even for a department-scoped moderator.
       approvers: actor.isOps
@@ -1295,8 +1399,9 @@ export const createDocument = mutation({
     fileSize: v.optional(v.number()),
     assignments: v.array(
       v.object({
-        type: v.optional(v.union(v.literal("department"), v.literal("individual"))),
+        type: v.optional(v.union(v.literal("department"), v.literal("unit"), v.literal("individual"))),
         departmentId: v.optional(v.string()),
+        unitId: v.optional(v.string()),
         userIds: v.optional(v.array(v.string())),
         content: v.string(),
         deadline: v.string(),
@@ -1362,7 +1467,13 @@ export const createDocument = mutation({
       updatedAt: now,
     });
 
-    await insertDocumentWorkItems(ctx, documentId, assignments, actor.user._id, now);
+    await insertDocumentWorkItems(
+      ctx,
+      documentId,
+      await planDocumentWorkItems(ctx, assignments, approval.approverUserIds),
+      actor.user._id,
+      now,
+    );
 
     await ctx.db.insert("auditLogs", {
       actorUserId: actor.user._id,
@@ -1372,6 +1483,7 @@ export const createDocument = mutation({
         title,
         assignmentCount: assignments.length,
         departmentCount: assignments.filter((item) => item.type === "department").length,
+        unitCount: assignments.filter((item) => item.type === "unit").length,
         individualCount: assignments.filter((item) => item.type === "individual").length,
         requiresApproval: approval.requiresApproval,
         approverCount: approval.approverUserIds.length,
@@ -1410,8 +1522,9 @@ export const updateDocument = mutation({
     fileSize: v.optional(v.number()),
     assignments: v.array(
       v.object({
-        type: v.optional(v.union(v.literal("department"), v.literal("individual"))),
+        type: v.optional(v.union(v.literal("department"), v.literal("unit"), v.literal("individual"))),
         departmentId: v.optional(v.string()),
+        unitId: v.optional(v.string()),
         userIds: v.optional(v.array(v.string())),
         content: v.string(),
         deadline: v.string(),
@@ -1507,9 +1620,10 @@ export const updateDocument = mutation({
     const related = relatedBefore;
     // Same assignments → keep the existing work graph (items, personal tasks);
     // otherwise replace it atomically with the document update.
+    const plannedItems = await planDocumentWorkItems(ctx, assignments, approval.approverUserIds);
     const keepWorkItems = workAssignmentsUnchanged(
       related.workItems.filter((item: any) => item.active),
-      assignments,
+      plannedItems,
     );
     const now = Date.now();
     const firstAssignment = assignments[0];
@@ -1549,7 +1663,7 @@ export const updateDocument = mutation({
     const deactivated = keepWorkItems
       ? { workItemCount: 0, personalTaskCount: 0 }
       : await (async () => {
-          await insertDocumentWorkItems(ctx, args.documentId, assignments, actor.user._id, now);
+          await insertDocumentWorkItems(ctx, args.documentId, plannedItems, actor.user._id, now);
           return await deactivateRelatedDocumentWork(ctx, related, actor.user._id, now);
         })();
 
@@ -1750,11 +1864,8 @@ export const listAdmin = query({
             departmentId: item.departmentId,
             // Edit form prefill (individual rows); ids only, names come from members.
             userIds: type === "individual" ? (item.assigneeUserIds || []).map(String) : [],
-            departmentName:
-              type === "individual"
-                ? "Cá nhân"
-                : String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-                  || "Chưa gán phòng ban",
+            departmentName: workItemTargetName(item, catalogData),
+            unitId: String(item.unitId || ""),
             content: item.content,
             deadline: item.deadline,
             status: adminModItemStatus(item, members),
@@ -1784,6 +1895,9 @@ export const listAdmin = query({
         });
         return {
           ...view,
+          // Rows as saved (Tổ / Phòng ban / Cá nhân) for the edit form; the
+          // list below shows the work items they produced.
+          formAssignments: view.assignments,
           assignments: assignmentViews,
           workStatus: documentListStatus(document, items, catalogData),
           taskCount: assignmentViews.reduce(
@@ -1819,11 +1933,8 @@ export const listAdmin = query({
           submittedLate: row.submittedLate,
           note: row.note || "",
           type: assignmentTypeOf(item),
-          departmentName:
-            assignmentTypeOf(item) === "individual"
-              ? "Cá nhân"
-              : String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-                || "Chưa gán phòng ban",
+          departmentName: workItemTargetName(item, catalogData),
+          unitId: String(item.unitId || ""),
         });
       }
     }
@@ -2376,11 +2487,8 @@ export const listMine = query({
               _id: item._id,
               type,
               departmentId: item.departmentId,
-              departmentName:
-                type === "individual"
-                  ? "Cá nhân"
-                  : String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-                    || "Chưa gán phòng ban",
+              departmentName: workItemTargetName(item, catalogData),
+              unitId: String(item.unitId || ""),
               content: item.content,
               deadline: item.deadline,
               status: adminModItemStatus(item, members),
@@ -2394,7 +2502,7 @@ export const listMine = query({
             departmentId: item.departmentId,
             departmentName:
               String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-              || "Chưa gán phòng ban",
+              || "Chưa gán tổ chuyên môn",
             content: item.content,
             deadline: item.deadline,
             status: completionStatus(tasks),
@@ -2455,11 +2563,8 @@ export const listMine = query({
           content: item.content,
           deadline: item.deadline,
           departmentId: item.departmentId,
-          departmentName:
-            type === "individual"
-              ? "Cá nhân"
-              : String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-                || "Chưa gán phòng ban",
+          departmentName: workItemTargetName(item, catalogData),
+          unitId: String(item.unitId || ""),
           status: userItemStatus(item, String(access.user._id)),
           collectiveStatus: adminModItemStatus(item, members),
           documentId: document._id,
@@ -2517,11 +2622,8 @@ export const listMine = query({
               submittedLate: row.submittedLate,
               note: row.note || "",
               type: assignmentTypeOf(item),
-              departmentName:
-                assignmentTypeOf(item) === "individual"
-                  ? "Cá nhân"
-                  : String((catalogData.departmentMap.get(String(item.departmentId)) as any)?.name || "")
-                    || "Chưa gán phòng ban",
+              departmentName: workItemTargetName(item, catalogData),
+              unitId: String(item.unitId || ""),
             });
           }
       }
@@ -2715,7 +2817,7 @@ async function workItemViewWithContext(
     content: item.content,
     deadline: item.deadline,
     departmentId: item.departmentId,
-    departmentName: department?.name || "Chưa gán phòng ban",
+    departmentName: department?.name || "Chưa gán tổ chuyên môn",
     status: completionStatus(tasks),
     tasks: tasks.map((task: any) => ({
       _id: task._id,

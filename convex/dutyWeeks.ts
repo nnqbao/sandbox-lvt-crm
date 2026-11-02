@@ -134,6 +134,7 @@ export const approve = mutation({
       const userIds = dutyPushRecipientIds({
         departmentIds: row.departmentIds,
         participantUserIds: row.participantUserIds,
+        unitUserIds: row.unitUserIds,
         users,
       });
       if (!userIds.length) continue;

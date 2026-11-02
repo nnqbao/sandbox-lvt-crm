@@ -34,7 +34,7 @@ test('messageFor đọc được lỗi Convex bị bọc trong data object', () 
   );
   assert.equal(
     messageFor({ data: {}, message: '[Request ID: abc] Server Error\nUncaught Error: DUTY_PARTICIPANTS_REQUIRED' }),
-    'Vui lòng chọn phòng ban, cá nhân tham gia, hoặc điền thành phần khác.',
+    'Vui lòng chọn tổ chuyên môn, phòng ban, cá nhân tham gia, hoặc điền thành phần khác.',
   );
   assert.equal(
     messageFor({ message: 'PASSWORD_CHANGE_REQUIRED' }),

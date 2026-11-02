@@ -202,7 +202,7 @@ export default function NotificationsView({ data, onOpenItem }) {
         <NotificationSection
           kind="work"
           title="Công việc gần đến hạn"
-          subtitle={data.settings.workEnabled ? 'Công văn, công việc phòng ban và cá nhân cần xử lý.' : 'Thông báo Công việc đang được Admin tắt.'}
+          subtitle={data.settings.workEnabled ? 'Công văn, công việc của tổ, phòng ban và cá nhân cần xử lý.' : 'Thông báo Công việc đang được Admin tắt.'}
           items={workItems}
           onOpen={openOne}
           onDismiss={dismissOne}

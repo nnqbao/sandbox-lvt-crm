@@ -33,12 +33,14 @@ export type DutyLogFields = {
   content?: string;
   locationText?: string;
   departmentIds?: string[];
+  unitIds?: string[];
   participantUserIds?: string[];
   otherParticipants?: string;
 };
 
 export type DutyLogNames = {
   departments: Map<string, string>;
+  units?: Map<string, string>;
   users: Map<string, string>;
 };
 
@@ -99,7 +101,8 @@ function displayFields(duty: DutyLogFields | null, names: DutyLogNames): [string
     ["Bắt đầu", formatDutyLogMoment(duty.startDate, duty.startTime, allDay)],
     ["Kết thúc", allDay ? "" : formatDutyLogMoment(duty.endDate, duty.endTime)],
     ["Địa điểm", String(duty.locationText || "").trim()],
-    ["Phòng ban tham gia", namesFor(duty.departmentIds, names.departments)],
+    ["Tổ chuyên môn tham gia", namesFor(duty.departmentIds, names.departments)],
+    ["Phòng ban tham gia", namesFor(duty.unitIds, names.units || new Map())],
     ["Cá nhân tham gia", namesFor(duty.participantUserIds, names.users)],
     ["Thành phần khác", String(duty.otherParticipants || "").trim()],
   ];
@@ -132,10 +135,12 @@ export function buildDutyChangeDiff(
 /** Ids whose names a diff between these versions needs. */
 export function dutyLogReferencedIds(...rows: (DutyLogFields | null | undefined)[]) {
   const departmentIds = new Set<string>();
+  const unitIds = new Set<string>();
   const userIds = new Set<string>();
   for (const row of rows) {
     for (const id of row?.departmentIds || []) departmentIds.add(String(id));
+    for (const id of row?.unitIds || []) unitIds.add(String(id));
     for (const id of row?.participantUserIds || []) userIds.add(String(id));
   }
-  return { departmentIds: [...departmentIds], userIds: [...userIds] };
+  return { departmentIds: [...departmentIds], unitIds: [...unitIds], userIds: [...userIds] };
 }

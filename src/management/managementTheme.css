@@ -60,7 +60,8 @@
 }
 
 .users-management .section-intro::after { content: "ND"; }
-.departments-management .section-intro::after { content: "PB"; }
+.departments-management .section-intro::after { content: "TCM"; }
+.units-management .section-intro::after { content: "PB"; }
 .permission-groups-management .section-intro::after { content: "NQ"; }
 .positions-management .section-intro::after { content: "CV"; }
 

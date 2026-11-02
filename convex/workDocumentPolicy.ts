@@ -235,57 +235,36 @@ export function workEditNeedsApproval(args: {
 type ComparableWorkItem = {
   assignmentType?: string | null;
   departmentId?: string | null;
+  unitId?: string | null;
   assigneeUserIds?: unknown[] | null;
   content?: string | null;
   deadline?: string | null;
 };
 
-type ComparableAssignment = {
-  type?: string | null;
-  departmentId?: string | null;
-  userIds?: unknown[] | null;
-  content?: string | null;
-  deadline?: string | null;
-};
-
-function assignmentKey(type: string, departmentId: unknown, userIds: unknown[], content: unknown, deadline: unknown) {
-  const individual = type === "individual";
+function itemKey(item: ComparableWorkItem) {
+  const individual = item.assignmentType === "individual";
   return JSON.stringify([
     individual ? "individual" : "department",
-    individual ? "" : String(departmentId || ""),
-    individual ? [...new Set(ids(userIds))].sort() : [],
-    String(content || ""),
-    String(deadline || ""),
+    individual ? "" : String(item.departmentId || ""),
+    individual ? String(item.unitId || "") : "",
+    individual ? [...new Set(ids(item.assigneeUserIds))].sort() : [],
+    String(item.content || ""),
+    String(item.deadline || ""),
   ]);
 }
 
 /**
- * True when the edit keeps exactly the same assignments as the document's
- * active work items (same type, department / assignees, content and deadline),
+ * True when the edit produces exactly the same work items as the document's
+ * active ones (same type, Tổ / Phòng ban / assignees, content and deadline),
  * so the existing work items and personal tasks can be kept as they are.
+ * `nextItems` is the plan for the edit (`planWorkItems`).
  */
 export function workAssignmentsUnchanged(
   activeItems: ComparableWorkItem[] | null | undefined,
-  assignments: ComparableAssignment[] | null | undefined,
+  nextItems: ComparableWorkItem[] | null | undefined,
 ) {
-  const current = (activeItems || []).map((item) =>
-    assignmentKey(
-      item.assignmentType === "individual" ? "individual" : "department",
-      item.departmentId,
-      item.assigneeUserIds || [],
-      item.content,
-      item.deadline,
-    ),
-  ).sort();
-  const next = (assignments || []).map((row) =>
-    assignmentKey(
-      row.type === "individual" ? "individual" : "department",
-      row.departmentId,
-      row.userIds || [],
-      row.content,
-      row.deadline,
-    ),
-  ).sort();
+  const current = (activeItems || []).map(itemKey).sort();
+  const next = (nextItems || []).map(itemKey).sort();
   return current.length > 0
     && current.length === next.length
     && current.every((key, index) => key === next[index]);

@@ -539,7 +539,7 @@ function DepartmentProgress({ status, taskCount }) {
   return (
     <div className="work-progress">
       <div className="work-progress-head">
-        <span>Tiến độ phòng ban</span>
+        <span>Tiến độ của tổ</span>
         <WorkStatus status={status} />
       </div>
       <div className="work-progress-track">
@@ -1167,6 +1167,7 @@ export function WorkManagement({ allowCreate = true, hideCompletionQueue = false
             assignments={assignments}
             onChange={setAssignments}
             departments={options.departments}
+            units={options.units || []}
             users={assignableUsers}
             showDepartments={options.canAssignDepartments ?? options.isOps !== false}
           />
@@ -1417,7 +1418,7 @@ function PersonalTaskAssignModal({ work, users, onClose, onSubmit, saving }) {
         <button type="button" className="work-modal-close" onClick={onClose} aria-label="Đóng">×</button>
         <span className="work-kicker">Công việc cá nhân</span>
         <h3>Chỉ định đầu mục</h3>
-        <p className="work-modal-context">{work.departmentName} · Hạn phòng ban {formatWorkDate(work.deadline)}</p>
+        <p className="work-modal-context">{work.departmentName} · Hạn của tổ {formatWorkDate(work.deadline)}</p>
         <label className="work-field-label" htmlFor="personal-title">Tên công việc <small>{title.length}/200</small></label>
         <input id="personal-title" type="text" maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Tổng hợp danh sách hồ sơ…" required />
         <label className="work-field-label" htmlFor="personal-deadline">Hạn chót hoàn thành</label>
@@ -1445,7 +1446,7 @@ function PersonalTaskAssignModal({ work, users, onClose, onSubmit, saving }) {
               <span><strong>{person.name}</strong><small>{person.positionName || 'Chưa gán chức vụ'}</small></span>
             </label>
           ))}
-          {!users.length ? <p className="work-muted">Không có user cấp thấp hơn cùng phòng ban.</p> : null}
+          {!users.length ? <p className="work-muted">Không có user cấp thấp hơn cùng tổ chuyên môn.</p> : null}
           {users.length && !visibleUsers.length ? <p className="work-muted">Không tìm thấy người phù hợp.</p> : null}
         </div>
         <div className="work-modal-actions">
@@ -1907,7 +1908,7 @@ function WorkUserViewBody({ focusTarget = null, reminderFailed = false }) {
                           ) : null}
                           {task.type === 'department' && task.members?.length ? (
                             <details className="work-member-details">
-                              <summary>Xem tiến độ cả phòng ban ({task.members.length})</summary>
+                              <summary>Xem tiến độ cả tổ ({task.members.length})</summary>
                               <div className="work-member-progress">
                                 {task.members.map((member) => (
                                   <span key={member._id} className={`work-member-chip status-${member.status}`}>

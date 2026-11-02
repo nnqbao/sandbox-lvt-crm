@@ -17,7 +17,8 @@ const MENU_PATHS = Object.freeze({
   boarding: '/ban-tru',
   'work-management': '/quan-ly-cong-viec',
   users: '/thiet-lap-nguoi-dung',
-  departments: '/thiet-lap-phong-ban',
+  departments: '/thiet-lap-to-chuyen-mon',
+  units: '/thiet-lap-phong-ban',
   roles: '/thiet-lap-nhom-quyen',
   positions: '/thiet-lap-chuc-vu',
   'document-types': '/thiet-lap-loai-van-ban',
@@ -47,7 +48,8 @@ const PRIMARY_MENUS = Object.freeze([
 /** "Thiết lập tối cao" (Administrator only). */
 const SUPREME_SETTINGS = Object.freeze([
   ['users', 'Thiết lập người dùng'],
-  ['departments', 'Thiết lập phòng ban'],
+  ['departments', 'Thiết lập tổ chuyên môn'],
+  ['units', 'Thiết lập phòng ban'],
   ['roles', 'Thiết lập nhóm quyền'],
   ['positions', 'Thiết lập chức vụ'],
   ['document-types', 'Thiết lập loại văn bản'],
@@ -273,6 +275,7 @@ const GUIDE_ANCHORS = Object.freeze({
   devices: 'thiet-bi-dang-nhap',
   users: 'tl-nguoi-dung',
   departments: 'tl-phong-ban',
+  units: 'tl-phong-ban',
   roles: 'tl-nhom-quyen',
   positions: 'tl-chuc-vu',
   'document-types': 'tl-loai-van-ban',

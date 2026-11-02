@@ -945,7 +945,7 @@ export default function PeopleReviewView({ focusTarget = null }) {
     if (!overview?.people?.length) return [];
     const map = new Map();
     for (const person of overview.people) {
-      const key = person.departmentName || 'Chưa xác định phòng ban';
+      const key = person.departmentName || 'Chưa xác định tổ chuyên môn';
       const list = map.get(key) || [];
       list.push(person);
       map.set(key, list);

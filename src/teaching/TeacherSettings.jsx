@@ -20,7 +20,7 @@ import '../homeroom/homeroom.css';
 import './teaching.css';
 
 /**
- * Thiết lập giáo viên (Administrator): danh sách giáo viên theo phòng ban → Lịch dạy cả năm
+ * Thiết lập giáo viên (Administrator): danh sách giáo viên theo tổ chuyên môn → Lịch dạy cả năm
  * → Thêm lịch dạy (chọn khối → lớp → tick tiết).
  */
 export default function TeacherSettings() {
@@ -83,11 +83,11 @@ function TeacherList({ yearState, catalog, subjectNames }) {
     if (!data) return [];
     const needle = foldSearch(search);
     const rows = data.teachers.filter((row) => !needle || foldSearch(row.name).includes(needle));
-    const departments = [...data.departments, { _id: '', name: 'Chưa có phòng ban' }];
+    const departments = [...data.departments, { _id: '', name: 'Chưa có tổ chuyên môn' }];
     return departments
       .map((department) => ({ department, teachers: rows.filter((row) => row.departmentId === department._id) }))
       .concat([{
-        department: { _id: '__other', name: 'Phòng ban khác' },
+        department: { _id: '__other', name: 'Tổ chuyên môn khác' },
         teachers: rows.filter((row) => row.departmentId && !data.departments.some((item) => item._id === row.departmentId)),
       }])
       .filter((group) => group.teachers.length);
@@ -100,7 +100,7 @@ function TeacherList({ yearState, catalog, subjectNames }) {
           <span className="hr-eyebrow">Thiết lập tối cao</span>
           <h2>Thiết lập giáo viên</h2>
           <p className="hr-muted">
-            Giáo viên theo phòng ban với Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm của năm học. Sang năm mới, Lớp giảng dạy và
+            Giáo viên theo tổ chuyên môn với Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm của năm học. Sang năm mới, Lớp giảng dạy và
             Lớp chủ nhiệm bắt đầu trống; Môn giảng dạy lấy lại từ năm trước và có thể chỉnh.
           </p>
         </div>

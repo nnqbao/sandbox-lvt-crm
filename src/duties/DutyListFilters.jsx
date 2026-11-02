@@ -86,12 +86,12 @@ export function DutyListSearch({
       {advancedOpen ? (
         <div className="duty-list-search-advanced">
           <label>
-            Phòng ban
+            Tổ / Phòng ban
             <input
               type="search"
               value={search.department}
               onChange={(event) => setField('department', event.target.value)}
-              placeholder="Tên phòng ban"
+              placeholder="Tên tổ hoặc phòng ban"
               autoComplete="off"
             />
           </label>

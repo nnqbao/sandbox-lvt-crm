@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
             <h2>2. Dữ liệu chúng tôi xử lý</h2>
             <p>Chỉ xử lý dữ liệu cần cho công việc nhà trường:</p>
             <ul>
-              <li>Tài khoản: họ tên, email, mật khẩu (đã băm, không lưu bản rõ), phòng ban, chức vụ, nhóm quyền, vai trò, trạng thái tài khoản.</li>
+              <li>Tài khoản: họ tên, email, mật khẩu (đã băm, không lưu bản rõ), tổ chuyên môn, phòng ban, chức vụ, nhóm quyền, vai trò, trạng thái tài khoản.</li>
               <li>Nghiệp vụ: công tác, điểm danh, công việc, tệp công văn, thông báo nội bộ và nhật ký thao tác liên quan.</li>
               <li>Thiết bị đăng nhập: tên thiết bị, nền tảng (web / Android / iOS), phiên bản ứng dụng, user-agent, thời điểm hoạt động.</li>
               <li>Thông báo đẩy: mã thiết bị FCM (Android) hoặc APNs (iOS) để gửi thông báo công tác và công việc.</li>

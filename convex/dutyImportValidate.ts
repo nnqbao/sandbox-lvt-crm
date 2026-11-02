@@ -29,12 +29,12 @@ export const DUTY_IMPORT_MESSAGES = {
   missingEndDate: "Vui lòng điền ngày kết thúc (hoặc đánh dấu ca_ngay).",
   invalidAllDay: "Cột ca_ngay không hợp lệ. Dùng 1/0, có/không, true/false.",
   endBeforeStart: "Thời gian kết thúc phải sau thời gian bắt đầu.",
-  participantsRequired: "Mỗi công tác cần ít nhất một mã phòng ban, một email tham gia, hoặc thành phần khác.",
+  participantsRequired: "Mỗi công tác cần ít nhất một mã tổ chuyên môn (cột ma_phong_ban), một email tham gia, hoặc thành phần khác.",
   otherParticipantsInvalid: "Thành phần khác tối đa 500 ký tự.",
-  invalidDepartment: "Mã phòng ban không chính xác, vui lòng đảm bảo trùng với hệ thống.",
-  departmentForbidden: "Tổ trưởng/tổ phó không được gán công tác theo phòng ban. Hãy dùng cột email_tham_gia.",
+  invalidDepartment: "Mã tổ chuyên môn không chính xác, vui lòng đảm bảo trùng với hệ thống.",
+  departmentForbidden: "Tổ trưởng/tổ phó không được gán công tác theo tổ chuyên môn. Hãy dùng cột email_tham_gia.",
   invalidParticipant: "Email tham gia không chính xác hoặc tài khoản không còn hoạt động.",
-  notSubordinate: "Chỉ được gán email cấp dưới cùng phòng ban.",
+  notSubordinate: "Chỉ được gán email cấp dưới cùng tổ chuyên môn.",
   invalidEmail: "Email tham gia không hợp lệ.",
 } as const;
 

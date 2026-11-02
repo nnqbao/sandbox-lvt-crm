@@ -36,7 +36,7 @@ async function previousYearId(ctx: any, year: { _id: unknown; startDate: string 
 }
 
 /**
- * Thiết lập Giáo viên: every active account grouped by phòng ban, with the year's
+ * Thiết lập Giáo viên: every active account grouped by tổ chuyên môn, with the year's
  * Môn giảng dạy, Lớp giảng dạy (admin's list, else the current timetable) and Lớp chủ nhiệm
  * (current GVCN rows), plus the year's classes for the quick pickers.
  */

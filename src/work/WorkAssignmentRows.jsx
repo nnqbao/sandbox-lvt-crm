@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { emptyWorkAssignment } from './workDisplay';
+import { emptyWorkAssignment, workDuplicateRecipientIds } from './workDisplay';
 import { filterByPickerSearch, personPickerHaystack } from '../lib/pickerSearch';
 
 function SearchablePersonSelect({
@@ -103,14 +103,21 @@ export default function WorkAssignmentRows({
   assignments,
   onChange,
   departments = [],
+  units = [],
   users = [],
   showDepartments = true,
 }) {
   const selectedDepartmentIds = new Set(
     assignments
-      .filter((row) => row.type !== 'individual' && row.departmentId)
+      .filter((row) => row.type === 'department' && row.departmentId)
       .map((row) => String(row.departmentId)),
   );
+  const selectedUnitIds = new Set(
+    assignments
+      .filter((row) => row.type === 'unit' && row.unitId)
+      .map((row) => String(row.unitId)),
+  );
+  const duplicateCount = workDuplicateRecipientIds(assignments, { users, units }).length;
   const selectedUserIds = new Set(
     assignments
       .filter((row) => row.type === 'individual')
@@ -131,6 +138,11 @@ export default function WorkAssignmentRows({
         <div className="work-assignment-actions">
           {showDepartments ? (
             <button type="button" className="work-outline-button" onClick={() => onChange([...assignments, emptyWorkAssignment('department')])}>
+              ＋ Tổ chuyên môn
+            </button>
+          ) : null}
+          {units.length ? (
+            <button type="button" className="work-outline-button" onClick={() => onChange([...assignments, emptyWorkAssignment('unit')])}>
               ＋ Phòng ban
             </button>
           ) : null}
@@ -143,9 +155,14 @@ export default function WorkAssignmentRows({
         <div className="work-inline-assignments">
           {assignments.map((row, index) => {
             const isIndividual = row.type === 'individual';
+            const isUnit = row.type === 'unit';
             const departmentOptions = departments.filter((department) => (
               String(department._id) === String(row.departmentId)
               || !selectedDepartmentIds.has(String(department._id))
+            ));
+            const unitOptions = units.filter((unit) => (
+              String(unit._id) === String(row.unitId)
+              || !selectedUnitIds.has(String(unit._id))
             ));
             const userOptions = users.filter((user) => (
               (row.userIds || []).some((id) => String(id) === String(user._id))
@@ -166,15 +183,31 @@ export default function WorkAssignmentRows({
                       searchPlaceholder="Tìm theo tên, email…"
                     />
                   </label>
-                ) : (
+                ) : isUnit ? (
                   <label>
                     Phòng ban
+                    <select
+                      required
+                      value={row.unitId || ''}
+                      onChange={(event) => updateRow(index, { unitId: event.target.value })}
+                    >
+                      <option value="">Chọn phòng ban</option>
+                      {unitOptions.map((unit) => (
+                        <option key={unit._id} value={unit._id}>
+                          {unit.name} ({(unit.memberUserIds || []).length} người)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label>
+                    Tổ chuyên môn
                     <select
                       required
                       value={row.departmentId || ''}
                       onChange={(event) => updateRow(index, { departmentId: event.target.value })}
                     >
-                      <option value="">Chọn phòng ban</option>
+                      <option value="">Chọn tổ chuyên môn</option>
                       {departmentOptions.map((department) => (
                         <option key={department._id} value={department._id}>{department.name}</option>
                       ))}
@@ -220,11 +253,16 @@ export default function WorkAssignmentRows({
           <span>⌁</span>
           <p>
             {showDepartments
-              ? 'Bấm ＋ Phòng ban hoặc ＋ Cá nhân để thêm người hoặc phòng ban nhận việc.'
+              ? `Bấm ＋ Tổ chuyên môn${units.length ? ', ＋ Phòng ban' : ''} hoặc ＋ Cá nhân để thêm người nhận việc.`
               : 'Bấm ＋ Cá nhân để thêm người nhận việc.'}
           </p>
         </div>
       )}
+      {duplicateCount ? (
+        <p className="work-duplicate-note" role="note">
+          {duplicateCount} người được giao trùng (vừa trong tổ/phòng ban vừa được giao thêm): mỗi người sẽ nhận việc cá nhân riêng, không thuộc tổ hay phòng ban.
+        </p>
+      ) : null}
     </section>
   );
 }

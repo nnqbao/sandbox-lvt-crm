@@ -190,6 +190,7 @@ button { font: inherit; cursor: pointer; }
 .mgmt-card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .mgmt-card-head strong { display: block; margin-bottom: 4px; font-size: 15px; }
 .code-tag { display: inline-flex; margin-top: 2px; padding: 3px 7px; border-radius: 999px; background: #edf1f4; color: #5a6b8a; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+.unit-member-count { margin-left: 8px; font-size: 12px; }
 .assign-panel { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5ecef; }
 .assign-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .assign-row select { min-height: 36px; min-width: 220px; flex: 1; padding: 0 10px; border: 1px solid #d8e2e9; border-radius: 7px; font: inherit; }

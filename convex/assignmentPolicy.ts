@@ -146,11 +146,13 @@ export function dutyListTitle(duty: { title?: string; content?: string }) {
 
 export function isDutyParticipant(
   user: { _id: string; departmentId?: string },
-  duty: { departmentIds?: string[]; participantUserIds?: string[] },
+  duty: { departmentIds?: string[]; participantUserIds?: string[]; unitUserIds?: string[] },
 ) {
   const userId = String(user._id || "");
   if (!userId) return false;
   if ((duty.participantUserIds || []).some((id) => String(id) === userId)) return true;
+  // Phòng ban members (kept in sync with the unit roster).
+  if ((duty.unitUserIds || []).some((id) => String(id) === userId)) return true;
   return Boolean(
     user.departmentId &&
     (duty.departmentIds || []).some((id) => String(id) === String(user.departmentId)),
@@ -161,11 +163,13 @@ export function isDutyParticipant(
 export function dutyPushRecipientIds(args: {
   departmentIds: string[];
   participantUserIds: string[];
+  unitUserIds?: string[];
   users: Array<{ _id: string; departmentId?: string }>;
 }): string[] {
   const duty = {
     departmentIds: args.departmentIds || [],
     participantUserIds: args.participantUserIds || [],
+    unitUserIds: args.unitUserIds || [],
   };
   const recipients = new Set<string>();
   for (const id of duty.participantUserIds) {
@@ -385,7 +389,8 @@ export function workAssignmentPushUserIds(args: {
 }): string[] {
   const recipients = new Set<string>();
   for (const assignment of args.assignments) {
-    if (assignment.type === "individual") {
+    // Phòng ban rows carry their member snapshot like individual rows.
+    if (assignment.type === "individual" || assignment.type === "unit") {
       for (const id of assignment.userIds || []) {
         if (id) recipients.add(String(id));
       }

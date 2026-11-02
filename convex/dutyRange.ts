@@ -72,6 +72,8 @@ export type DutyWindowRow = {
   locationIds: string[];
   locationText?: string;
   departmentIds: string[];
+  unitIds?: string[];
+  unitUserIds?: string[];
   participantUserIds: string[];
   otherParticipants?: string;
   scope?: "school" | "team";

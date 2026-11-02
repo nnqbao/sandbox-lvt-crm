@@ -75,7 +75,11 @@ export function formatTimeCell(event) {
 
 export function formatParticipantCell(event) {
   const parts = [];
-  for (const name of [...(event?.departmentNames || []), ...(event?.participantNames || [])]) {
+  for (const name of [
+    ...(event?.departmentNames || []),
+    ...(event?.unitNames || []),
+    ...(event?.participantNames || []),
+  ]) {
     const label = String(name || '').trim();
     if (label && !parts.includes(label)) parts.push(label);
   }

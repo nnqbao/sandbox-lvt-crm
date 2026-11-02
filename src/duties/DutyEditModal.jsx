@@ -107,7 +107,7 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
     if (pending === 'save' || !duty?._id) return;
     const payload = dutyPayloadFromForm(form, { includeDepartments });
     if (!includeDepartments && !dutyFormHasParticipants(form, { includeDepartments })) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
+      setFeedback({ type: 'error', text: 'Vui lòng chọn tổ chuyên môn, phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
       return;
     }
     setPending('save');
@@ -145,7 +145,7 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
   const submit = (event) => {
     event.preventDefault();
     if (!includeDepartments && !dutyFormHasParticipants(form, { includeDepartments })) {
-      setFeedback({ type: 'error', text: 'Vui lòng chọn phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
+      setFeedback({ type: 'error', text: 'Vui lòng chọn tổ chuyên môn, phòng ban, cá nhân tham gia, hoặc điền thành phần khác.' });
       return;
     }
     setEditConfirm('save');
@@ -192,18 +192,32 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
                 onEndDateTime={(date, time) => setForm((prev) => applyDutyEndDateTime(prev, date, time))}
               >
                 {includeDepartments ? (
-                  <div className="duty-field">
-                    <span className="duty-field-label">Phòng ban tham gia</span>
-                    <CollapsibleMultiCheckList
-                      title="Chọn phòng ban"
-                      options={options.departments}
-                      values={form.departmentIds}
-                      onChange={(ids) => setField('departmentIds', ids)}
-                      getLabel={(department) => `${department.name}${department.code ? ` (${department.code})` : ''}`}
-                      searchPlaceholder="Tìm phòng ban…"
-                      emptyText="Chưa có phòng ban."
-                    />
-                  </div>
+                  <>
+                    <div className="duty-field">
+                      <span className="duty-field-label">Tổ chuyên môn tham gia</span>
+                      <CollapsibleMultiCheckList
+                        title="Chọn tổ chuyên môn"
+                        options={options.departments}
+                        values={form.departmentIds}
+                        onChange={(ids) => setField('departmentIds', ids)}
+                        getLabel={(department) => `${department.name}${department.code ? ` (${department.code})` : ''}`}
+                        searchPlaceholder="Tìm tổ chuyên môn…"
+                        emptyText="Chưa có tổ chuyên môn."
+                      />
+                    </div>
+                    <div className="duty-field">
+                      <span className="duty-field-label">Phòng ban tham gia</span>
+                      <CollapsibleMultiCheckList
+                        title="Chọn phòng ban"
+                        options={options.units || []}
+                        values={form.unitIds || []}
+                        onChange={(ids) => setField('unitIds', ids)}
+                        getLabel={(unit) => `${unit.name}${unit.code ? ` (${unit.code})` : ''}`}
+                        searchPlaceholder="Tìm phòng ban…"
+                        emptyText="Chưa có phòng ban."
+                      />
+                    </div>
+                  </>
                 ) : null}
                 <div className="duty-field">
                   <span className="duty-field-label">{includeDepartments ? 'Cá nhân tham gia' : 'Người tham gia'}</span>
@@ -214,7 +228,7 @@ function DutyEditModalBody({ duty, onClose, onSaved = null, mode = 'manager' }) 
                     onChange={(ids) => setField('participantUserIds', ids)}
                     getLabel={(user) => `${user.name || '—'} · ${user.email || ''}`}
                     searchPlaceholder="Tìm theo tên, email…"
-                    emptyText={includeDepartments ? 'Chưa có người dùng.' : 'Chưa có người tham gia trong phòng ban.'}
+                    emptyText={includeDepartments ? 'Chưa có người dùng.' : 'Chưa có người tham gia trong tổ chuyên môn.'}
                   />
                 </div>
               </DutyEditorFields>

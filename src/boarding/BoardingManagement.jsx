@@ -68,7 +68,7 @@ function TeacherPicker({ users, selectedIds, onComplete, onClose }) {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm theo tên, email, phòng ban…"
+            placeholder="Tìm theo tên, email, tổ chuyên môn…"
           />
           <div>
             {/* With a search, both act on the people shown only and keep the other selections. */}
