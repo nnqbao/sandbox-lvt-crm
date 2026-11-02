@@ -51,6 +51,7 @@ import AttendancePage from './attendance/AttendancePage';
 import DevicesPanel from './profile/DevicesPanel';
 import { describeWebDevice } from './profile/deviceSession';
 import { convexErrorText, messageFor } from './lib/appErrorMessage';
+import { filterByPickerSearch } from './lib/pickerSearch';
 import CollapsibleMultiCheckList from './lib/CollapsibleMultiCheckList.jsx';
 import StarRating from './lib/StarRating.jsx';
 import AccountMenu from './profile/AccountMenu.jsx';
@@ -1275,6 +1276,8 @@ function emptyUserForm() {
   };
 }
 
+const NO_DEPARTMENT_FILTER = '__none__';
+
 function UserManagement() {
   const data = useQuery(anyApi.users.bootstrap);
   const lockoutSettings = useQuery(anyApi.loginSecurity.lockoutSettings);
@@ -1304,6 +1307,14 @@ function UserManagement() {
   const groups = (data?.permissionGroups || []).filter((g) => g.active);
   const positions = (data?.positions || []).filter((p) => p.active);
   const users = data?.users || [];
+  const [userSearch, setUserSearch] = useState('');
+  const [userDepartmentFilter, setUserDepartmentFilter] = useState('');
+  const usersInDepartment = !userDepartmentFilter
+    ? users
+    : userDepartmentFilter === NO_DEPARTMENT_FILTER
+      ? users.filter((u) => !departments.some((d) => d._id === u.departmentId))
+      : users.filter((u) => u.departmentId === userDepartmentFilter);
+  const visibleUsers = filterByPickerSearch(usersInDepartment, userSearch, (u) => `${u.name || ''} ${u.email || ''}`);
   const systemRoles = data?.systemRoles || [
     { key: 'admin', name: 'Administrator' },
     { key: 'moderator', name: 'Moderator' },
@@ -1583,6 +1594,31 @@ function UserManagement() {
           </button>
         </form>
       )}
+      <div className="user-list-filters">
+        <input
+          type="search"
+          placeholder="Tìm theo tên hoặc email…"
+          aria-label="Tìm người dùng"
+          value={userSearch}
+          onChange={(e) => setUserSearch(e.target.value)}
+        />
+        <select
+          aria-label="Lọc theo phòng ban"
+          value={userDepartmentFilter}
+          onChange={(e) => setUserDepartmentFilter(e.target.value)}
+        >
+          <option value="">Tất cả phòng ban</option>
+          {departments.map((d) => (
+            <option key={d._id} value={d._id}>
+              {d.name}
+            </option>
+          ))}
+          <option value={NO_DEPARTMENT_FILTER}>Chưa gán PB</option>
+        </select>
+        <span className="muted">
+          {visibleUsers.length}/{users.length} người dùng
+        </span>
+      </div>
       <div className="user-table wide-table" aria-label="Danh sách người dùng">
         <div className="user-table-head user-table-head-5">
           <span>Người dùng</span>
@@ -1591,7 +1627,8 @@ function UserManagement() {
           <span>Trạng thái</span>
           <span>Thao tác</span>
         </div>
-        {users.map((item) => (
+        {visibleUsers.length === 0 ? <p className="muted user-list-empty">Không có người dùng phù hợp.</p> : null}
+        {visibleUsers.map((item) => (
           <div className="user-row user-row-5" key={item._id}>
             <div>
               <strong>{item.name}</strong>
@@ -1680,14 +1717,34 @@ function UserManagement() {
 
 function AssignUserPanel({ users, filterId, idField, onAssign, onUnassign, pending, label }) {
   const [userId, setUserId] = useState('');
+  const [search, setSearch] = useState('');
   const members = users.filter((u) => u[idField] === filterId);
   const candidates = users.filter((u) => u.status === 'active' && u[idField] !== filterId);
+  const matches = filterByPickerSearch(candidates, search, (u) => `${u.name || ''} ${u.email || ''}`);
+  // Keep the current pick listed even when a later search no longer matches it.
+  const selected = candidates.find((u) => u._id === userId);
+  const options = selected && !matches.includes(selected) ? [selected, ...matches] : matches;
   return (
     <div className="assign-panel">
       <div className="assign-row">
+        <input
+          type="search"
+          className="assign-search"
+          placeholder="Tìm theo tên hoặc email…"
+          aria-label={`Tìm user để thêm vào ${label}`}
+          value={search}
+          onChange={(e) => {
+            const next = e.target.value;
+            setSearch(next);
+            const found = filterByPickerSearch(candidates, next, (u) => `${u.name || ''} ${u.email || ''}`);
+            if (next.trim() && found.length === 1) setUserId(found[0]._id);
+          }}
+        />
         <select value={userId} onChange={(e) => setUserId(e.target.value)}>
-          <option value="">Chọn người dùng…</option>
-          {candidates.map((u) => (
+          <option value="">
+            {search.trim() ? (matches.length ? `Chọn trong ${matches.length} kết quả…` : 'Không tìm thấy user phù hợp') : 'Chọn người dùng…'}
+          </option>
+          {options.map((u) => (
             <option key={u._id} value={u._id}>
               {u.name || u.email} ({u.email})
             </option>
@@ -1701,6 +1758,7 @@ function AssignUserPanel({ users, filterId, idField, onAssign, onUnassign, pendi
             if (!userId) return;
             await onAssign(userId);
             setUserId('');
+            setSearch('');
           }}
         >
           + Thêm user vào {label}

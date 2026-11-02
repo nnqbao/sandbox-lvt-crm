@@ -193,6 +193,12 @@ button { font: inherit; cursor: pointer; }
 .assign-panel { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5ecef; }
 .assign-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .assign-row select { min-height: 36px; min-width: 220px; flex: 1; padding: 0 10px; border: 1px solid #d8e2e9; border-radius: 7px; font: inherit; }
+.assign-row .assign-search { min-height: 36px; min-width: 180px; flex: 0 1 220px; padding: 0 10px; border: 1px solid var(--lvt-line); border-radius: 7px; font: inherit; }
+.user-list-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 12px; }
+.user-list-filters input, .user-list-filters select { min-height: 40px; padding: 0 12px; border: 1px solid var(--lvt-line); border-radius: 8px; background: var(--lvt-surface); font: inherit; }
+.user-list-filters input { flex: 1 1 260px; min-width: 0; }
+.user-list-filters select { flex: 0 1 240px; min-width: 0; }
+.user-list-empty { padding: 16px 18px; margin: 0; }
 .small-btn { min-height: 36px; min-width: auto; padding: 0 12px; }
 .member-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .member-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 7px; background: var(--lvt-paper); font-size: 12px; }
