@@ -19,8 +19,8 @@ Số liệu tổng hợp: công việc theo người và theo kỳ, danh sách g
 | Mục | Dùng để | Hướng dẫn |
 |---|---|---|
 | Công việc | Lịch công việc, số việc đúng hạn, trễ hạn, chất lượng | [Báo cáo công việc](#bc-bao-cao-cong-viec) |
-| Bán trú | Giáo viên tham gia bán trú theo kỳ, theo phòng ban | [Bán trú](#bt-ban-tru) |
+| Bán trú | Giáo viên tham gia bán trú theo kỳ, theo tổ chuyên môn | [Bán trú](#bt-ban-tru) |
 
 ::: note
-Mức **Xem** chỉ hiện số liệu trong phạm vi của mình (tổ, phòng ban); **Xem tối cao** hiện toàn trường. Lịch công tác chung nằm ở menu **Lịch công tác**, tab **Lịch công tác chung**.
+Mức **Xem** chỉ hiện số liệu trong phạm vi của mình (tổ chuyên môn); **Xem tối cao** hiện toàn trường. Lịch công tác chung nằm ở menu **Lịch công tác**, tab **Lịch công tác chung**.
 :::

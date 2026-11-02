@@ -25,7 +25,7 @@ Sau khi giao, người nhận làm và nộp bằng chứng, người tạo duy�
 |---|---|---|
 | Mọi người | Việc được giao, nộp bằng chứng, Việc của tôi | [Việc được giao](#cv-viec-duoc-giao), [Bị trả về](#cv-bi-tra-ve), [Việc của tôi](#cv-viec-cua-toi) |
 | Tổ phó, tổ trưởng (2–3 sao) | **Việc tôi tạo**: giao ngay cho cấp dưới trong tổ, duyệt hoàn thành | [Giao việc](#cv-tao-cong-viec), [Duyệt hoàn thành](#cv-duyet-hoan-thanh) |
-| Ban Giám hiệu (4–5 sao) | **Chờ tôi duyệt**: Duyệt / Trả lại công việc Văn thư gửi; giao ngay cho cấp dưới mọi tổ hoặc cả phòng ban | [Duyệt công việc](#cv-bgh-duyet-cong-viec), [Giao việc](#cv-tao-cong-viec) |
+| Ban Giám hiệu (4–5 sao) | **Chờ tôi duyệt**: Duyệt / Trả lại công việc Văn thư gửi; giao ngay cho cấp dưới mọi tổ hoặc cả tổ chuyên môn | [Duyệt công việc](#cv-bgh-duyet-cong-viec), [Giao việc](#cv-tao-cong-viec) |
 | Văn thư (Moderator), Admin | **+ Tạo công việc** → chọn **Người duyệt** → **Gửi duyệt**; theo dõi Chờ duyệt / Bị trả lại; duyệt hoàn thành | [Gửi duyệt](#cv-van-thu-gui-duyet), [Duyệt hoàn thành](#cv-duyet-hoan-thanh) |
 
 ::: note Sửa, xóa công việc

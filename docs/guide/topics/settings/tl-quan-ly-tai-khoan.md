@@ -11,7 +11,7 @@ Hỗ trợ thầy cô khi quên mật khẩu, bị khóa đăng nhập hoặc ng
 
 Trong danh sách người dùng, mỗi dòng [[1]] có các nút:
 
-- **Sửa** [[2]]: đổi họ tên, vai trò, phòng ban, chức vụ, nhóm quyền (email không đổi được).
+- **Sửa** [[2]]: đổi họ tên, vai trò, tổ chuyên môn, chức vụ, nhóm quyền (email không đổi được).
 - **Đặt lại MK** [[3]]: nhập mật khẩu tạm thời mới; người dùng phải đổi mật khẩu khi đăng nhập lại.
 - **Phiên** [[4]]: xem thiết bị đang đăng nhập và đăng xuất từ xa.
 - **Mở khóa ĐN** [[5]]: hiện khi tài khoản bị khóa vì nhập sai mật khẩu quá số lần (nhãn **Khóa ĐN**).

@@ -17,10 +17,10 @@ Mở hồ sơ, đổi ảnh đại diện, đổi mật khẩu, xem thiết bị
 ![Menu tài khoản: 1 Hồ sơ, 2 Đổi mật khẩu, 3 Thiết bị đăng nhập, 4 Hướng dẫn sử dụng, 5 Đăng xuất](menu-tai-khoan)
 
 #### Đổi ảnh đại diện
-Trong **Hồ sơ nội bộ**, bấm **Đổi ảnh đại diện** [[1]], chọn ảnh, kéo/phóng để căn khung rồi lưu. Hồ sơ còn cho biết email, vai trò, phòng ban, chức vụ và nhóm quyền của thầy cô.
+Trong **Hồ sơ nội bộ**, bấm **Đổi ảnh đại diện** [[1]], chọn ảnh, kéo/phóng để căn khung rồi lưu. Hồ sơ còn cho biết email, vai trò, tổ chuyên môn, chức vụ và nhóm quyền của thầy cô.
 
 ![Hồ sơ nội bộ: 1 nút Đổi ảnh đại diện](ho-so)
 
 ### Câu hỏi thường gặp
-??? Thông tin phòng ban hoặc chức vụ trong hồ sơ bị sai?
+??? Thông tin tổ chuyên môn hoặc chức vụ trong hồ sơ bị sai?
 Thầy cô không tự sửa được các mục này. Hãy báo quản trị viên cập nhật.

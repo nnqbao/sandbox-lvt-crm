@@ -122,7 +122,7 @@ export default [
     actions: [
       { click: { css: 'button', text: 'Tạo công việc' }, after: 500 },
       { fill: { css: '#work-document-editor .duty-content-field input' }, value: 'Kế hoạch ôn tập kiểm tra giữa kỳ I' },
-      { click: { css: '#work-document-editor button', text: 'Phòng ban' } },
+      { click: { css: '#work-document-editor button', text: 'Tổ chuyên môn' } },
       { select: { css: '#work-document-editor .work-inline-row select' }, value: 'dep_toan' },
       { fill: { css: '#work-document-editor .work-inline-row textarea' }, value: 'Nộp đề cương ôn tập môn Toán các khối' },
       { fill: { css: '#work-document-editor .work-inline-row input[type=date]' }, value: '2026-10-30' },
@@ -149,7 +149,7 @@ export default [
     actions: [
       { click: { css: 'button', text: 'Tạo công việc' }, after: 500 },
       { fill: { css: '#work-document-editor .duty-content-field input' }, value: 'Kế hoạch ôn tập kiểm tra giữa kỳ I' },
-      { click: { css: '#work-document-editor button', text: 'Phòng ban' } },
+      { click: { css: '#work-document-editor button', text: 'Tổ chuyên môn' } },
       { select: { css: '#work-document-editor .work-inline-row select' }, value: 'dep_toan' },
       { fill: { css: '#work-document-editor .work-inline-row textarea' }, value: 'Nộp đề cương ôn tập môn Toán các khối' },
       { fill: { css: '#work-document-editor .work-inline-row input[type=date]' }, value: '2026-10-30' },

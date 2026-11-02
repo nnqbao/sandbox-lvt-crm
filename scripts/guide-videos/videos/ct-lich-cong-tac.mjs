@@ -45,7 +45,7 @@ export default {
         { caption: 'Bảng tuần theo mẫu văn bản của trường, gồm các cột Ngày, Thời gian, Nội dung, Địa điểm và Thành phần.', highlight: '.report-calendar-stage .lct-table thead', label: 'Các cột', hold: 6 },
         { chapter: 'Xác nhận tham gia', clear: true, step: 'Bước 1', caption: 'Bấm vào một dòng công tác để xem chi tiết, ví dụ “Dự giờ tiết Toán lớp 7/2” đang diễn ra.', click: row('Dự giờ tiết Toán lớp 7/2'), waitFor: '.report-event-detail', hold: 1.5 },
         { js: PIN_DETAIL, hold: 0.1 },
-        { caption: 'Khung chi tiết hiện bên phải: thời gian, ngày, địa điểm, nội dung và “Hình thức gán” (theo phòng ban hay gán cá nhân).', highlight: '.report-event-detail dl', hold: 6 },
+        { caption: 'Khung chi tiết hiện bên phải: thời gian, ngày, địa điểm, nội dung và “Hình thức gán” (theo tổ / phòng ban hay gán cá nhân).', highlight: '.report-event-detail dl', hold: 6 },
         { clear: true, step: 'Bước 2', caption: 'Khi đang có mặt ở công tác, bấm “Đã tham gia”.', click: { css: '.report-detail-attendance .attend-btn', text: 'Đã tham gia' }, hold: 0.4 },
         { js: MARK_ATTENDED, hold: 1.5 },
         { caption: 'Nhãn đầu khung chuyển thành “Đã tham gia”. Bấm nhầm thì bấm “Chưa tham gia” để đổi lại, khi công tác vẫn đang diễn ra.', highlight: '.report-detail-status', hold: 6 },

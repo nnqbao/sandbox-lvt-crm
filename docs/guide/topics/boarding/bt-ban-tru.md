@@ -5,7 +5,7 @@ menu: Bán trú
 roles: Văn thư, Administrator, Ban Giám hiệu, Giáo viên
 keywords: ban tru, ky ban tru, hoc ky, giao vien tham gia, trong trua, an trua, bao cao ban tru
 ---
-Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem danh sách đó theo phòng ban.
+Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem danh sách đó theo tổ chuyên môn.
 
 @video(bt-ban-tru)
 
@@ -13,7 +13,7 @@ Lập danh sách giáo viên tham gia bán trú theo từng học kỳ và xem d
 |---|---|
 | Văn thư (Moderator), Administrator | Tab **Kỳ bán trú**: thêm, sửa, xóa kỳ. Tab **Danh sách tham gia**: toàn trường |
 | Dòng **Bán trú** trong nhóm quyền ở mức **Xem tối cao** (thường là Ban Giám hiệu) | Danh sách tham gia của toàn trường |
-| Dòng **Bán trú** trong nhóm quyền ở mức **Xem** | Danh sách giáo viên tham gia trong **phòng ban của mình** |
+| Dòng **Bán trú** trong nhóm quyền ở mức **Xem** | Danh sách giáo viên tham gia trong **tổ chuyên môn của mình** |
 
 Menu **Bán trú** hiện theo dòng **Bán trú** trong nhóm quyền (nhóm cũ theo mức **Báo cáo**). Danh sách tham gia cũng mở được từ **Báo cáo → Bán trú**.
 
@@ -33,16 +33,16 @@ Trong biểu mẫu:
 
 ![Biểu mẫu Thêm kỳ bán trú: 1 học kỳ, 2 năm học, 3 Thêm giáo viên, 4 Tạo kỳ bán trú](bt-them-ky)
 
-Trong hộp chọn giáo viên, gõ tên, email hoặc phòng ban vào ô tìm kiếm [[1]], tích từng người [[2]] (hoặc **Chọn tất cả**; khi đang tìm kiếm, nút đổi thành **Chọn … người đang hiện** và chỉ chọn những người trong kết quả), rồi bấm **Hoàn thành** [[3]].
+Trong hộp chọn giáo viên, gõ tên, email hoặc tổ chuyên môn vào ô tìm kiếm [[1]], tích từng người [[2]] (hoặc **Chọn tất cả**; khi đang tìm kiếm, nút đổi thành **Chọn … người đang hiện** và chỉ chọn những người trong kết quả), rồi bấm **Hoàn thành** [[3]].
 
 ![Hộp chọn giáo viên: 1 ô tìm kiếm, 2 người đã tích, 3 Hoàn thành](bt-chon-giao-vien)
 
 #### Xem danh sách tham gia
 1. Mở menu **Bán trú** (Văn thư, Administrator: tab **Danh sách tham gia**), hoặc **Báo cáo → Bán trú**.
 2. Chọn **Kỳ bán trú** [[1]] cần xem.
-3. Xem số giáo viên và số phòng ban [[2]], rồi bảng giáo viên theo từng phòng ban [[3]].
+3. Xem số giáo viên và số tổ chuyên môn [[2]], rồi bảng giáo viên theo từng tổ [[3]].
 
-![Danh sách tham gia: 1 chọn kỳ, 2 số liệu, 3 bảng theo phòng ban](bt-danh-sach)
+![Danh sách tham gia: 1 chọn kỳ, 2 số liệu, 3 bảng theo tổ chuyên môn](bt-danh-sach)
 ![Trên điện thoại: 1 chọn kỳ bán trú](bt-danh-sach-mobile)
 
 ::: note
@@ -57,4 +57,4 @@ Học kỳ đó của năm học đó đã có. Bấm **Sửa** ở thẻ kỳ c
 Menu đi theo dòng **Bán trú** trong nhóm quyền. Nếu nhóm quyền của thầy cô đặt Bán trú là **Ẩn**, hãy nhờ quản trị viên kiểm tra.
 
 ??? Vì sao tôi chỉ thấy giáo viên trong tổ mình?
-Mức **Xem** chỉ hiện phòng ban của mình. Muốn xem toàn trường cần mức **Xem tối cao** ở dòng Bán trú.
+Mức **Xem** chỉ hiện tổ chuyên môn của mình. Muốn xem toàn trường cần mức **Xem tối cao** ở dòng Bán trú.

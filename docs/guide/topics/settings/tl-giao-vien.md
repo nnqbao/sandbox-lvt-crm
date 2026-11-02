@@ -5,7 +5,7 @@ menu: Thiết lập tối cao → Thiết lập giáo viên
 roles: Administrator
 keywords: giao vien, mon giang day, lop giang day, lop chu nhiem, lich day, them lich day
 ---
-Danh sách giáo viên theo phòng ban, kèm Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm và Lịch dạy của năm học. Làm lần lượt: **môn → lớp → lịch**.
+Danh sách giáo viên theo tổ chuyên môn, kèm Môn giảng dạy, Lớp giảng dạy, Lớp chủ nhiệm và Lịch dạy của năm học. Làm lần lượt: **môn → lớp → lịch**.
 
 @video(tl-giao-vien)
 

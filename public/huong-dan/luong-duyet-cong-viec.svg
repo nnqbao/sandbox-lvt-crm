@@ -50,7 +50,7 @@ text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-s
 <rect x="20" y="284" width="6" height="100" rx="3" fill="#138f7b"/>
 <text x="42" y="308" class="k">BAN GIÁM HIỆU · TỔ TRƯỞNG · TỔ PHÓ</text>
 <text x="42" y="330" class="t">Tạo công việc → giao ngay, không cần duyệt</text>
-<text x="42" y="352" class="s">BGH: người cấp thấp hơn ở mọi tổ, hoặc giao cả phòng ban</text>
+<text x="42" y="352" class="s">BGH: người cấp thấp hơn ở mọi tổ, hoặc giao cả tổ chuyên môn</text>
 <text x="42" y="371" class="s">Tổ trưởng, tổ phó: người cấp thấp hơn trong tổ mình</text>
 <path class="a" d="M577 334 H627"/>
 <text x="602" y="323" text-anchor="middle" class="lab">Ngay</text>

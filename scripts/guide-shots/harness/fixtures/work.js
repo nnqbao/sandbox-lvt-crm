@@ -2,7 +2,7 @@
 // Approval rule mirrored here (convex/workDocumentPolicy.ts): work created by Văn thư
 // (admin/mod) waits for Ban giám hiệu approval; work created by BGH or a tổ trưởng is
 // released immediately.
-import { DAY, DEPARTMENTS, HOUR, POSITIONS, T0, USERS, departmentById, positionById, userById } from './personas.js';
+import { DAY, DEPARTMENTS, HOUR, POSITIONS, T0, UNITS, USERS, departmentById, positionById, userById } from './personas.js';
 
 const level = (user) => positionById(user.positionId)?.level || 0;
 const isOps = (user) => user.role === 'admin' || user.role === 'moderator';
@@ -279,6 +279,8 @@ function formOptions(_args, { persona }) {
     canAssignDepartments,
     assignerMode: 'admin_mod',
     departments: canAssignDepartments ? DEPARTMENTS.map((d) => ({ _id: d._id, name: d.name, code: d.code })) : [],
+    // Phòng ban rows are a văn thư (admin/mod) pick only.
+    units: ops ? UNITS.map((u) => ({ _id: u._id, name: u.name, code: u.code, memberUserIds: u.memberUserIds })) : [],
     users: users.map(option),
     documentTypes: DOC_TYPES,
     // Active Ban giám hiệu (level 4+, never admin/moderator), highest level first.
@@ -344,10 +346,10 @@ function workCalendar(args, { persona }) {
     kpi: { total: 6, onTime: 2, late: 1, incomplete: 1 },
     events: [
       ev('r1', 'Nộp giáo án chủ đề Phân số', '2026-10-05', 'completed', 95),
-      ev('r2', 'Cập nhật sổ điểm điện tử tháng 9', '2026-10-10', 'completed_late', 80, 'Phòng ban'),
+      ev('r2', 'Cập nhật sổ điểm điện tử tháng 9', '2026-10-10', 'completed_late', 80, 'Việc của tổ'),
       ev('r6', 'Dự giờ đồng nghiệp tháng 10', '2026-10-14', 'completed', 100),
       ev('r3', 'Báo cáo kết quả bồi dưỡng học sinh giỏi', '2026-10-19', 'overdue'),
-      ev('r4', 'Nộp kế hoạch dạy học môn Toán học kỳ I', '2026-10-25', 'in_progress', null, 'Phòng ban'),
+      ev('r4', 'Nộp kế hoạch dạy học môn Toán học kỳ I', '2026-10-25', 'in_progress', null, 'Việc của tổ'),
       ev('r5', 'Chuẩn bị đề kiểm tra giữa kỳ Toán 7', '2026-10-28', 'in_progress'),
     ],
   };

@@ -62,7 +62,7 @@ export default {
         { caption: 'Dòng “Điểm danh” chỉ có hai lựa chọn: Ẩn hoặc Giám thị. Các menu khác hiện dấu gạch ở cột Giám thị.', highlight: row('Điểm danh'), label: 'Chỉ Ẩn hoặc Giám thị', hold: 4.5 },
         { clear: true, caption: 'Chọn “Giám thị” ở dòng Điểm danh để nhóm này được điểm danh học sinh.', click: radio('Điểm danh', 1), hold: 1.5 },
         { step: 'Chú ý', caption: 'Mức Giám thị chỉ mở menu Điểm danh: lưu điểm danh của ngày hôm nay. Nó không mở Lớp học hay bất kỳ menu nào khác.', highlight: row('Lớp học'), label: 'Lớp học vẫn Ẩn', hold: 5 },
-        { clear: true, caption: 'Dòng “Bán trú”: Xem là phòng ban của mình, Xem tối cao là toàn trường.', highlight: row('Bán trú'), hold: 4 },
+        { clear: true, caption: 'Dòng “Bán trú”: Xem là tổ chuyên môn của mình, Xem tối cao là toàn trường.', highlight: row('Bán trú'), hold: 4 },
         { clear: true, step: 'Bước 3', caption: 'Kiểm tra lại từng dòng rồi bấm “+ Thêm nhóm quyền”.', click: submit, hold: 1 },
       ],
     },

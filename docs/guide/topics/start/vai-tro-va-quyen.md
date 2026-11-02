@@ -11,7 +11,7 @@ Mỗi tài khoản có **một vai trò**:
 
 | Vai trò | Ai thường giữ | Được làm gì |
 |---|---|---|
-| **Administrator** | Quản trị viên CNTT | Toàn quyền, gồm phần **Thiết lập tối cao** (tài khoản, phòng ban, chức vụ, nhóm quyền, năm học…). |
+| **Administrator** | Quản trị viên CNTT | Toàn quyền, gồm phần **Thiết lập tối cao** (tài khoản, tổ chuyên môn, phòng ban, chức vụ, nhóm quyền, năm học…). |
 | **Moderator** | Văn thư, người điều phối | Quản lý nghiệp vụ hằng ngày: giao việc (gửi Ban Giám hiệu duyệt trước), lịch công tác, lớp, báo cáo. Không vào Thiết lập tối cao. |
 | **User** | Giáo viên, nhân viên, BGH | Dùng các menu mà **nhóm quyền** cho phép. |
 
@@ -25,8 +25,8 @@ Với **User**, ba thứ quyết định những gì thầy cô thấy:
 ![Giám thị](menu-giam-thi)
 ![Quản trị viên (có thêm Thiết lập tối cao)](menu-quan-tri)
 
-::: note Moderator theo phòng ban
-Nhà trường có thể giới hạn một Moderator chỉ quản lý **phòng ban của mình** ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi. Khi đó họ chỉ thấy dữ liệu của tổ đó.
+::: note Moderator theo tổ chuyên môn
+Nhà trường có thể giới hạn một Moderator chỉ quản lý **tổ chuyên môn của mình** ở Công việc, Báo cáo, Đánh giá nhân sự và Ghi nhận lỗi. Khi đó họ chỉ thấy dữ liệu của tổ đó.
 :::
 
 ::: tip
