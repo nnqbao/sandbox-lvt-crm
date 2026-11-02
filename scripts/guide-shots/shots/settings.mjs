@@ -27,7 +27,7 @@ export default [
       { n: 1, target: label('Họ tên'), pos: 'left' },
       { n: 2, target: label('Email (đăng nhập)'), pos: 'right' },
       { n: 3, target: label('Vai trò'), pos: 'left' },
-      { n: 4, target: label('Phòng ban'), pos: 'right' },
+      { n: 4, target: label('Tổ chuyên môn'), pos: 'right' },
       { n: 5, target: label('Chức vụ'), pos: 'left' },
       { n: 6, target: { css: 'form.admin-form label.field-disabled' }, pos: 'right' },
       { n: 7, target: label('Mật khẩu tạm thời'), pos: 'left' },
@@ -81,6 +81,19 @@ export default [
     ],
     callouts: [{ n: 1, target: '.user-bulk-import-errors', pos: 'left' }],
     clip: { target: '.user-bulk-import-errors', pad: 20 },
+  },
+  {
+    id: 'tl-to-chuyen-mon',
+    scenario: 'admin',
+    path: '/thiet-lap-to-chuyen-mon',
+    callouts: [
+      { n: 1, target: label('Tên tổ chuyên môn'), pos: 'left' },
+      { n: 2, target: label('Mã'), pos: 'right' },
+      { n: 3, target: { css: 'button', text: 'Thêm tổ chuyên môn' }, pos: 'left' },
+      { n: 4, target: { css: '.mgmt-card button', text: 'Thêm user', nth: 1 }, pos: 'bottom' },
+    ],
+    clip: { target: '.shell-main > section', pad: 0 },
+    maxHeight: 760,
   },
   {
     id: 'tl-phong-ban',

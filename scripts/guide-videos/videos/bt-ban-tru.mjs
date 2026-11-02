@@ -7,7 +7,7 @@ const created = [{ _id: 'bp_2627_2', semester: 2, schoolYear: '2026-2027', parti
 export default {
   id: 'bt-ban-tru',
   title: 'Bán trú',
-  intro: 'Văn thư lập danh sách giáo viên tham gia bán trú cho từng học kỳ. Ban Giám hiệu và giáo viên xem danh sách đó theo phòng ban.',
+  intro: 'Văn thư lập danh sách giáo viên tham gia bán trú cho từng học kỳ. Ban Giám hiệu và giáo viên xem danh sách đó theo tổ chuyên môn.',
   scenes: [
     {
       scenario: 'clerk',
@@ -22,7 +22,7 @@ export default {
         { clear: true, step: 'Bước 2', caption: 'Chọn học kỳ. Mặc định là Học kỳ 1; năm nay Học kỳ 1 đã có kỳ, nên bấm “Học kỳ 2”.', click: { css: '.boarding-semester-field label', text: 'Học kỳ 2' }, hold: 2 },
         { step: 'Bước 3', caption: 'Chọn “Năm học”, mặc định là năm học hiện tại 2026-2027.', choose: '.boarding-year-field select', option: '2026-2027' },
         { step: 'Bước 4', caption: 'Bấm “＋ Thêm giáo viên” để mở danh sách nhân sự.', click: { css: '.boarding-participant-heading button', text: 'Thêm giáo viên' }, waitFor: '.boarding-teacher-modal', hold: 1.5 },
-        { caption: 'Gõ tên, email hoặc phòng ban vào ô tìm kiếm để lọc nhanh, ví dụ “Toán”.', type: '.boarding-picker-tools input', text: 'Toán', keepFocus: true },
+        { caption: 'Gõ tên, email hoặc tổ chuyên môn vào ô tìm kiếm để lọc nhanh, ví dụ “Toán”.', type: '.boarding-picker-tools input', text: 'Toán', keepFocus: true },
         { caption: 'Tích từng giáo viên tham gia. Thẻ được chọn chuyển sang viền xanh.', click: option('Lê Thị D'), hold: 1.2 },
         { click: option('Ngô Thị L'), hold: 1 },
         { click: option('Nguyễn Văn A'), hold: 1.2 },
@@ -45,10 +45,10 @@ export default {
         { caption: 'Biểu mẫu “Sửa kỳ bán trú” điền sẵn danh sách hiện tại. Thêm, bỏ người rồi bấm “Lưu thay đổi”.', highlight: '.boarding-editor', label: 'Đang sửa', hold: 6 },
         { clear: true, caption: 'Đổi ý thì bấm “Hủy” để đóng biểu mẫu, không có gì thay đổi.', click: { css: '.boarding-editor-actions button', text: 'Hủy' }, hold: 1.5 },
         { step: 'Xóa kỳ', caption: 'Muốn bỏ hẳn một kỳ: bấm “Xóa” ở thẻ đó, rồi xác nhận khi trình duyệt hỏi lại.', point: { css: '.boarding-period-card footer button', text: 'Xóa', nth: 0 }, hold: 3 },
-        { chapter: 'Danh sách tham gia', step: 'Danh sách', caption: 'Bấm tab “Danh sách tham gia” để xem giáo viên theo từng phòng ban.', click: { css: '.boarding-page-tabs button', text: 'Danh sách tham gia' }, waitFor: '.boarding-report-stats', hold: 1.5 },
+        { chapter: 'Danh sách tham gia', step: 'Danh sách', caption: 'Bấm tab “Danh sách tham gia” để xem giáo viên theo từng tổ chuyên môn.', click: { css: '.boarding-page-tabs button', text: 'Danh sách tham gia' }, waitFor: '.boarding-report-stats', hold: 1.5 },
         { caption: 'Ô “Kỳ bán trú” bên phải chọn kỳ cần xem (mặc định là kỳ mới nhất), ví dụ Học kỳ 1 năm học 2026-2027.', choose: '.boarding-period-picker select', option: 'bp_2627_1' },
-        { caption: 'Hai ô số liệu: tổng số giáo viên tham gia và số phòng ban có người tham gia.', highlight: '.boarding-report-stats', hold: 5 },
-        { caption: 'Bên dưới là từng phòng ban: họ tên, email, chức vụ của từng giáo viên đã đăng ký.', highlight: { css: '.boarding-report-group', nth: 0 }, label: 'Một phòng ban', hold: 6 },
+        { caption: 'Hai ô số liệu: tổng số giáo viên tham gia và số tổ chuyên môn có người tham gia.', highlight: '.boarding-report-stats', hold: 5 },
+        { caption: 'Bên dưới là từng tổ chuyên môn: họ tên, email, chức vụ của từng giáo viên đã đăng ký.', highlight: { css: '.boarding-report-group', nth: 0 }, label: 'Một phòng ban', hold: 6 },
       ],
     },
     {
@@ -57,7 +57,7 @@ export default {
       steps: [
         { chapter: 'Ban Giám hiệu, giáo viên xem', clear: true, step: 'Ban Giám hiệu', caption: 'Ban Giám hiệu mở menu “Bán trú”, hoặc mở “Báo cáo” rồi chọn mục con “Bán trú” ngay bên dưới.', click: nav('Báo cáo'), waitFor: '.report-submenu', hold: 1.2 },
         { click: { css: '.report-submenu button', text: 'Bán trú' }, waitFor: '.boarding-report-stats', hold: 1.5 },
-        { caption: 'Ban Giám hiệu xem được toàn bộ phòng ban tham gia bán trú của trường.', highlight: '.boarding-period-picker > div', hold: 5 },
+        { caption: 'Ban Giám hiệu xem được mọi tổ chuyên môn tham gia bán trú của trường.', highlight: '.boarding-period-picker > div', hold: 5 },
       ],
     },
     {
@@ -65,7 +65,7 @@ export default {
       path: '/ban-tru',
       waitFor: '.boarding-report-stats',
       steps: [
-        { step: 'Giáo viên', caption: 'Giáo viên mở menu “Bán trú” và chỉ thấy người tham gia trong phòng ban của mình.', highlight: '.boarding-period-picker > div', hold: 6 },
+        { step: 'Giáo viên', caption: 'Giáo viên mở menu “Bán trú” và chỉ thấy người tham gia trong tổ chuyên môn của mình.', highlight: '.boarding-period-picker > div', hold: 6 },
         { clear: true, caption: 'Ở đây chỉ có tổ Toán – Tin. Giáo viên không thêm hay sửa được kỳ bán trú.', highlight: { css: '.boarding-report-group', nth: 0 }, hold: 5 },
         { clear: true, step: 'Lưu ý', caption: 'Mỗi học kỳ của một năm học chỉ có một kỳ bán trú. Báo “Kỳ bán trú này đã tồn tại” thì bấm “Sửa” ở kỳ có sẵn.' },
         { caption: 'Chỉ chọn được người đang hoạt động. Khi đang tìm kiếm, nút “Chọn tất cả” đổi thành “Chọn … người đang hiện” và chỉ chọn những người trong kết quả.' },

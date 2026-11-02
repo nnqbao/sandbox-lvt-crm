@@ -1,4 +1,4 @@
-// Fictional people, departments and positions shared by every fixture module.
+// Fictional people, tổ chuyên môn (departments), phòng ban (units) and positions shared by every fixture module.
 // Names follow the "Nguyễn Văn A / Trần Thị B" convention so nobody mistakes
 // them for real staff. Do not replace them with real data.
 
@@ -6,8 +6,8 @@ export const T0 = Date.parse('2026-10-21T09:00:00+07:00'); // frozen "now" (Th�
 export const DAY = 24 * 60 * 60 * 1000;
 export const HOUR = 60 * 60 * 1000;
 
+// Tổ chuyên môn: one per person. Ban Giám hiệu, văn thư, nhân viên and giám thị belong to Tổ Văn phòng.
 export const DEPARTMENTS = [
-  { _id: 'dep_bgh', name: 'Ban Giám hiệu', code: 'BGH', active: true },
   { _id: 'dep_toan', name: 'Tổ Toán – Tin', code: 'TOAN', active: true },
   { _id: 'dep_van', name: 'Tổ Ngữ văn', code: 'VAN', active: true },
   { _id: 'dep_anh', name: 'Tổ Tiếng Anh', code: 'ANH', active: true },
@@ -97,8 +97,8 @@ function user(id, name, email, role, departmentId, positionId, permissionGroupId
 export const USERS = [
   user('u_admin', 'Võ Văn H', 'admin@truongmau.example', 'admin', 'dep_vp', undefined, undefined),
   user('u_clerk', 'Đỗ Thị G', 'vanthu@truongmau.example', 'moderator', 'dep_vp', 'pos_vt', undefined),
-  user('u_bgh', 'Hoàng Văn E', 'hieutruong@truongmau.example', 'user', 'dep_bgh', 'pos_ht', 'grp_bgh'),
-  user('u_pht', 'Bùi Thị K', 'phohieutruong@truongmau.example', 'user', 'dep_bgh', 'pos_pht', 'grp_bgh'),
+  user('u_bgh', 'Hoàng Văn E', 'hieutruong@truongmau.example', 'user', 'dep_vp', 'pos_ht', 'grp_bgh'),
+  user('u_pht', 'Bùi Thị K', 'phohieutruong@truongmau.example', 'user', 'dep_vp', 'pos_pht', 'grp_bgh'),
   user('u_leader', 'Lê Thị D', 'totruong.toan@truongmau.example', 'user', 'dep_toan', 'pos_tt', 'grp_tt'),
   user('u_teacher', 'Nguyễn Văn A', 'giaovien.a@truongmau.example', 'user', 'dep_toan', 'pos_gv', 'grp_gv'),
   user('u_gvcn', 'Trần Thị B', 'giaovien.b@truongmau.example', 'user', 'dep_van', 'pos_gv', 'grp_gvcn'),
@@ -108,6 +108,13 @@ export const USERS = [
   user('u_t7', 'Lý Thị N', 'giaovien.n@truongmau.example', 'user', 'dep_anh', 'pos_gv', 'grp_gvcn'),
   user('u_t8', 'Trương Văn P', 'giaovien.p@truongmau.example', 'user', 'dep_anh', 'pos_tt', 'grp_tt'),
 ];
+
+// Phòng ban: many-to-many groups without permissions (one person may be in several).
+export const UNITS = [
+  { _id: 'unit_bgh', name: 'Ban Giám hiệu', code: 'BGH', memberUserIds: ['u_bgh', 'u_pht'] },
+  { _id: 'unit_cd', name: 'Công đoàn', code: 'CD', memberUserIds: ['u_pht', 'u_t6', 'u_clerk'] },
+  { _id: 'unit_du', name: 'Đảng uỷ', code: 'DU', memberUserIds: ['u_bgh', 'u_pht', 'u_leader'] },
+].map((row) => ({ ...row, active: true, createdAt: T0 - 20 * DAY, updatedAt: T0 - 5 * DAY, _creationTime: T0 - 20 * DAY }));
 
 export const userById = (id) => USERS.find((row) => row._id === id);
 export const departmentById = (id) => DEPARTMENTS.find((row) => row._id === id);

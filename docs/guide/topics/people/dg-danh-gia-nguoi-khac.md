@@ -23,7 +23,7 @@ Trong hộp **Thêm đánh giá**:
 ![Hộp Thêm đánh giá: 1 chọn kỳ, 2 Upload file, 3 BGH đánh giá, 4 Lưu](dg-them-danh-gia)
 
 ::: note
-Ban Giám hiệu (4–5 sao) ghi ô **BGH đánh giá**; Văn thư (Admin/Moderator) cũng có thể ghi thay cho người 1–3 sao. Tổ trưởng chỉ thấy và đánh giá người cấp dưới trong tổ. Nếu nhà trường giới hạn Moderator theo phòng ban, Moderator chỉ thấy người trong phòng ban đó.
+Ban Giám hiệu (4–5 sao) ghi ô **BGH đánh giá**; Văn thư (Admin/Moderator) cũng có thể ghi thay cho người 1–3 sao. Tổ trưởng chỉ thấy và đánh giá người cấp dưới trong tổ. Nếu nhà trường giới hạn Moderator theo tổ chuyên môn, Moderator chỉ thấy người trong tổ đó.
 :::
 
 #### Văn thư ghi thay — cần Ban Giám hiệu duyệt

@@ -274,7 +274,7 @@ const GUIDE_ANCHORS = Object.freeze({
   'change-password': 'doi-mat-khau',
   devices: 'thiet-bi-dang-nhap',
   users: 'tl-nguoi-dung',
-  departments: 'tl-phong-ban',
+  departments: 'tl-to-chuyen-mon',
   units: 'tl-phong-ban',
   roles: 'tl-nhom-quyen',
   positions: 'tl-chuc-vu',

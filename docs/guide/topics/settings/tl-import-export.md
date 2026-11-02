@@ -17,7 +17,7 @@ Tạo nhiều tài khoản giáo viên một lần, hoặc xuất danh sách đa
 
 ![Import người dùng: 1 file mẫu, 2 chọn file, 3 xem trước, 4 xác nhận, 5 xuất danh sách](tl-import-nguoi-dung)
 
-Nếu có dòng sai (trùng email, sai mã phòng ban/chức vụ/nhóm quyền, mật khẩu quá ngắn…), hệ thống **không tạo tài khoản nào** và liệt kê lỗi theo dòng [[1]].
+Nếu có dòng sai (trùng email, sai mã tổ chuyên môn/chức vụ/nhóm quyền, mật khẩu quá ngắn…), hệ thống **không tạo tài khoản nào** và liệt kê lỗi theo dòng [[1]].
 
 ![Báo lỗi khi import: 1 danh sách dòng lỗi](tl-import-loi)
 

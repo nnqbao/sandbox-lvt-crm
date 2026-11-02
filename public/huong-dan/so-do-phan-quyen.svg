@@ -18,7 +18,7 @@ text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-s
 <text x="42" y="102" class="s">Administrator: toàn quyền,</text>
 <text x="42" y="121" class="s">có Thiết lập tối cao.</text>
 <text x="42" y="140" class="s">Moderator: quản lý nghiệp vụ,</text>
-<text x="42" y="159" class="s">có thể giới hạn theo phòng ban.</text>
+<text x="42" y="159" class="s">có thể giới hạn theo tổ.</text>
 <text x="42" y="178" class="s">User: theo nhóm quyền.</text>
 <rect x="315" y="30" width="270" height="200" rx="14" fill="#fffdf7" stroke="#dce5eb" stroke-width="1.5"/>
 <rect x="315" y="30" width="6" height="200" rx="3" fill="#e9ad43"/>
@@ -36,4 +36,4 @@ text{font-family:'Montserrat Variable',Montserrat,ui-sans-serif,system-ui,sans-s
 <text x="632" y="121" class="s">4–5 sao: duyệt và sửa lịch tuần,</text>
 <text x="632" y="140" class="s">ghi nhận xét đánh giá.</text>
 <text x="632" y="159" class="s">Cấp cao quản lý cấp thấp hơn.</text>
-<text x="450" y="268" text-anchor="middle" class="cap">Menu và nút mỗi người thấy = vai trò + nhóm quyền + chức vụ (+ phòng ban)</text></svg>
+<text x="450" y="268" text-anchor="middle" class="cap">Menu và nút mỗi người thấy = vai trò + nhóm quyền + chức vụ (+ tổ chuyên môn)</text></svg>

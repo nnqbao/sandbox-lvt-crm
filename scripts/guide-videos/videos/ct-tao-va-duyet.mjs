@@ -55,8 +55,8 @@ export default {
       path: '/cong-tac/tao',
       waitFor: form,
       steps: [
-        { chapter: 'Văn thư tạo lịch trường', step: 'Văn thư', caption: 'Văn thư dùng cùng biểu mẫu, có thêm ô “Phòng ban tham gia” để mời cả tổ.', click: { css: `${form} .multi-check-toggle`, nth: 0 }, hold: 0.8 },
-        { highlight: { css: `${form} .duty-field`, text: 'Phòng ban tham gia' }, hold: 3.5 },
+        { chapter: 'Văn thư tạo lịch trường', step: 'Văn thư', caption: 'Văn thư dùng cùng biểu mẫu, có thêm ô “Tổ chuyên môn tham gia” để mời cả tổ và ô “Phòng ban tham gia” để mời cả phòng ban.', click: { css: `${form} .multi-check-toggle`, nth: 0 }, hold: 0.8 },
+        { highlight: { css: `${form} .duty-field`, text: 'Tổ chuyên môn tham gia' }, hold: 3.5 },
         { clear: true, step: 'Lưu ý', caption: 'Lịch trường chỉ hiện với giáo viên sau khi Ban Giám hiệu duyệt tuần. Thành phần có thể bổ sung sau, trước khi nộp.' },
       ],
     },
@@ -85,7 +85,7 @@ export default {
         { act: { click: headAction('Import Excel') }, hold: 0.3 },
         { act: UPLOAD, wait: 800, hold: 0.3 },
         { step: 'Lưu ý', caption: 'Có dòng sai thì chưa nhập dòng nào; “Báo cáo lỗi” chỉ rõ từng dòng. Sửa file rồi import lại.', highlight: '.duty-bulk-import-errors', hold: 5 },
-        { clear: true, caption: 'Tổ trưởng, tổ phó không điền mã phòng ban, chỉ điền email người trong tổ.' },
+        { clear: true, caption: 'Tổ trưởng, tổ phó không điền mã tổ chuyên môn, chỉ điền email người trong tổ.' },
       ],
     },
     {

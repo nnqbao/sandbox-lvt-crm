@@ -65,7 +65,7 @@ export default {
       steps: [
         { chapter: 'Ai ghi nhận được cho ai', step: 'Phạm vi', caption: 'Văn thư và quản trị bấm “+ Thêm ghi nhận lỗi” sẽ thấy giáo viên, nhân viên các tổ.', click: { css: 'button', text: 'Thêm ghi nhận lỗi' }, waitFor: '.pr-picker-list', hold: 1.5 },
         { caption: 'Danh sách không có Ban Giám hiệu: Văn thư và quản trị không ghi nhận lỗi cho Ban Giám hiệu.', highlight: '.pr-picker-list', hold: 6 },
-        { clear: true, caption: 'Moderator được giới hạn phòng ban chỉ thấy người trong phòng ban đó.' },
+        { clear: true, caption: 'Moderator được giới hạn theo tổ chuyên môn chỉ thấy người trong tổ đó.' },
         { caption: 'Hiệu trưởng ghi nhận Phó Hiệu trưởng, Văn thư và quản trị. Phó Hiệu trưởng chỉ ghi nhận Văn thư và quản trị. Không ai ghi nhận lỗi cho Hiệu trưởng.' },
         { caption: 'Tổ trưởng, tổ phó ghi nhận giáo viên cấp thấp hơn trong tổ. Giáo viên 1 sao không có nút “Thêm ghi nhận lỗi”.' },
       ],

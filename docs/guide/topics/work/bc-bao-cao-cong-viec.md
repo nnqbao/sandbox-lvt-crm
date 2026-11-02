@@ -18,5 +18,5 @@ Xem lịch công việc của mình hoặc của người trong phạm vi đư�
 ![Báo cáo công việc: 1 Nhân sự, 2 kỳ xem, 3 số liệu, 4 một việc trên lịch](bc-cong-viec)
 
 ::: note
-Nếu nhà trường giới hạn Moderator theo phòng ban, Moderator đó chỉ thấy báo cáo của người trong phòng ban mình.
+Nếu nhà trường giới hạn Moderator theo tổ chuyên môn, Moderator đó chỉ thấy báo cáo của người trong tổ mình.
 :::

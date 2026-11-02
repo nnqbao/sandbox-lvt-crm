@@ -1,5 +1,5 @@
 // Shell-level fixtures: session, sidebar badges, account pages and the shared
-// catalogs (users / departments / positions / permission groups / school years).
+// catalogs (users / tổ chuyên môn / phòng ban / positions / permission groups / school years).
 import {
   DAY,
   DEPARTMENTS,
@@ -7,6 +7,7 @@ import {
   PERMISSION_GROUPS,
   POSITIONS,
   T0,
+  UNITS,
   USERS,
   departmentById,
   groupById,
@@ -82,6 +83,7 @@ export const queries = {
     ],
   }),
   'departments:list': () => ({ departments: DEPARTMENTS, users: slimUsers('departmentId') }),
+  'units:list': () => ({ units: UNITS, users: slimUsers('departmentId') }),
   'positions:list': () => ({ positions: [...POSITIONS].sort((a, b) => b.level - a.level), users: slimUsers('positionId') }),
   'permissionGroups:list': () => ({
     groups: PERMISSION_GROUPS,

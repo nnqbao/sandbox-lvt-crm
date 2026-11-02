@@ -3,7 +3,7 @@ id: cv-van-thu-gui-duyet
 title: Văn thư tạo công việc và gửi Ban Giám hiệu duyệt
 menu: Công việc → Việc tôi tạo
 roles: Văn thư (Moderator), Administrator
-keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van, tu giao, giao cho minh, cung phong ban, quan tri vien sua, sua cong viec da duyet, duyet lai, da chinh sua boi
+keywords: tao cong viec, giao viec, gui duyet, nguoi duyet, ban giam hieu, cho duyet, bi tra lai, gui duyet lai, cong van, tu giao, giao cho minh, phong ban, to chuyen mon, cung to, quan tri vien sua, sua cong viec da duyet, duyet lai, da chinh sua boi
 ---
 Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám hiệu duyệt rồi mới đến tay người nhận. Riêng việc chỉ giao cho chính mình thì giao ngay, không cần duyệt.
 
@@ -12,8 +12,8 @@ Công việc do Văn thư (hoặc Administrator) tạo phải được Ban Giám
 1. Trong **Công việc**, kéo xuống mục **Việc tôi tạo**, bấm **+ Tạo công việc**.
 2. Nhập **Tên công việc** [[1]].
 3. Đính kèm công văn [[2]] nếu có (không bắt buộc), rồi chọn **Loại văn bản**.
-4. Bấm **+ Phòng ban** hoặc **+ Cá nhân** [[3]] để thêm dòng người nhận.
-5. Ở mỗi dòng [[4]]: chọn phòng ban/người, ghi **Nội dung công việc**, chọn **Hạn chót**. Bấm **×** để bỏ dòng.
+4. Bấm **＋ Tổ chuyên môn**, **＋ Phòng ban** hoặc **＋ Cá nhân** [[3]] để thêm dòng người nhận.
+5. Ở mỗi dòng [[4]]: chọn tổ, phòng ban hoặc người, ghi **Nội dung công việc**, chọn **Hạn chót**. Bấm **×** để bỏ dòng.
 6. Ở **Người duyệt (Ban giám hiệu)** [[5]], tích ít nhất một người. Đây là ô bắt buộc.
 7. Bấm **Gửi duyệt** [[6]].
 
@@ -28,12 +28,12 @@ Danh sách **Người duyệt** gồm những người đang hoạt động có 
 :::
 
 ::: tip Tự giao việc cho mình
-Ở dòng **Cá nhân**, chọn chính mình (tên có chữ **(bạn)**). Khi người nhận **duy nhất** là bạn, mục **Người duyệt** ẩn đi, nút đổi thành **Tạo** và công việc được giao ngay. Thêm bất kỳ người hay phòng ban nào khác thì công việc lại phải gửi Ban Giám hiệu duyệt.
+Ở dòng **Cá nhân**, chọn chính mình (tên có chữ **(bạn)**). Khi người nhận **duy nhất** là bạn, mục **Người duyệt** ẩn đi, nút đổi thành **Tạo** và công việc được giao ngay. Thêm bất kỳ người, tổ hay phòng ban nào khác thì công việc lại phải gửi Ban Giám hiệu duyệt.
 :::
 
 ::: note Ai có trong danh sách người nhận
-- Không giao riêng cho Hiệu trưởng, Phó Hiệu trưởng (4–5 sao); vẫn giao được cho **cả phòng ban** (kể cả Cấp Uỷ - Ban Giám Hiệu) và những người dưới 4 sao trong phòng đó.
-- Chỉ giao cho tài khoản Văn thư/Administrator khác khi **cùng phòng ban** với bạn (cả hai đều phải có phòng ban). Khác phòng thì hệ thống báo “Chỉ giao việc cho tài khoản quản trị cùng phòng ban.” Riêng Administrator khi **sửa** một công việc có sẵn thì giữ hoặc chọn được tài khoản quản trị ở mọi phòng ban.
+- Không giao riêng cho Hiệu trưởng, Phó Hiệu trưởng (4–5 sao); vẫn giao được cho **cả tổ chuyên môn**, **cả phòng ban** (kể cả phòng ban Ban Giám hiệu) và những người dưới 4 sao. Người được chọn làm **Người duyệt** không nhận việc của phòng ban đó.
+- Chỉ giao cho tài khoản Văn thư/Administrator khác khi **cùng tổ chuyên môn** với bạn (cả hai đều phải có tổ). Khác tổ thì hệ thống báo “Chỉ giao việc cho tài khoản quản trị cùng tổ chuyên môn.” Riêng Administrator khi **sửa** một công việc có sẵn thì giữ hoặc chọn được tài khoản quản trị ở mọi tổ.
 :::
 
 #### Theo dõi công việc đang chờ duyệt
@@ -62,7 +62,7 @@ Lần duyệt **đầu tiên** khóa sửa và xóa vĩnh viễn với Văn thư
 :::
 
 #### Administrator sửa công việc đã duyệt
-Administrator sửa được mọi công việc đang hoạt động, của bất kỳ ai, ở bất kỳ phòng ban nào, kể cả việc đã được duyệt hoặc việc Ban Giám hiệu, tổ trưởng giao ngay.
+Administrator sửa được mọi công việc đang hoạt động, của bất kỳ ai, ở bất kỳ tổ nào, kể cả việc đã được duyệt hoặc việc Ban Giám hiệu, tổ trưởng giao ngay.
 
 1. Bấm **Sửa** trên thẻ công việc đã duyệt. Biểu mẫu báo: “Công việc đã được duyệt. Sau khi lưu, công việc sẽ phải gửi Ban giám hiệu duyệt lại và tạm ẩn với người được giao.”
 2. Chỉnh nội dung, chọn lại **Người duyệt (Ban giám hiệu)** (bắt buộc), rồi bấm **Lưu và gửi duyệt lại**.

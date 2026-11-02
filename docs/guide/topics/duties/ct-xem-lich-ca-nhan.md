@@ -31,4 +31,4 @@ Chọn **List** [[1]] để xem dạng thẻ dễ đọc. Mỗi thẻ [[2]] có 
 Công tác do tổ trưởng, tổ phó tạo cho tổ chỉ hiện với thành viên tổ, không đưa lên Lịch công tác chung của trường.
 
 ??? Tôi được giao theo tổ hay theo tên?
-Bấm vào công tác: mục **Hình thức gán** ghi **Theo phòng ban** hoặc **Gán cá nhân**.
+Bấm vào công tác: mục **Hình thức gán** ghi **Theo tổ / phòng ban** hoặc **Gán cá nhân**.

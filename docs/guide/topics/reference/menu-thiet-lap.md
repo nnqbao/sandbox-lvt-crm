@@ -12,7 +12,8 @@ Nhóm menu chỉ Administrator nhìn thấy, nằm cuối cột trái, dưới n
 | Menu | Dùng để | Hướng dẫn |
 |---|---|---|
 | Thiết lập người dùng | Tạo, sửa, khóa tài khoản; đặt lại mật khẩu; nhập/xuất Excel | [Người dùng](#tl-nguoi-dung), [Tài khoản](#tl-quan-ly-tai-khoan), [Import, export](#tl-import-export) |
-| Thiết lập phòng ban | Tổ chuyên môn, Ban Giám hiệu, Văn phòng | [Phòng ban](#tl-phong-ban) |
+| Thiết lập tổ chuyên môn | Các tổ bộ môn, Tổ Văn phòng; mỗi người một tổ | [Tổ chuyên môn](#tl-to-chuyen-mon) |
+| Thiết lập phòng ban | Ban Giám hiệu, Đảng uỷ, Công đoàn…; một người nhiều phòng ban | [Phòng ban](#tl-phong-ban) |
 | Thiết lập nhóm quyền | Mỗi nhóm thấy menu nào, ở mức nào | [Nhóm quyền](#tl-nhom-quyen) |
 | Thiết lập chức vụ | Chức vụ và cấp bậc 1–5 sao | [Chức vụ](#tl-chuc-vu) |
 | Thiết lập loại văn bản | Loại văn bản để chọn khi đính kèm file công việc | [Loại văn bản](#tl-loai-van-ban) |

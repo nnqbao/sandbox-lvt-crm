@@ -121,7 +121,7 @@ export default {
         { step: 'Kết quả', caption: 'Nhận xét hiện trong khung “Kỳ đánh giá” của giáo viên. Giáo viên cũng thấy nhận xét này trong hồ sơ của mình.', highlight: { css: '.pr-detail-panel .pr-eval-block', nth: 0 }, hold: 6 },
         { clear: true, step: 'Lưu ý', caption: 'Có nhận xét đầu tiên là file kỳ đó bị khóa. Mỗi người chỉ nhận xét một lần cho mỗi kỳ và không sửa được, nên đọc kỹ trước khi bấm “Lưu”.' },
         { caption: 'Hiệu trưởng nhận xét được Phó Hiệu trưởng. Không ai nhận xét Hiệu trưởng.' },
-        { caption: 'Tổ trưởng, tổ phó chỉ thấy người cấp dưới trong tổ. Văn thư, quản trị thấy toàn trường; Moderator bị giới hạn phòng ban chỉ thấy phòng ban đó.' },
+        { caption: 'Tổ trưởng, tổ phó chỉ thấy người cấp dưới trong tổ. Văn thư, quản trị thấy toàn trường; Moderator bị giới hạn theo tổ chuyên môn chỉ thấy tổ đó.' },
       ],
     },
   ],
