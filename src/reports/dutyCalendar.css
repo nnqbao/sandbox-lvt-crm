@@ -634,6 +634,12 @@
   white-space: nowrap;
 }
 
+/* The compact month grid follows the space the calendar really has (the web menu column
+   takes ~250px beside it on tablets and unfolded foldables), not the viewport. */
+.report-month-frame {
+  container: report-month / inline-size;
+}
+
 .report-month-calendar {
   min-width: 980px;
   background: #fff;
@@ -1118,8 +1124,9 @@
   .report-toolbar-actions { justify-content: flex-start; }
 }
 
-/* Phones: all 7 days fit; each day shows a count, the chosen day's work is listed below. */
-@media (max-width: 680px) {
+/* Narrow frame (phones, or beside the menu on a foldable/tablet): all 7 days fit; each day
+   shows a count, the chosen day's work is listed below. */
+@container report-month (max-width: 680px) {
   .report-month-calendar { min-width: 0; }
   .report-month-weekdays span { padding: 8px 0; font-size: 12px; letter-spacing: 0; }
   .report-month-day { min-height: 0; padding: 2px; }

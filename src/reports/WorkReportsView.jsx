@@ -123,8 +123,9 @@ function formatDayHeading(date) {
 
 /**
  * Desktop: full month grid with up to 3 events per day.
- * ≤680px (CSS): all 7 columns as a compact grid with a count per day; tapping a
- * day lists that day's work below the grid (agenda).
+ * Frame ≤680px wide (CSS container query, so the web menu column counts too): all 7
+ * columns as a compact grid with a count per day; tapping a day lists that day's work
+ * below the grid (agenda).
  */
 function MonthCalendar({ anchor, events, onSelect }) {
   const today = toIsoDate(new Date());
@@ -134,7 +135,7 @@ function MonthCalendar({ anchor, events, onSelect }) {
   const selectedIso = inMonthIso.has(pickedIso) ? pickedIso : inMonthIso.has(today) ? today : '';
   const selectedDate = days.find((date) => toIsoDate(date) === selectedIso) || null;
   const selectedEvents = selectedDate ? eventsForDay(events, selectedDate) : [];
-  return <div className="report-month-calendar">
+  return <div className="report-month-frame"><div className="report-month-calendar">
     <div className="report-month-weekdays">{WEEKDAYS.map((day) => <span key={day}>{day}</span>)}</div>
     <div className="report-month-grid">{days.map((date) => {
       const dailyEvents = eventsForDay(events, date);
@@ -167,7 +168,7 @@ function MonthCalendar({ anchor, events, onSelect }) {
         </>
       ) : <p className="report-day-empty">Chọn một ngày để xem công việc.</p>}
     </div>
-  </div>;
+  </div></div>;
 }
 
 function MiniMonth({ date, events, onSelect }) {
