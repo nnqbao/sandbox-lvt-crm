@@ -204,7 +204,7 @@ function Zoomable({ id, alt, className = '', onZoom, eager = false }) {
 function BrowserFrame({ id, alt, onZoom, eager = false }) {
   return (
     <figure className="intro-browser">
-      <div className="intro-browser-bar" aria-hidden="true"><span /><span /><span /><i>lvt.vscgroup.io.vn</i></div>
+      <div className="intro-browser-bar" aria-hidden="true"><span /><span /><span /><i>thcslevantam.ai.vn</i></div>
       <Zoomable id={id} alt={alt} onZoom={onZoom} eager={eager} />
     </figure>
   );

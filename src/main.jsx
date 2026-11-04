@@ -93,9 +93,11 @@ import {
 } from './lib/appBridge';
 
 const configuredConvexUrl = import.meta.env.VITE_CONVEX_URL;
+// thcslevantam.ai.vn is the official domain; lvt.vscgroup.io.vn stays for app builds and the passkey RP id.
+const PUBLIC_HOSTS = new Set(['thcslevantam.ai.vn', 'lvt.vscgroup.io.vn']);
 const publicConvexUrl =
   configuredConvexUrl ||
-  (window.location.hostname === 'lvt.vscgroup.io.vn' ? window.location.origin : null);
+  (PUBLIC_HOSTS.has(window.location.hostname) ? window.location.origin : null);
 const convex = publicConvexUrl ? new ConvexReactClient(publicConvexUrl) : null;
 
 const SYSTEM_MANAGEMENT_MENUS = [];

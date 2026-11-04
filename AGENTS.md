@@ -14,7 +14,7 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 | GitHub | `kingrubic/sandbox-lvt-crm` (remote `origin`; remote `lvt-crm` = repo prod) | `kingrubic/LVT-CRM` |
 | Nhánh | `main` | Checkout chạy `feat/native-homeroom-parity`; nhánh tích hợp `feat/homeroom-rework`; `main` trên GitHub đang cũ |
 | Convex Cloud | `dev:decisive-puma-318` | `prod:confident-guanaco-953` |
-| Web (LaunchAgent) | `ai.lvt.crm.sandbox-web`, `127.0.0.1:3009`, serve `dist/` của thư mục sandbox | `ai.lvt.crm.web`, `127.0.0.1:3007`, serve `dist/` của thư mục prod; public `https://lvt.vscgroup.io.vn` qua Cloudflare Tunnel |
+| Web (LaunchAgent) | `ai.lvt.crm.sandbox-web`, `127.0.0.1:3009`, serve `dist/` của thư mục sandbox | `ai.lvt.crm.web`, `127.0.0.1:3007`, serve `dist/` của thư mục prod; public `https://thcslevantam.ai.vn` (tên miền chính thức) và `https://lvt.vscgroup.io.vn` (giữ cho app cũ và passkey) qua Cloudflare Tunnel |
 | Log web | `~/ops/logs/ai.lvt.crm.sandbox-web*.log` | `~/ops/logs/ai.lvt.crm.web*.log` |
 | App mobile | **Không có** (code native chỉ đồng bộ cho giống prod) | Android `lvt.crm`, iOS `vn.lvt.crm.uikit` |
 

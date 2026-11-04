@@ -2,8 +2,8 @@
 
 CRM nội bộ cho Trường THCS Lê Văn Tám. Stack: **Vite + React 19**, backend **Convex Cloud** với **Convex Auth (Password provider)** — đăng nhập email + mật khẩu, hồ sơ do admin cấp.
 
-**URL production:** https://lvt.vscgroup.io.vn
-**Chính sách bảo mật (công khai, Việt + Anh):** https://lvt.vscgroup.io.vn/privacy
+**URL production (tên miền chính thức):** https://thcslevantam.ai.vn — `https://lvt.vscgroup.io.vn` vẫn chạy cùng app (app Android/iOS bản cũ và RP id passkey dùng tên miền này).
+**Chính sách bảo mật (công khai, Việt + Anh):** https://thcslevantam.ai.vn/privacy
 **Ứng dụng:** CRM Lê Văn Tám — Android `lvt.crm`, iOS `vn.lvt.crm.uikit`
 Frontend production chạy static server qua LaunchAgent trên Mac mini, public qua Cloudflare Tunnel. Backend là Convex Cloud: prod `confident-guanaco-953`, sandbox `decisive-puma-318`. Bản Convex self-hosted cũ (Docker, `127.0.0.1:3210`) đã ngừng từ 2026-09-14.
 
@@ -238,7 +238,7 @@ process.stdout.write(`JWKS=${jwks}\n`);
 npx convex env set JWT_PRIVATE_KEY "..."
 npx convex env set JWKS "..."
 npx convex env set SITE_URL http://localhost:5173
-# production tunnel ví dụ: SITE_URL=https://lvt.vscgroup.io.vn
+# production tunnel ví dụ: SITE_URL=https://thcslevantam.ai.vn
 ```
 
 `auth.config.ts` dùng `process.env.CONVEX_SITE_URL` (local proxy `http://127.0.0.1:3211`).
@@ -414,7 +414,7 @@ Chi tiết và thứ tự sandbox → prod: xem [`AGENTS.md`](AGENTS.md).
 2. Sandbox: `npm run convex:dev -- --once`, rồi `npm run build` và restart `ai.lvt.crm.sandbox-web`.
 3. Prod (sau khi owner duyệt, từ worktree sạch): `LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y`, rồi `npm run build:production` trong `~/projects/LVT-CRM`.
 4. Seed (chỉ khi cần, đúng deployment): `npx convex run internal.seed.seed` qua `scripts/lvt-convex-cloud-env.sh`.
-6. Host `lvt.vscgroup.io.vn`: client dùng `window.location.origin` làm Convex URL (xem `src/main.jsx`).
+6. Host `thcslevantam.ai.vn` hoặc `lvt.vscgroup.io.vn`: client dùng `window.location.origin` làm Convex URL (xem `src/main.jsx`).
 
 ## Backup
 

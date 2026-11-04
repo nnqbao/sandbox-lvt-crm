@@ -24,7 +24,11 @@ export const PASSKEY_VERIFICATION_FAILED = "PASSKEY_VERIFICATION_FAILED";
 export const DEVICE_CREDENTIAL_LIMIT = "DEVICE_CREDENTIAL_LIMIT";
 export const INVALID_PUBLIC_KEY = "INVALID_PUBLIC_KEY";
 
-/** Default relying party (prod web domain). Override with PASSKEY_RP_ID on the deployment. */
+/**
+ * Default relying party. Kept on lvt.vscgroup.io.vn after the move to thcslevantam.ai.vn: every
+ * registered passkey and the shipped iOS/Android domain associations are bound to it. Override with
+ * PASSKEY_RP_ID on the deployment.
+ */
 export const DEFAULT_RP_ID = "lvt.vscgroup.io.vn";
 export const RP_NAME = "CRM Lê Văn Tám";
 

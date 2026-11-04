@@ -7,7 +7,7 @@ keywords: login, dang nhap, mat khau, email, tai khoan
 ---
 Vào CRM bằng email và mật khẩu tạm thời nhà trường cấp. Không có chức năng tự đăng ký.
 
-1. Mở trình duyệt (Chrome, Safari, Edge…) và vào địa chỉ `https://lvt.vscgroup.io.vn`.
+1. Mở trình duyệt (Chrome, Safari, Edge…) và vào địa chỉ `https://thcslevantam.ai.vn`.
 2. Nhập **Email** công vụ của thầy cô [[1]].
 3. Nhập **Mật khẩu** [[2]]. Có thể tích **Hiện mật khẩu** để kiểm tra mình gõ đúng chưa.
 4. Bấm **Đăng nhập** [[3]].

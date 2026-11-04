@@ -60,7 +60,7 @@ export default defineConfig({
   plugins: [inlinePdfFonts(), react()],
   assetsInclude: ["**/*.ttf"],
   server: {
-    allowedHosts: ["lvt.vscgroup.io.vn"],
+    allowedHosts: ["thcslevantam.ai.vn", "lvt.vscgroup.io.vn"],
     proxy: {
       "/api/auth": {
         target: "http://127.0.0.1:3211",

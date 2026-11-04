@@ -1,4 +1,5 @@
-// Domain-association files that let the native apps use passkeys for lvt.vscgroup.io.vn.
+// Domain-association files that let the native apps use passkeys for the RP id lvt.vscgroup.io.vn
+// (served on every host, including the official thcslevantam.ai.vn).
 // Both are public by design (app ids and signing-certificate fingerprints, no secrets).
 export const IOS_APP_IDS = Object.freeze(['42ZDDJ2B8M.vn.lvt.crm.uikit']);
 export const ANDROID_PACKAGE = 'lvt.crm';

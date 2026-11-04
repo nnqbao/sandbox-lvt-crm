@@ -5,7 +5,7 @@ alwaysApply: true
 
 # LVT CRM — core context
 
-Production: `https://lvt.vscgroup.io.vn`. Stack: React 19 + Vite (`src/`), Convex self-hosted (`convex/`), private file gateway `scripts/serve-production.mjs`.
+Production: `https://thcslevantam.ai.vn` (official; `https://lvt.vscgroup.io.vn` stays up for older app builds and the passkey RP id). Stack: React 19 + Vite (`src/`), Convex self-hosted (`convex/`), private file gateway `scripts/serve-production.mjs`.
 
 ## Read first (do not rediscover from scratch)
 
