@@ -40,7 +40,9 @@ async function loadShots(args) {
     const group = basename(file, '.mjs');
     if (args.only.length && !args.only.includes(group)) continue;
     const mod = await import(pathToFileURL(join(shotDir, file)).href);
-    for (const shot of mod.default || []) shots.push({ group, ...shot });
+    // A shot file may `export const dir = 'gioi-thieu'` to write into public/<dir> instead.
+    const dir = mod.dir ? join(repoRoot, 'public', mod.dir) : outDir;
+    for (const shot of mod.default || []) shots.push({ group, dir, ...shot });
   }
   const seen = new Set();
   for (const shot of shots) {
@@ -134,7 +136,8 @@ async function main() {
       const started = Date.now();
       try {
         const { webp, png, clip, deviceScaleFactor, missing } = await captureShot(page, baseUrl, shot);
-        writeFileSync(join(outDir, `${shot.id}.webp`), webp);
+        mkdirSync(shot.dir, { recursive: true });
+        writeFileSync(join(shot.dir, `${shot.id}.webp`), webp);
         if (args.preview && png) writeFileSync(join(args.preview, `${shot.id}.png`), png);
         totalBytes += webp.length;
         const px = `${Math.round(clip.width * deviceScaleFactor)}x${Math.round(clip.height * deviceScaleFactor)}`;

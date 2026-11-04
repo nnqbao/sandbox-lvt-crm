@@ -43,6 +43,8 @@ import BoardingReportsView from './boarding/BoardingReportsView.jsx';
 import { parseDutyPath } from './duties/dutyRoutes';
 import AccountDeletionPage from './privacy/AccountDeletionPage';
 import PrivacyPolicyPage from './privacy/PrivacyPolicyPage';
+import IntroductionPage from './introduction/IntroductionPage';
+import { isPublicIntroductionPath } from './introduction/introductionRoute';
 import { isPublicAccountDeletionPath, isPublicPrivacyPath } from './privacy/privacyPolicy';
 import PeopleReviewView from './peopleReview/PeopleReviewView';
 import StaffFaultsView from './peopleReview/StaffFaultsView';
@@ -2635,6 +2637,11 @@ function SignedOutView() {
               <a className="text-button auth-forgot-link" href="/privacy">
                 Chính sách bảo mật / Privacy policy
               </a>
+              {isInApp() ? null : (
+                <a className="text-button auth-forgot-link" href="/introduction">
+                  Giới thiệu hệ thống
+                </a>
+              )}
             </form>
           </>
         ) : (
@@ -2677,6 +2684,9 @@ function MissingKeyView() {
 }
 
 function Root() {
+  if (isPublicIntroductionPath(window.location.pathname)) {
+    return <IntroductionPage />;
+  }
   if (isPublicPrivacyPath(window.location.pathname)) {
     return <PrivacyPolicyPage />;
   }
