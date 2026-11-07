@@ -3,7 +3,7 @@
 #   dev  -> dev:decisive-puma-318 (sandbox)
 #   prod -> prod:confident-guanaco-953 (customers; needs LVT_CONVEX_CONFIRM_PROD and a clean tree)
 # The deploy key comes from the untracked keys CSV (row LVT-CRM) and is passed only via the
-# environment. Self-hosted variables are blanked so nothing can reach 127.0.0.1:3210, which now
+# environment. Self-hosted variables are blanked so nothing can reach 127.0.0.1:3318, which now
 # belongs to another project.
 set -euo pipefail
 

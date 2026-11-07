@@ -21,7 +21,7 @@
 - Any Android / iOS UIKit change must bump the Profile version (`versionName` / `MARKETING_VERSION`) and build number. See `.cursor/rules/native-app-version.mdc`.
 - Tests: Node test runner under `tests/*.test.mjs`.
 - Production frontend: `https://thcslevantam.ai.vn` (official domain since 2026-11). `https://lvt.vscgroup.io.vn` serves the same app and must stay up: Android ≤ 3.0.1 / iOS ≤ 4.0.2 load it in their WebView, and it is the passkey RP id (`DEFAULT_RP_ID`, `.well-known` association files). Never redirect it or change the RP id without new app releases.
-- Convex runs on Convex Cloud (dev `decisive-puma-318` = sandbox, prod `confident-guanaco-953` = customers). Deploy/codegen only through `scripts/lvt-convex-cloud-env.sh` (the npm scripts); never expose or inline deploy/admin keys. The old self-hosted wrapper is retired because `127.0.0.1:3210` now belongs to another project.
+- Convex runs on Convex Cloud (dev `decisive-puma-318` = sandbox, prod `confident-guanaco-953` = customers). Deploy/codegen only through `scripts/lvt-convex-cloud-env.sh` (the npm scripts); never expose or inline deploy/admin keys. The old self-hosted wrapper stays retired. **This project's reserved Convex ports are 3318 (backend) / 3319 (HTTP actions) / 6805 (dashboard), compose project `sandbox-lvt-crm-convex` — never 3210/3211/6791, which belong to VUBAOANH.** See `~/ops/docs/convex-ports.md` before touching any Convex port.
 - UI changes (web, Android, iOS) follow `DESIGN.md`; read it before touching screens or styles.
 - Cursor agents also load `.cursor/rules/*.mdc` (core + import always-on; work/auth rules by glob). Keep those rules in sync when changing invariants.
 

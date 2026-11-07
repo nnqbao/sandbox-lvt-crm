@@ -1,3 +1,8 @@
+# Compose project name is explicit so each copy gets its OWN volume.
+# Without it Docker derives it from the folder ('convex-local') and every
+# LVT-CRM copy would share one volume and clobber the others' data.
+name: sandbox-lvt-crm-convex
+
 services:
   backend:
     image: ghcr.io/get-convex/convex-backend@sha256:f0de0647e46c0ac830a6dda036ee78e4956cecc00144d951bf39b14cc570ad4d
@@ -8,8 +13,8 @@ services:
       - 1.1.1.1
       - 8.8.8.8
     ports:
-      - "127.0.0.1:3210:3210"
-      - "127.0.0.1:3211:3211"
+      - "127.0.0.1:3318:3210"
+      - "127.0.0.1:3319:3211"
     volumes:
       - data:/convex/data
     environment:
@@ -34,9 +39,9 @@ services:
     stop_signal: SIGINT
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6791:6791"
+      - "127.0.0.1:6805:6791"
     environment:
-      - NEXT_PUBLIC_DEPLOYMENT_URL=http://127.0.0.1:3210
+      - NEXT_PUBLIC_DEPLOYMENT_URL=http://127.0.0.1:3318
     depends_on:
       backend:
         condition: service_healthy

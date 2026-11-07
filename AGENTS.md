@@ -42,7 +42,9 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 
 ### Những chỗ dễ nhầm
 
-- `127.0.0.1:3210` giờ là backend `akiko-dev` của **dự án khác**. Convex self-hosted cũ của LVT đã ngừng ở lần chuyển lên cloud (2026-09-14); `scripts/lvt-convex-self-hosted-env.sh` cố ý từ chối chạy (exit 78). Đừng trỏ lệnh Convex nào vào 3210.
+- Cổng Convex của dự án này: **3318** (backend) / **3319** (HTTP actions) / **6805** (dashboard), compose project `sandbox-lvt-crm-convex` — cấp cố định ngày 2026-11-07.
+- `127.0.0.1:3210` là backend của **VUBAOANH**, không phải của LVT (ghi chú cũ nói `akiko-dev` là sai; akiko ở 3420). Đừng trỏ lệnh Convex nào vào 3210/3211/6791.
+- Convex thật của LVT vẫn ở Convex Cloud; bản self-hosted chỉ là chỗ đặt sẵn. Trước khi đụng bất kỳ cổng Convex nào, đọc `~/ops/docs/convex-ports.md`.
 - `.env.local` của thư mục prod trỏ vào prod: chạy `npx convex deploy` trần ở đó là deploy thẳng lên prod.
 - Hostname proxy cũ `lvt-convex.vscgroup.io.vn` / `lvt-convex-site.vscgroup.io.vn` đã ngừng (trả 530).
 - Thư mục sandbox và prod chứa file nhạy cảm chưa track (`.env.local*`, `.convex-cloud-keys.csv`, `client_secret_*.json`, keystore, file xlsx dữ liệu học sinh). Không đọc, in hoặc commit chúng.

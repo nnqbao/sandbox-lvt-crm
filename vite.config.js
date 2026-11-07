@@ -63,16 +63,16 @@ export default defineConfig({
     allowedHosts: ["thcslevantam.ai.vn", "lvt.vscgroup.io.vn"],
     proxy: {
       "/api/auth": {
-        target: "http://127.0.0.1:3211",
+        target: "http://127.0.0.1:3319",
         changeOrigin: true,
       },
       "/api": {
-        target: "http://127.0.0.1:3210",
+        target: "http://127.0.0.1:3318",
         changeOrigin: true,
         ws: true,
       },
       "/.well-known": {
-        target: "http://127.0.0.1:3211",
+        target: "http://127.0.0.1:3319",
         changeOrigin: true,
       },
     },

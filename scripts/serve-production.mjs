@@ -44,7 +44,7 @@ const host = process.env.HOST || '127.0.0.1';
 const port = Number(process.env.PORT || 3007);
 const convexUrl = process.env.CONVEX_URL
   || process.env.CONVEX_SELF_HOSTED_URL
-  || 'http://127.0.0.1:3210';
+  || 'http://127.0.0.1:3318';
 const convexSite = convexSiteUrl(convexUrl, process.env.CONVEX_SITE_URL);
 // Legacy Drive objects (uploaded before files moved to Convex Storage) are still read/deleted via gog.
 const driveAccount = process.env.LVT_DRIVE_ACCOUNT || 'bemiagent@gmail.com';
