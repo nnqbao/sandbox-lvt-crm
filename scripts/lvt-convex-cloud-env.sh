@@ -4,7 +4,7 @@
 #   prod -> prod:confident-guanaco-953 (customers; needs LVT_CONVEX_CONFIRM_PROD and a clean tree)
 # The deploy key comes from the untracked keys CSV (row LVT-CRM) and is passed only via the
 # environment. Self-hosted variables are blanked so nothing can reach a self-hosted backend
-# (127.0.0.1:3210 belongs to another project; this copy's reserved ports are listed in CLAUDE.md).
+# (port 3210 belongs to another project; this copy's reservation is in infra/convex-local/.env).
 set -euo pipefail
 
 usage() {

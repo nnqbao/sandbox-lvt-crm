@@ -7,7 +7,9 @@ umask 077
 readonly REPO="${0:A:h:h}"  # this copy: its compose file and HEALTH_URL use the same reserved ports
 readonly COMPOSE_FILE="$REPO/infra/convex-local/docker-compose.yml"
 readonly DOCKER_SOCK="/Users/vsc_agent/.colima/default/docker.sock"
-readonly HEALTH_URL="http://127.0.0.1:3318/version"
+# Port of this checkout's reservation (untracked infra/convex-local/.env, never a tracked literal).
+readonly BACKEND_PORT="$(sed -n 's/^LVT_CONVEX_BACKEND_PORT=\([0-9][0-9]*\)$/\1/p' "$REPO/infra/convex-local/.env" 2>/dev/null)"
+readonly HEALTH_URL="http://127.0.0.1:${BACKEND_PORT}/version"
 readonly CHECK_INTERVAL_SEC="${LVT_CONVEX_ENSURE_INTERVAL:-20}"
 readonly DOCKER_WAIT_SEC=120
 readonly HEALTH_WAIT_SEC=90
@@ -109,6 +111,11 @@ ensure_convex() {
   log "ERROR: convex backend still unhealthy on $HEALTH_URL"
   return 1
 }
+
+if [[ -z "$BACKEND_PORT" ]]; then
+  print -u2 -- "No LVT_CONVEX_BACKEND_PORT in $REPO/infra/convex-local/.env (copy .env.example, ports from ~/ops/docs/convex-ports.md)"
+  exit 78
+fi
 
 trap 'log "stopping ensure loop"; exit 0' INT TERM
 

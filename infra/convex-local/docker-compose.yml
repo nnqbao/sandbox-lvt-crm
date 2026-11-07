@@ -1,7 +1,8 @@
-# Compose project name is explicit so each copy gets its OWN volume.
-# Without it Docker derives it from the folder ('convex-local') and every
-# LVT-CRM copy would share one volume and clobber the others' data.
-name: sandbox-lvt-crm-convex
+# Ports and the compose project name come from the untracked .env next to this file
+# (template .env.example; registry ~/ops/docs/convex-ports.md). Each checkout has its own
+# reservation, and an explicit project name gives each its OWN volume (otherwise Docker
+# derives 'convex-local' and every LVT-CRM copy would share one volume).
+name: ${LVT_CONVEX_PROJECT:?set LVT_CONVEX_PROJECT in infra/convex-local/.env}
 
 services:
   backend:
@@ -13,8 +14,8 @@ services:
       - 1.1.1.1
       - 8.8.8.8
     ports:
-      - "127.0.0.1:3318:3210"
-      - "127.0.0.1:3319:3211"
+      - "127.0.0.1:${LVT_CONVEX_BACKEND_PORT:?set in infra/convex-local/.env}:3210"
+      - "127.0.0.1:${LVT_CONVEX_SITE_PORT:?set in infra/convex-local/.env}:3211"
     volumes:
       - data:/convex/data
     environment:
@@ -39,9 +40,9 @@ services:
     stop_signal: SIGINT
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6805:6791"
+      - "127.0.0.1:${LVT_CONVEX_DASHBOARD_PORT:?set in infra/convex-local/.env}:6791"
     environment:
-      - NEXT_PUBLIC_DEPLOYMENT_URL=http://127.0.0.1:3318
+      - NEXT_PUBLIC_DEPLOYMENT_URL=http://127.0.0.1:${LVT_CONVEX_BACKEND_PORT}
     depends_on:
       backend:
         condition: service_healthy

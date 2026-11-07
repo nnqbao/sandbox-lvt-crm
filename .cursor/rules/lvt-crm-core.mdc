@@ -7,6 +7,8 @@ alwaysApply: true
 
 Production: `https://thcslevantam.ai.vn` (official; `https://lvt.vscgroup.io.vn` stays up for older app builds and the passkey RP id). Stack: React 19 + Vite (`src/`), Convex self-hosted (`convex/`), private file gateway `scripts/serve-production.mjs`.
 
+Machine-local values (Convex ports, compose project name) live only in the untracked `infra/convex-local/.env` of each checkout (template `.env.example`, registry `~/ops/docs/convex-ports.md`). Never put a port number or per-checkout name in a tracked file — sandbox and prod are separate checkouts and commits move between them (`tests/machine-local-config.test.mjs`).
+
 ## Read first (do not rediscover from scratch)
 
 - Product + import rules: `README.md`

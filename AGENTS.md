@@ -42,8 +42,8 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 
 ### Những chỗ dễ nhầm
 
-- Cổng Convex của dự án này: **3318** (backend) / **3319** (HTTP actions) / **6805** (dashboard), compose project `sandbox-lvt-crm-convex` — cấp cố định ngày 2026-11-07.
-- `127.0.0.1:3210` là backend của **VUBAOANH**, không phải của LVT (ghi chú cũ nói `akiko-dev` là sai; akiko ở 3420). Đừng trỏ lệnh Convex nào vào 3210/3211/6791.
+- Cổng Convex và tên compose project **của từng bản sao** (prod, sandbox, các worktree) chỉ nằm trong file **không commit** `infra/convex-local/.env` (mẫu `infra/convex-local/.env.example`, bảng cấp ở `~/ops/docs/convex-ports.md`). **Không ghi số cổng hay tên riêng của một bản sao vào file được commit**: commit chuyển qua lại giữa sandbox và prod sẽ xung đột hoặc trỏ bản kia sang cổng sai. Test `tests/machine-local-config.test.mjs` chặn việc này.
+- Cổng 3210 trên máy này là backend của **VUBAOANH**, không phải của LVT (ghi chú cũ nói `akiko-dev` là sai; akiko ở 3420). Đừng trỏ lệnh Convex nào vào 3210/3211/6791.
 - Convex thật của LVT vẫn ở Convex Cloud; bản self-hosted chỉ là chỗ đặt sẵn. Trước khi đụng bất kỳ cổng Convex nào, đọc `~/ops/docs/convex-ports.md`.
 - `.env.local` của thư mục prod trỏ vào prod: chạy `npx convex deploy` trần ở đó là deploy thẳng lên prod.
 - Hostname proxy cũ `lvt-convex.vscgroup.io.vn` / `lvt-convex-site.vscgroup.io.vn` đã ngừng (trả 530).

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { convexLocalPorts } from "./scripts/lib/convex-local-ports.mjs";
 
 /**
  * PDF font modules read TTF bytes with node:fs on the server/tests. In the
@@ -56,25 +57,21 @@ export function ${entry.exportName}() {
   };
 }
 
+// Dev proxy to this checkout's self-hosted Convex, only when it has a reservation in the
+// untracked infra/convex-local/.env (ports differ per checkout; see that file's .env.example).
+const localConvex = convexLocalPorts();
+
 export default defineConfig({
   plugins: [inlinePdfFonts(), react()],
   assetsInclude: ["**/*.ttf"],
   server: {
     allowedHosts: ["thcslevantam.ai.vn", "lvt.vscgroup.io.vn"],
-    proxy: {
-      "/api/auth": {
-        target: "http://127.0.0.1:3319",
-        changeOrigin: true,
-      },
-      "/api": {
-        target: "http://127.0.0.1:3318",
-        changeOrigin: true,
-        ws: true,
-      },
-      "/.well-known": {
-        target: "http://127.0.0.1:3319",
-        changeOrigin: true,
-      },
-    },
+    proxy: localConvex
+      ? {
+          "/api/auth": { target: localConvex.site, changeOrigin: true },
+          "/api": { target: localConvex.backend, changeOrigin: true, ws: true },
+          "/.well-known": { target: localConvex.site, changeOrigin: true },
+        }
+      : undefined,
   },
 });
