@@ -4,7 +4,7 @@
 set -euo pipefail
 umask 077
 
-readonly REPO="/Users/vsc_agent/projects/LVT-CRM"
+readonly REPO="${0:A:h:h}"  # this copy: its compose file and HEALTH_URL use the same reserved ports
 readonly COMPOSE_FILE="$REPO/infra/convex-local/docker-compose.yml"
 readonly DOCKER_SOCK="/Users/vsc_agent/.colima/default/docker.sock"
 readonly HEALTH_URL="http://127.0.0.1:3318/version"

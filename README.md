@@ -5,7 +5,7 @@ CRM nội bộ cho Trường THCS Lê Văn Tám. Stack: **Vite + React 19**, bac
 **URL production (tên miền chính thức):** https://thcslevantam.ai.vn — `https://lvt.vscgroup.io.vn` vẫn chạy cùng app (app Android/iOS bản cũ và RP id passkey dùng tên miền này).
 **Chính sách bảo mật (công khai, Việt + Anh):** https://thcslevantam.ai.vn/privacy
 **Ứng dụng:** CRM Lê Văn Tám — Android `lvt.crm`, iOS `vn.lvt.crm.uikit`
-Frontend production chạy static server qua LaunchAgent trên Mac mini, public qua Cloudflare Tunnel. Backend là Convex Cloud: prod `confident-guanaco-953`, sandbox `decisive-puma-318`. Bản Convex self-hosted cũ (Docker, `127.0.0.1:3318`) đã ngừng từ 2026-09-14.
+Frontend production chạy static server qua LaunchAgent trên Mac mini, public qua Cloudflare Tunnel. Backend là Convex Cloud: prod `confident-guanaco-953`, sandbox `decisive-puma-318`. Bản Convex self-hosted cũ (Docker, từng chạy ở `127.0.0.1:3210`) đã ngừng từ 2026-09-14; cổng dành sẵn cho bản sao này ghi trong `AGENTS.md`.
 
 > **Sandbox, prod, quy trình phát hành, lệnh deploy, backup:** xem mục *Môi trường, quy trình phát hành và vận hành* trong [`AGENTS.md`](AGENTS.md). Mọi thay đổi làm ở sandbox trước, owner duyệt rồi mới lên prod.
 
