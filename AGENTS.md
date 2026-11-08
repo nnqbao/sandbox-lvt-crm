@@ -13,7 +13,7 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 | Thư mục | `~/projects/sandbox-lvt-crm` | `~/projects/LVT-CRM` |
 | GitHub | `kingrubic/sandbox-lvt-crm` (remote `origin`; remote `lvt-crm` = repo prod) | `kingrubic/LVT-CRM` |
 | Nhánh | `main` | Checkout chạy `feat/native-homeroom-parity`; nhánh tích hợp `feat/homeroom-rework`; `main` trên GitHub đang cũ |
-| Convex Cloud | `dev:decisive-puma-318` | `prod:confident-guanaco-953` |
+| Convex (tự host trên Mac mini từ 2026-11-08) | project `sandbox-lvt-crm-convex`, public `https://sandbox-convex.thcslevantam.ai.vn` | project `lvt-crm-convex`, public `https://convex.thcslevantam.ai.vn` |
 | Web (LaunchAgent) | `ai.lvt.crm.sandbox-web`, `127.0.0.1:3009`, serve `dist/` của thư mục sandbox | `ai.lvt.crm.web`, `127.0.0.1:3007`, serve `dist/` của thư mục prod; public `https://thcslevantam.ai.vn` (tên miền chính thức) và `https://lvt.vscgroup.io.vn` (giữ cho app cũ và passkey) qua Cloudflare Tunnel |
 | Log web | `~/ops/logs/ai.lvt.crm.sandbox-web*.log` | `~/ops/logs/ai.lvt.crm.web*.log` |
 | App mobile | **Không có** (code native chỉ đồng bộ cho giống prod) | Android `lvt.crm`, iOS `vn.lvt.crm.uikit` |
@@ -28,15 +28,15 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 
 ### Lệnh deploy
 
-- Key Convex nằm trong `~/projects/LVT-CRM/.convex-cloud-keys.csv` (untracked, chmod 600; cột `name,key prod,key dev`, dòng `LVT-CRM`). `scripts/lvt-convex-cloud-env.sh` đọc key, kiểm tra đúng deployment và chỉ truyền qua biến môi trường. Không in, không commit, không ghi key vào file khác.
+- Convex chạy trong Docker (colima) của từng bản sao, `docker compose -f infra/convex-local/docker-compose.yml up -d`; cổng, địa chỉ công khai, vai trò (`LVT_CONVEX_ROLE`) và tên khoá trong Keychain nằm ở `infra/convex-local/.env` (không commit). Đường ra internet: tunnel Cloudflare `n8n-macMini` (owner quản lý trên dashboard). `scripts/lvt-convex-local-env.sh` lấy admin key từ Keychain, chỉ truyền qua biến môi trường. Không in, không commit, không ghi key vào file khác. Convex Cloud (`decisive-puma-318`, `confident-guanaco-953`) đã ngừng; `scripts/lvt-convex-cloud-env.sh` chỉ còn để tham khảo.
 - Convex dev (sandbox): `npm run convex:dev -- --once`. Chỉ chạy từ thư mục sandbox.
-- Convex prod: từ worktree sạch của commit đã review, `LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y`. Thiếu biến xác nhận hoặc tree có thay đổi chưa commit thì script từ chối.
+- Convex prod: từ thư mục prod (tree sạch, commit đã review), `LVT_CONVEX_CONFIRM_PROD=local-prod npm run convex:deploy -- -y`. Sai vai trò, thiếu biến xác nhận hoặc tree có thay đổi chưa commit thì script từ chối.
 - Web sandbox: `npm run build` (đọc `VITE_CONVEX_URL` dev từ `.env.local`). **Không dùng `build:production` cho sandbox**: script này ghi cứng URL Convex prod.
 - Web prod: `npm run build:production` trong `~/projects/LVT-CRM`. **Chạy lệnh này là deploy web prod luôn**, vì `ai.lvt.crm.web` serve trực tiếp `dist/` của thư mục đó. Muốn chỉ kiểm tra build thì chạy trên worktree tạm.
 
 ### Backup Convex prod
 
-- LaunchAgent `ai.lvt.crm.convex-backup` chạy `~/ops/scripts/lvt-crm-convex-backup.sh` lúc 00:30 mỗi đêm: `convex export --include-file-storage` từ prod, kiểm tra zip, lưu `~/projects/LVT-CRM/.runtime/backups/convex/cloud-*.zip`.
+- LaunchAgent `ai.lvt.crm.convex-backup` chạy `~/ops/scripts/lvt-crm-convex-backup.sh` lúc 00:30 mỗi đêm: `convex export --include-file-storage` từ prod, kiểm tra zip, lưu `~/projects/LVT-CRM/.runtime/backups/convex/selfhosted-*.zip` (xuất từ Convex prod tự host qua `lvt-convex-local-env.sh`). Các bản `cloud-*.zip` cuối cùng của Convex Cloud được giữ 30 ngày.
 - Giữ **7 ngày** gần nhất (`LVT_CONVEX_BACKUP_RETENTION_DAYS` để đổi). Log: `~/ops/logs/ai.lvt.crm.convex-backup*.log`.
 - `scripts/lvt-convex-backup.sh` và `ops/production/*.plist` trong repo là bản cũ thời self-hosted, **không phải** thứ đang chạy.
 
@@ -44,7 +44,7 @@ Prod đang có khách (Trường THCS Lê Văn Tám) sử dụng. **Mọi thay �
 
 - Cổng Convex và tên compose project **của từng bản sao** (prod, sandbox, các worktree) chỉ nằm trong file **không commit** `infra/convex-local/.env` (mẫu `infra/convex-local/.env.example`, bảng cấp ở `~/ops/docs/convex-ports.md`). **Không ghi số cổng hay tên riêng của một bản sao vào file được commit**: commit chuyển qua lại giữa sandbox và prod sẽ xung đột hoặc trỏ bản kia sang cổng sai. Test `tests/machine-local-config.test.mjs` chặn việc này.
 - Cổng 3210 trên máy này là backend của **VUBAOANH**, không phải của LVT (ghi chú cũ nói `akiko-dev` là sai; akiko ở 3420). Đừng trỏ lệnh Convex nào vào 3210/3211/6791.
-- Convex thật của LVT vẫn ở Convex Cloud; bản self-hosted chỉ là chỗ đặt sẵn. Trước khi đụng bất kỳ cổng Convex nào, đọc `~/ops/docs/convex-ports.md`.
+- Convex của LVT giờ chạy ngay trên Mac mini: tắt máy, dừng colima hay xoá volume Docker (`lvt-crm-convex_data`, `sandbox-lvt-crm-convex_data`) là mất dịch vụ / dữ liệu. Không chạy `docker compose down -v`. Trước khi đụng bất kỳ cổng Convex nào, đọc `~/ops/docs/convex-ports.md`.
 - `.env.local` của thư mục prod trỏ vào prod: chạy `npx convex deploy` trần ở đó là deploy thẳng lên prod.
 - Hostname proxy cũ `lvt-convex.vscgroup.io.vn` / `lvt-convex-site.vscgroup.io.vn` đã ngừng (trả 530).
 - Thư mục sandbox và prod chứa file nhạy cảm chưa track (`.env.local*`, `.convex-cloud-keys.csv`, `client_secret_*.json`, keystore, file xlsx dữ liệu học sinh). Không đọc, in hoặc commit chúng.

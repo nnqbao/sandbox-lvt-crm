@@ -1,11 +1,11 @@
 # LVT CRM
 
-CRM nội bộ cho Trường THCS Lê Văn Tám. Stack: **Vite + React 19**, backend **Convex Cloud** với **Convex Auth (Password provider)** — đăng nhập email + mật khẩu, hồ sơ do admin cấp.
+CRM nội bộ cho Trường THCS Lê Văn Tám. Stack: **Vite + React 19**, backend **Convex tự host trên Mac mini** (từ 2026-11-08) với **Convex Auth (Password provider)** — đăng nhập email + mật khẩu, hồ sơ do admin cấp.
 
 **URL production (tên miền chính thức):** https://thcslevantam.ai.vn — `https://lvt.vscgroup.io.vn` vẫn chạy cùng app (app Android/iOS bản cũ và RP id passkey dùng tên miền này).
 **Chính sách bảo mật (công khai, Việt + Anh):** https://thcslevantam.ai.vn/privacy
 **Ứng dụng:** CRM Lê Văn Tám — Android `lvt.crm`, iOS `vn.lvt.crm.uikit`
-Frontend production chạy static server qua LaunchAgent trên Mac mini, public qua Cloudflare Tunnel. Backend là Convex Cloud: prod `confident-guanaco-953`, sandbox `decisive-puma-318`. Bản Convex self-hosted cũ (Docker, từng chạy ở cổng 3210) đã ngừng từ 2026-09-14; cổng dành sẵn cho bản sao này nằm trong `infra/convex-local/.env` (không commit).
+Frontend production chạy static server qua LaunchAgent trên Mac mini, public qua Cloudflare Tunnel. Backend là Convex tự host (Docker/colima trên Mac mini, qua Cloudflare Tunnel): prod `https://convex.thcslevantam.ai.vn`, sandbox `https://sandbox-convex.thcslevantam.ai.vn`. Convex Cloud (`confident-guanaco-953`, `decisive-puma-318`) đã ngừng ngày 2026-11-08. Cổng, địa chỉ công khai và vai trò của từng bản sao nằm trong `infra/convex-local/.env` (không commit).
 
 > **Sandbox, prod, quy trình phát hành, lệnh deploy, backup:** xem mục *Môi trường, quy trình phát hành và vận hành* trong [`AGENTS.md`](AGENTS.md). Mọi thay đổi làm ở sandbox trước, owner duyệt rồi mới lên prod.
 
@@ -16,7 +16,7 @@ Vận hành production:
 - **Hướng dẫn sử dụng cho người dùng:** cẩm nang trong app tại `/huong-dan-su-dung.html` (nguồn `docs/guide/`, build `npm run guide:build`, ảnh minh họa dữ liệu giả `npm run guide:shots`, video hướng dẫn từng bước `npm run guide:videos` → `public/huong-dan/video/` (MP4 + poster không nằm trong git; chỉ file chương `.json` được commit), đẩy lên Convex Storage bằng `npm run guide:videos:publish -- dev|prod` (máy chủ chuyển hướng `/huong-dan/video/<id>.mp4` sang file trên Convex; service worker `public/huong-dan-sw.js` của riêng trang hướng dẫn giữ video + poster trên máy người xem 24 giờ — tải một lần, xem lại/tua không tốn băng thông Convex; bản xuất bản lại tới người xem đã cache sau tối đa 24 giờ), gắn vào chủ đề bằng dòng `@video(id)` hoặc `@video(id "Chương")`). Giọng đọc: lời trong `scripts/guide-videos/voiceover.json`; mỗi video một file TTS, cắt đoạn bằng `python3 scripts/guide-videos/asr-align.py <id> <file>` (cần `pip install faster-whisper`; dự phòng không cần nhận dạng giọng: `npm run guide:voice -- <id> <file>`) → `scripts/guide-videos/voice/`; khi quay, video có giọng tự kéo dài từng bước theo lời đọc, thêm nhạc nền tự soạn (nhỏ lại khi có giọng) và tiếng click. Mỗi trang có nút tròn **?** cạnh tên trang mở đúng mục hướng dẫn trong khung bên phải (`?embed=1`); bảng menu → mục nằm ở `GUIDE_ANCHORS` trong `src/navigationRoutes.js`. Server chỉ cho trang này được nhúng iframe cùng origin (`scripts/lib/static-frame-policy.mjs`); mọi thứ khác vẫn `X-Frame-Options: DENY`.
 - **Hướng dẫn AI session:** Cursor đọc `.cursor/rules/*.mdc`; Claude Code đọc `CLAUDE.md`; chi tiết sản phẩm/import user trong `README.md`.
 - Backup Convex prod (gồm file storage) tự động lúc 00:30 bằng `~/ops/scripts/lvt-crm-convex-backup.sh`, lưu `~/projects/LVT-CRM/.runtime/backups/convex/cloud-*.zip`, giữ 7 ngày.
-- Deploy key Convex Cloud chỉ đọc từ `~/projects/LVT-CRM/.convex-cloud-keys.csv` (untracked) qua `scripts/lvt-convex-cloud-env.sh`; không lưu trong source, bundle hay log.
+- Admin key Convex tự host nằm trong Keychain (tên ở `LVT_CONVEX_ADMIN_KEY_ITEM`), chỉ đọc qua `scripts/lvt-convex-local-env.sh`; không lưu trong source, bundle hay log.
 - File công văn / Đánh giá nhân sự **lưu trên Convex File Storage** (từ 10/2026; nằm trong backup Convex hằng đêm). Upload: trình duyệt/app → `/api/files/upload` → server chuyển tiếp tới HTTP route Convex `/lvt-files/upload` bằng token của chính người dùng (Convex kiểm tra quyền, lưu file và đăng ký staged upload). Bản ghi giữ cột `driveFileId` làm khóa đối tượng: `cvx_<storageId>` = Convex, còn lại = Drive cũ. Không bao giờ đưa link cho trình duyệt: frontend gửi token đến `/api/files/:documentId`; server kiểm tra quyền rồi chuyển tiếp file từ `/lvt-files/object` (Convex kiểm tra quyền lại) hoặc storage cũ **chỉ qua bộ nhớ, không ghi xuống đĩa** máy chủ. Riêng file Drive cũ vẫn dùng cache đĩa 24 giờ.
 - Drive (`gog`) chỉ còn dùng để đọc/xoá file Drive cũ; không còn upload mới lên Drive. Không commit OAuth token/credential hoặc bật “Anyone with the link”.
 - Quên mật khẩu (web / Android / API iOS): `users.requestPasswordReset` gửi mật khẩu tạm qua AgentMail từ inbox `thcslevantambinhthanh@agentmail.to`. Cấu hình Convex env `AGENTMAIL_API_KEY`, `AGENTMAIL_INBOX_ID` (xem `.env.example`); thiếu cấu hình báo `MAIL_NOT_CONFIGURED`, key sai/thiếu quyền báo `MAIL_AUTH_FAILED`. Không commit API key.
@@ -248,9 +248,9 @@ npx convex env set SITE_URL http://localhost:5173
 ### Đẩy functions + seed + frontend
 
 ```bash
-# Convex Cloud: key đọc từ ~/projects/LVT-CRM/.convex-cloud-keys.csv (dòng LVT-CRM), không in ra.
-npm run convex:dev -- --once        # dev:decisive-puma-318 (sandbox)
-LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y   # prod, cần tree sạch
+# Convex tự host: admin key đọc từ Keychain qua scripts/lvt-convex-local-env.sh, không in ra.
+npm run convex:dev -- --once        # sandbox (chỉ chạy ở bản sao LVT_CONVEX_ROLE=sandbox)
+LVT_CONVEX_CONFIRM_PROD=local-prod npm run convex:deploy -- -y   # prod, thư mục prod, cần tree sạch
 
 npx convex run internal.seed.seed
 
@@ -394,7 +394,7 @@ UI: **Thiết lập người dùng** — nút *Tải file nhập liệu mẫu* +
 npm run check          # scripts/check-files.mjs
 npm run build
 git diff --check
-LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y   # prod, tree sạch
+LVT_CONVEX_CONFIRM_PROD=local-prod npm run convex:deploy -- -y   # prod, tree sạch
 ```
 
 `npm run typecheck` = `convex codegen --typecheck enable` (cần credentials).
@@ -405,17 +405,17 @@ LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y   # pr
 | `npm run build` / `preview` | Build / xem `dist/` |
 | `npm run check` | Kiểm tra file bắt buộc |
 | `npm run typecheck` | Codegen + typecheck Convex |
-| `npm run convex:dev` | `convex dev` vào Convex Cloud dev (`decisive-puma-318`) |
-| `npm run convex:deploy` | `convex deploy` vào prod (`confident-guanaco-953`); bắt buộc `LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953` và tree sạch |
+| `npm run convex:dev` | `convex dev` vào Convex sandbox tự host (chỉ ở bản sao sandbox) |
+| `npm run convex:deploy` | `convex deploy` vào Convex prod tự host; bắt buộc `LVT_CONVEX_CONFIRM_PROD=local-prod`, đúng vai trò prod và tree sạch |
 
-## Deploy (Convex Cloud)
+## Deploy (Convex tự host)
 
 Chi tiết và thứ tự sandbox → prod: xem [`AGENTS.md`](AGENTS.md).
 
 1. `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` đã set trên deployment.
 2. Sandbox: `npm run convex:dev -- --once`, rồi `npm run build` và restart `ai.lvt.crm.sandbox-web`.
-3. Prod (sau khi owner duyệt, từ worktree sạch): `LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y`, rồi `npm run build:production` trong `~/projects/LVT-CRM`.
-4. Seed (chỉ khi cần, đúng deployment): `npx convex run internal.seed.seed` qua `scripts/lvt-convex-cloud-env.sh`.
+3. Prod (sau khi owner duyệt, thư mục prod với tree sạch): `LVT_CONVEX_CONFIRM_PROD=local-prod npm run convex:deploy -- -y`, rồi `npm run build:production` trong `~/projects/LVT-CRM`.
+4. Seed (chỉ khi cần, đúng deployment): `npx convex run internal.seed.seed` qua `scripts/lvt-convex-local-env.sh`.
 6. Host `thcslevantam.ai.vn` hoặc `lvt.vscgroup.io.vn`: client dùng `window.location.origin` làm Convex URL (xem `src/main.jsx`).
 
 ## Backup

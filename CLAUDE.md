@@ -21,7 +21,7 @@
 - Any Android / iOS UIKit change must bump the Profile version (`versionName` / `MARKETING_VERSION`) and build number. See `.cursor/rules/native-app-version.mdc`.
 - Tests: Node test runner under `tests/*.test.mjs`.
 - Production frontend: `https://thcslevantam.ai.vn` (official domain since 2026-11). `https://lvt.vscgroup.io.vn` serves the same app and must stay up: Android ≤ 3.0.1 / iOS ≤ 4.0.2 load it in their WebView, and it is the passkey RP id (`DEFAULT_RP_ID`, `.well-known` association files). Never redirect it or change the RP id without new app releases.
-- Convex runs on Convex Cloud (dev `decisive-puma-318` = sandbox, prod `confident-guanaco-953` = customers). Deploy/codegen only through `scripts/lvt-convex-cloud-env.sh` (the npm scripts); never expose or inline deploy/admin keys. The old self-hosted wrapper stays retired. **Machine-local values (Convex ports, compose project name) live only in the untracked `infra/convex-local/.env` of each checkout (template `infra/convex-local/.env.example`, registry `~/ops/docs/convex-ports.md`). Never write a port number or a per-checkout name into a tracked file: sandbox and prod are separate checkouts and commits move between them, so a literal would conflict or point the other copy at the wrong port (`tests/machine-local-config.test.mjs` fails on it). Never use 3210/3211/6791 (another project's backend).**
+- Convex is **self-hosted on the Mac mini since 2026-11-08** (Convex Cloud retired): each checkout runs its own backend from `infra/convex-local` (Docker/colima), exposed through the Cloudflare tunnel `n8n-macMini` — prod `https://convex.thcslevantam.ai.vn` / `https://convex-site.thcslevantam.ai.vn`, sandbox `https://sandbox-convex.thcslevantam.ai.vn` / `https://sandbox-convex-site.thcslevantam.ai.vn`. Deploy/codegen only through `scripts/lvt-convex-local-env.sh` (the npm scripts: `convex:dev` only from a `LVT_CONVEX_ROLE=sandbox` checkout, `convex:deploy` only from `LVT_CONVEX_ROLE=prod` with `LVT_CONVEX_CONFIRM_PROD=local-prod` and a clean tree). Admin keys live in the Keychain (`LVT_CONVEX_ADMIN_KEY_ITEM`); never print, inline or commit them. Android ≥ 3.0.2 / iOS ≥ 4.0.3 talk to the self-hosted prod; older builds pointed at Convex Cloud. **Machine-local values (Convex ports, compose project name) live only in the untracked `infra/convex-local/.env` of each checkout (template `infra/convex-local/.env.example`, registry `~/ops/docs/convex-ports.md`). Never write a port number or a per-checkout name into a tracked file: sandbox and prod are separate checkouts and commits move between them, so a literal would conflict or point the other copy at the wrong port (`tests/machine-local-config.test.mjs` fails on it). Never use 3210/3211/6791 (another project's backend).**
 - UI changes (web, Android, iOS) follow `DESIGN.md`; read it before touching screens or styles.
 - Cursor agents also load `.cursor/rules/*.mdc` (core + import always-on; work/auth rules by glob). Keep those rules in sync when changing invariants.
 
@@ -132,8 +132,8 @@
 - Treat `convex/_generated/` as generated output; do not hand-edit it.
 - Schema/function changes must typecheck and, when deployment/codegen is explicitly requested, use repository scripts:
   - `npm run typecheck:convex-codegen`
-  - `npm run convex:dev -- --once` (dev)
-  - `LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run convex:deploy -- -y` (prod; clean worktree of the reviewed commit only)
+  - `npm run convex:dev -- --once` (sandbox checkout only)
+  - `LVT_CONVEX_CONFIRM_PROD=local-prod npm run convex:deploy -- -y` (prod checkout; clean tree of the reviewed commit only)
 - Never run a Convex deploy merely to make generated files change unless deployment is in scope.
 
 ## Required verification
