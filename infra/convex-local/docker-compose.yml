@@ -19,8 +19,8 @@ services:
     volumes:
       - data:/convex/data
     environment:
-      - CONVEX_CLOUD_ORIGIN=https://lvt-convex.vscgroup.io.vn
-      - CONVEX_SITE_ORIGIN=https://lvt-convex-site.vscgroup.io.vn
+      - CONVEX_CLOUD_ORIGIN=${LVT_CONVEX_CLOUD_ORIGIN:?set in infra/convex-local/.env}
+      - CONVEX_SITE_ORIGIN=${LVT_CONVEX_SITE_ORIGIN:?set in infra/convex-local/.env}
       - DISABLE_BEACON=true
       - DISABLE_METRICS_ENDPOINT=true
       - DOCUMENT_RETENTION_DELAY=172800

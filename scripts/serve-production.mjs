@@ -53,7 +53,11 @@ if (!convexUrl) {
   console.error('CONVEX_URL is not set (and infra/convex-local/.env has no reservation).');
   process.exit(78);
 }
-const convexSite = convexSiteUrl(convexUrl, process.env.CONVEX_SITE_URL);
+const localConvex = convexLocalPorts();
+const convexSite = convexSiteUrl(
+  convexUrl,
+  process.env.CONVEX_SITE_URL || (localConvex && convexUrl === localConvex.backend ? localConvex.site : ''),
+);
 // Legacy Drive objects (uploaded before files moved to Convex Storage) are still read/deleted via gog.
 const driveAccount = process.env.LVT_DRIVE_ACCOUNT || 'bemiagent@gmail.com';
 const maxFileSize = 20 * 1024 * 1024;
