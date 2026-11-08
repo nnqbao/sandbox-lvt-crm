@@ -2,7 +2,7 @@
 # Run a Convex CLI command against THIS checkout's self-hosted backend.
 #   sandbox -> only from a checkout whose infra/convex-local/.env says LVT_CONVEX_ROLE=sandbox
 #   prod    -> only from a checkout with LVT_CONVEX_ROLE=prod, LVT_CONVEX_CONFIRM_PROD=local-prod
-#              and a clean tree (customers)
+#              and a clean tree (customers); `convex export` (read-only backup) is exempt
 # Port and admin-key Keychain item come from the untracked infra/convex-local/.env; the admin key
 # is read from the Keychain and passed only through the environment. Cloud variables are blanked
 # so the CLI cannot reach a Convex Cloud deployment by accident.
@@ -38,7 +38,9 @@ if [[ ! "$PORT" =~ ^[0-9]+$ || -z "$KEY_ITEM" ]]; then
   echo "LVT_CONVEX_BACKEND_PORT / LVT_CONVEX_ADMIN_KEY_ITEM missing in $ENV_FILE" >&2
   exit 78
 fi
-if [[ "$TARGET" == prod ]]; then
+# `convex export` only reads (nightly backup); every other prod command needs the confirmation.
+readonly SUBCOMMAND="${2:-}"
+if [[ "$TARGET" == prod && "$SUBCOMMAND" != export ]]; then
   if [[ "${LVT_CONVEX_CONFIRM_PROD:-}" != local-prod ]]; then
     echo "refusing prod: set LVT_CONVEX_CONFIRM_PROD=local-prod to change the customers' backend" >&2
     exit 77
