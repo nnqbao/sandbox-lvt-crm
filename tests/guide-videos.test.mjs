@@ -35,7 +35,7 @@ test('guide videos are published to Convex, not git, and served by redirect', ()
   assert.match(convex, /export const register = internalMutation\(/);
   assert.match(convex, /export const issueUploadUrl = internalMutation\(/);
   assert.doesNotMatch(convex, /export const \w+ = (mutation|action)\(/);
-  assert.match(read('scripts/guide-videos/publish.mjs'), /lvt-convex-cloud-env\.sh/);
+  assert.match(read('scripts/guide-videos/publish.mjs'), /lvt-convex-local-env\.sh/);
 });
 
 test('the static server answers MP4 with ranges and revalidation', () => {

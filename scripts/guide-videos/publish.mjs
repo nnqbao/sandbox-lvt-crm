@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Upload the rendered guide videos + posters to Convex File Storage (they are not kept in git).
 //
-//   npm run guide:videos:publish -- dev                       # every video in public/huong-dan/video
-//   npm run guide:videos:publish -- dev --only tl-mon-hoc
-//   LVT_CONVEX_CONFIRM_PROD=confident-guanaco-953 npm run guide:videos:publish -- prod --dir <path>
+//   npm run guide:videos:publish -- sandbox                   # every video in public/huong-dan/video
+//   npm run guide:videos:publish -- sandbox --only tl-mon-hoc   (`dev` = sandbox)
+//   LVT_CONVEX_CONFIRM_PROD=local-prod npm run guide:videos:publish -- prod --dir <sandbox video dir>   # from the prod checkout
 //
 // Unchanged files (same SHA-256 as the published copy) are skipped. Runs the internal functions of
-// convex/guideVideos.ts through scripts/lvt-convex-cloud-env.sh, so the deploy key never leaves
-// that wrapper. `--dir` reads the files from another checkout (prod publishes from a clean
+// convex/guideVideos.ts through scripts/lvt-convex-local-env.sh (this checkout's self-hosted backend;
+// the admin key never leaves that wrapper). `--dir` reads the files from another checkout (prod publishes from a clean
 // worktree but the videos are rendered in the sandbox checkout).
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -25,13 +25,14 @@ function parseArgs(argv) {
     else if (argv[i] === '--dir') args.dir = resolve(argv[++i]);
     else throw new Error(`Unknown argument ${argv[i]}`);
   }
-  if (!['dev', 'prod'].includes(args.target)) throw new Error('Dùng: npm run guide:videos:publish -- <dev|prod> [--only id,…] [--dir thư mục]');
+  if (args.target === 'dev') args.target = 'sandbox';
+  if (!['sandbox', 'prod'].includes(args.target)) throw new Error('Dùng: npm run guide:videos:publish -- <sandbox|prod> [--only id,…] [--dir thư mục]');
   return args;
 }
 
 /** Run a Convex function via the CLI wrapper and return its JSON result. */
 function convexRun(target, fn, args) {
-  const out = execFileSync(join(repoRoot, 'scripts/lvt-convex-cloud-env.sh'), [target, join(repoRoot, 'node_modules/.bin/convex'), 'run', fn, JSON.stringify(args)], {
+  const out = execFileSync(join(repoRoot, 'scripts/lvt-convex-local-env.sh'), [target, join(repoRoot, 'node_modules/.bin/convex'), 'run', fn, JSON.stringify(args)], {
     cwd: repoRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run typecheck && vite build",
-    "build:production": "npm run typecheck && VITE_CONVEX_URL=https://confident-guanaco-953.convex.cloud vite build",
+    "build:production": "npm run typecheck && VITE_CONVEX_URL=https://convex.thcslevantam.ai.vn vite build",
     "start": "node scripts/serve-production.mjs",
     "preview": "vite preview",
     "check": "node scripts/check-files.mjs",
