@@ -79,7 +79,7 @@ test('đường dẫn Lịch công tác có tab chung và trang tạo/sửa', ()
   assert.equal(parseDutyPath('/cong-tac').view, 'personal');
 });
 
-test('format lịch chung theo mẫu Word, ngày luôn dd/MM/yyyy (tuần 07/09–12/09)', async () => {
+test('format lịch chung theo mẫu Word, ngày luôn dd/MM/yyyy (tuần 07/09–13/09, đủ Chủ nhật)', async () => {
   assert.equal(formatDutyClock('07:00'), '7g00');
   assert.equal(formatDutyClock('16:45'), '16g45');
   assert.equal(formatDutyClock('21:00'), '21g00');
@@ -93,9 +93,9 @@ test('format lịch chung theo mẫu Word, ngày luôn dd/MM/yyyy (tuần 07/09�
 
   const range = scheduleRange('week', '2026-09-09');
   assert.equal(range.startIso, '2026-09-07');
-  assert.equal(range.endIso, '2026-09-12');
-  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 07/09/2026 ĐẾN 12/09/2026');
-  assert.equal(sharedScheduleFilename(range), 'LCT tu 07.9-12.9.pdf');
+  assert.equal(range.endIso, '2026-09-13');
+  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 07/09/2026 ĐẾN 13/09/2026');
+  assert.equal(sharedScheduleFilename(range), 'LCT tu 07.9-13.9.pdf');
   const { formatVnDateSpan } = await import('../src/duties/sharedDutySchedule.js');
   assert.equal(formatVnDateSpan('2026-09-07', '2026-09-07'), '07/09/2026');
   assert.equal(formatVnDateSpan('2026-09-07', '2026-09-09'), '07/09/2026 → 09/09/2026');
@@ -119,7 +119,10 @@ test('format lịch chung theo mẫu Word, ngày luôn dd/MM/yyyy (tuần 07/09�
   const saturday = rows.filter((row) => row.dayIso === '2026-09-12');
   assert.equal(saturday.length, 1);
   assert.equal(saturday[0].content, '');
-  assert.equal(rows.some((row) => row.dayIso === '2026-09-13'), false);
+  // Công tác can fall on any day: Sunday has its own row (empty here).
+  const sunday = rows.filter((row) => row.dayIso === '2026-09-13');
+  assert.equal(sunday.length, 1);
+  assert.equal(sunday[0].content, '');
   assert.equal(
     formatParticipantCell({
       departmentNames: ['BGH'],
@@ -151,7 +154,7 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   const payload = buildSharedScheduleRows('week', '2026-09-09', sampleEvents);
   const built = buildSharedDutySchedulePdf(payload);
   assert.equal(Buffer.from(built.bytes.slice(0, 5)).toString('ascii'), '%PDF-');
-  assert.equal(built.filename, 'LCT tu 07.9-12.9.pdf');
+  assert.equal(built.filename, 'LCT tu 07.9-13.9.pdf');
   assert.equal(built.doc.getFont().fontName, SHARED_SCHEDULE_PDF_FONT.family);
   assert.notEqual(SHARED_SCHEDULE_PDF_FONT.family, VIETNAMESE_PDF_FONT.family);
   const visible = built.visibleTexts.join('\n');
@@ -159,7 +162,7 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   assert.match(visible, /LÊ VĂN TÁM/);
   assert.match(visible, /CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM/);
   assert.match(visible, /Độc lập – Tự do – Hạnh phúc/);
-  assert.match(visible, /LỊCH CÔNG TÁC TỪ NGÀY 07\/09\/2026 ĐẾN 12\/09\/2026/);
+  assert.match(visible, /LỊCH CÔNG TÁC TỪ NGÀY 07\/09\/2026 ĐẾN 13\/09\/2026/);
   assert.match(visible, /Ngày/);
   assert.match(visible, /Thời gian/);
   assert.match(visible, /Nội dung/);
@@ -168,6 +171,7 @@ test('PDF lịch chung nhúng font tiếng Việt và giữ tiêu đề/cột c�
   assert.match(visible, /Chào cờ đầu tuần/);
   assert.match(visible, /7g00/);
   assert.match(visible, /Thứ Bảy/);
+  assert.match(visible, /Chủ Nhật/);
   assert.match(visible, /12\/09/);
   assert.match(visible, /Thứ Năm/);
 });
@@ -401,12 +405,12 @@ test('Lịch công tác: chi tiết và xem trước import không hiện ngày 
   assert.match(css, /\.lct-shared-view \{\n  \/\*[^*]*\*\/\n  padding: 0 24px 32px;/);
 });
 
-test('lịch cá nhân: tiêu đề kỳ tuần dùng dd/MM/yyyy và cùng khoảng Thứ 2–Thứ 7 với tiêu đề bảng', () => {
-  // Week across months: Monday 28/09/2026 → Saturday 03/10/2026 (not "28/9–4/10, 2026").
-  assert.equal(weekPeriodHeading('2026-10-01'), '28/09/2026 – 03/10/2026');
-  assert.equal(weekPeriodHeading('2026-10-04'), '28/09/2026 – 03/10/2026');
+test('lịch cá nhân: tiêu đề kỳ tuần dùng dd/MM/yyyy và cùng khoảng Thứ 2–Chủ nhật với tiêu đề bảng', () => {
+  // Week across months: Monday 28/09/2026 → Sunday 04/10/2026 (not "28/9–4/10, 2026").
+  assert.equal(weekPeriodHeading('2026-10-01'), '28/09/2026 – 04/10/2026');
+  assert.equal(weekPeriodHeading('2026-10-04'), '28/09/2026 – 04/10/2026');
   const range = scheduleRange('week', '2026-10-01');
-  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 28/09/2026 ĐẾN 03/10/2026');
+  assert.equal(range.title, 'LỊCH CÔNG TÁC TỪ NGÀY 28/09/2026 ĐẾN 04/10/2026');
   const personal = readFileSync(new URL('../src/reports/DutyReportsView.jsx', import.meta.url), 'utf8');
   assert.match(personal, /title: weekPeriodHeading\(toSharedIsoDate\(anchor\)\)/);
   assert.doesNotMatch(personal, /getMonth\(\) \+ 1\}, \$\{end\.getFullYear\(\)\}/);

@@ -103,7 +103,8 @@ export function scheduleRange(mode, anchorIso) {
     };
   }
   const start = startOfWeekMonday(anchor);
-  const end = addDays(start, 5);
+  // Công tác can fall on any day (weekends and holidays included): the week sheet runs Mon–Sun.
+  const end = addDays(start, 6);
   const startIso = toIsoDate(start);
   const endIso = toIsoDate(end);
   return {
@@ -114,7 +115,7 @@ export function scheduleRange(mode, anchorIso) {
   };
 }
 
-/** Period heading above a week sheet: same Mon–Sat range as the sheet title, dd/MM/yyyy. */
+/** Period heading above a week sheet: same Mon–Sun range as the sheet title, dd/MM/yyyy. */
 export function weekPeriodHeading(anchorIso) {
   const range = scheduleRange('week', anchorIso);
   return `${formatVnDate(range.startIso)} – ${formatVnDate(range.endIso)}`;
@@ -127,7 +128,6 @@ export function datesInSchedule(range) {
     toIsoDate(current) <= range.endIso;
     current = addDays(current, 1)
   ) {
-    if (current.getDay() === 0) continue;
     days.push(toIsoDate(current));
   }
   return days;

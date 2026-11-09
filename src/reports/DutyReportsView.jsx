@@ -92,7 +92,7 @@ function viewRange(mode, anchor) {
   const year = anchor.getFullYear();
   const month = anchor.getMonth();
   if (mode === 'week') {
-    // Data window stays Mon–Sun; the heading matches the Mon–Sat duty sheet title.
+    // Data window and heading are Mon–Sun, like the duty sheet.
     return {
       start: startOfWeek(anchor),
       end: endOfWeek(anchor),

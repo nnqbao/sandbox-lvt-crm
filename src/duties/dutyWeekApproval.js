@@ -30,12 +30,12 @@ function pad2(value) {
   return String(value).padStart(2, '0');
 }
 
-/** "12/10 – 17/10" for the Monday–Saturday sheet. */
+/** "12/10 – 18/10" for the Monday–Sunday sheet. */
 export function formatWeekRange(weekStart) {
   const [year, month, day] = String(weekStart || '').split('-').map(Number);
   if (!year || !month || !day) return '';
-  const saturday = new Date(Date.UTC(year, month - 1, day + 5));
-  return `${pad2(day)}/${pad2(month)} – ${pad2(saturday.getUTCDate())}/${pad2(saturday.getUTCMonth() + 1)}`;
+  const sunday = new Date(Date.UTC(year, month - 1, day + 6));
+  return `${pad2(day)}/${pad2(month)} – ${pad2(sunday.getUTCDate())}/${pad2(sunday.getUTCMonth() + 1)}`;
 }
 
 /** "lúc 10:20, 10/10" in Vietnam time. */

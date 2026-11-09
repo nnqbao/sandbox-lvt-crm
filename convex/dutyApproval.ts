@@ -109,7 +109,7 @@ export function assertWeekStart(iso: string) {
   return value;
 }
 
-/** Last calendar day of the week (Sunday); the printed sheet stops on Saturday. */
+/** Last calendar day of the week (Sunday); the sheet shows Mon–Sun. */
 export function dutyWeekLastDay(weekStart: string) {
   return addIsoDays(weekStart, 6);
 }
@@ -307,7 +307,7 @@ export function summarizeDutyWeek(
 
   return {
     weekStart,
-    weekEnd: addIsoDays(weekStart, 5),
+    weekEnd: dutyWeekLastDay(weekStart),
     status,
     dutyCount: working.length,
     publishedCount,

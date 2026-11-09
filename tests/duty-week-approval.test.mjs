@@ -200,7 +200,7 @@ test('lý do trả lại bắt buộc, tối đa 500 ký tự', () => {
 });
 
 test('giao diện: nhãn tuần, giờ Việt Nam, thông báo tuần chưa duyệt', () => {
-  assert.equal(formatWeekRange(WEEK), '12/10 – 17/10');
+  assert.equal(formatWeekRange(WEEK), '12/10 – 18/10');
   assert.equal(formatWeekMoment(Date.UTC(2026, 9, 10, 3, 20)), 'lúc 10:20, 10/10');
   assert.equal(isDutyWeekNotification({ sourceType: 'duty_week_review' }), true);
   assert.equal(isDutyWeekNotification({ sourceType: 'duty_assigned' }), false);
